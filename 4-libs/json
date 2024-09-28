@@ -1,0 +1,2 @@
+NAME             TYPE                       DATA   AGE
+pg-cluster-app   kubernetes.io/basic-auth   9      21m

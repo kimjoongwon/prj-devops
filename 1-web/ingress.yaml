@@ -80,4 +80,3 @@ spec:
             name: ollama
             port:
               number: 11434
-
