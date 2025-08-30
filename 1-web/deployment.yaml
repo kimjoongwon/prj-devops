@@ -4,7 +4,6 @@ metadata:
   name: web-app
   labels:
     app.kubernetes.io/name: web-app
-  name: web-app
 spec:
   replicas: 1
   selector:
@@ -16,16 +15,7 @@ spec:
         app.kubernetes.io/name: web-app
     spec:
       containers:
-      - image: nginx
-        name: web-app
-        securityContext: 
-          runAsUser: 0
-        command: 
-          - /bin/sh
-          - -c
-          - "echo 'welcome to my web app!' > /usr/share/nginx/html/index.html && nginx -g 'daemon off;'"
-      dnsConfig:
-            options:
-              - name: ndots
-                value: "2"
-
+        - name: web-app 
+          image: nginx:latest          
+          ports:
+          - containerPort: 80

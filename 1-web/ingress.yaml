@@ -4,17 +4,16 @@ metadata:
   name: web-app
   annotations:
     cert-manager.io/cluster-issuer: "letsencrypt-prod"
-    acme.cert-manager.io/http01-edit-in-place: "true"
-    nginx.ingress.kubernetes.io/force-ssl-redirect: "false"
-    nginx.ingress.kubernetes.io/rewrite-target: /
+    ingress.kubernetes.io/ssl-redirect: "false"
 spec:
   ingressClassName: nginx
-  tls: 
+  tls:
   - hosts:
-    - wallyops.com
+    - cocdev.co.kr
+    - k8s.cocdev.co.kr
     secretName: web-app-tls
   rules:
-  - host: wallyops.com
+  - host: cocdev.co.kr
     http:
       paths:
       - path: /
@@ -24,59 +23,15 @@ spec:
             name: web-app
             port:
               number: 80
----
-apiVersion: networking.k8s.io/v1
-kind: Ingress
-metadata:
-  namespace: devops-tools
-  name: jenkins
-  annotations:
-    cert-manager.io/cluster-issuer: "letsencrypt-prod"
-    acme.cert-manager.io/http01-edit-in-place: "true"
-    nginx.ingress.kubernetes.io/force-ssl-redirect: "false"
-    nginx.ingress.kubernetes.io/rewrite-target: /
-spec:
-  ingressClassName: nginx
-  tls: 
-  - hosts:
-    - jenkins.wallyops.com
-    secretName: web-app-tls
-  rules:
-  - host: jenkins.wallyops.com
+  - host: k8s.cocdev.co.kr
     http:
       paths:
       - path: /
         pathType: Prefix
         backend:
           service:
-            name: jenkins-service 
+            name: kubernetes 
             port:
-              number: 8080
----
-apiVersion: networking.k8s.io/v1
-kind: Ingress
-metadata:
-  namespace: ollama
-  name: ollama
-  annotations:
-    cert-manager.io/cluster-issuer: "letsencrypt-prod"
-    acme.cert-manager.io/http01-edit-in-place: "true"
-    nginx.ingress.kubernetes.io/force-ssl-redirect: "false"
-    nginx.ingress.kubernetes.io/rewrite-target: /
-spec:
-  ingressClassName: nginx
-  tls: 
-  - hosts:
-    - ollama.wallyops.com
-    secretName: web-app-tls
-  rules:
-  - host: ollama.wallyops.com
-    http:
-      paths:
-      - path: /
-        pathType: Prefix
-        backend:
-          service:
-            name: ollama
-            port:
-              number: 11434
+              number: 443
+
+
