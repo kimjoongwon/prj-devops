@@ -41,14 +41,16 @@ kubectl apply -f environments/argocd/app-of-apps.yaml
 - **Domain**: `cocdev.co.kr`, `www.cocdev.co.kr`
 - **Admin**: `k8s.cocdev.co.kr`
 - **Image**: `nginx:1.25` (안정 버전)
-- **Replicas**: 2
+- **Replicas**: 3 (고가용성)
+- **TLS Secret**: `web-prod-tls`
 
 ### Staging 환경
 - **Namespace**: `frontend-web-staging`
-- **Domain**: `stg.cocdev.co.kr`
+- **Domain**: `cocdev.co.kr`, `stg.cocdev.co.kr`
 - **Admin**: `k8s.cocdev.co.kr` (staging)
 - **Image**: `nginx:latest` (최신 버전)
 - **Replicas**: 1
+- **TLS Secret**: `web-stg-tls`
 
 ## 🔄 GitOps 워크플로우
 
@@ -67,7 +69,14 @@ helm:
   parameters:
     - name: image.tag
       value: "1.26"  # 원하는 버전으로 변경
+    - name: replicaCount
+      value: "3"     # 복제본 수 조정
 ```
+
+### TLS 인증서 설정
+- **Production**: `web-prod-tls`
+- **Staging**: `web-stg-tls`  
+- **Default**: `web-tls`
 
 ### Values 파일 수정
 - Production: `environments/production/frontend-web-values.yaml`

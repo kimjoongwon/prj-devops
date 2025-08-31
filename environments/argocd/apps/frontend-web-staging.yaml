@@ -12,7 +12,7 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: https://github.com/wallykim/prj-devops.git  # 실제 Git Repository URL로 변경 필요
+    repoURL: https://github.com/kimjoongwon/prj-devops.git  # 실제 Git Repository URL로 변경 필요
     path: helm/applications/frontend/web
     targetRevision: main
     helm:
@@ -43,7 +43,7 @@ spec:
     - name: 'Environment'
       value: 'Staging'
     - name: 'Domain'
-      value: 'stg.cocdev.co.kr'
+      value: 'stg.cocdev.co.kr, cocdev.co.kr (staging)'
     - name: 'Admin Domain'
       value: 'k8s.cocdev.co.kr (staging)'
     - name: 'Description'

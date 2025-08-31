@@ -10,10 +10,8 @@ metadata:
   labels:
     {{- include "frontend-web.labels" . | nindent 4 }}
 spec:
-  # 오토스케일링이 비활성화된 경우에만 복제본 수를 수동으로 설정
-  {{- if not .Values.autoscaling.enabled }}
+  # 복제본 수 설정 (오토스케일링 제거됨)
   replicas: {{ .Values.replicaCount }}
-  {{- end }}
   # 관리할 Pod를 선택하기 위한 라벨 선택자
   selector:
     matchLabels:
