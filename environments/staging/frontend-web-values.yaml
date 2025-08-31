@@ -24,7 +24,7 @@ ingress:
         - path: /
           pathType: Prefix
   tls:
-    - secretName: web-app-stg-tls
+    - secretName: web-stg-tls
       hosts:
         - cocdev.co.kr
         - stg.cocdev.co.kr

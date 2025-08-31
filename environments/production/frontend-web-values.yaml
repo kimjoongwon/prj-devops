@@ -1,7 +1,7 @@
 # Production environment values for frontend-web
 # Values for production deployment
 
-replicaCount: 2
+replicaCount: 3
 
 image:
   repository: nginx
@@ -27,7 +27,7 @@ ingress:
         - path: /
           pathType: Prefix
   tls:
-    - secretName: web-app-prod-tls
+    - secretName: web-prod-tls
       hosts:
         - cocdev.co.kr
         - www.cocdev.co.kr

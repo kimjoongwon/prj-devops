@@ -39,7 +39,7 @@ ingress:
         - path: /
           pathType: Prefix
   tls:
-    - secretName: web-app-tls
+    - secretName: web-tls
       hosts:
         - cocdev.co.kr
 
