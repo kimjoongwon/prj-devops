@@ -14,9 +14,9 @@ NC='\033[0m' # No Color
 
 # Configuration
 NAMESPACE="stg"
-RELEASE_NAME="frontend-web-stg"
-CHART_PATH="./helm/applications/frontend/web"
-VALUES_FILE="./environments/staging/frontend-web-values.yaml"
+RELEASE_NAME="fe-web-stg"
+CHART_PATH="./helm/applications/fe/web"
+VALUES_FILE="./environments/staging/fe-web-values.yaml"
 COMMON_VALUES="./environments/shared/common-values.yaml"
 
 # Functions

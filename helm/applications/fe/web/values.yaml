@@ -42,30 +42,6 @@ ingress:
     - secretName: web-tls
       hosts:
         - cocdev.co.kr
-
-# Admin functionality within web app
-admin:
-  enabled: true
-  ingress:
-    enabled: true
-    className: "nginx"
-    annotations:
-      cert-manager.io/cluster-issuer: "letsencrypt-prod"
-      ingress.kubernetes.io/ssl-redirect: "false"
-    hosts:
-      - host: k8s.cocdev.co.kr
-        paths:
-          - path: /
-            pathType: Prefix
-            backend:
-              service:
-                name: kubernetes
-                port: 443
-    tls:
-      - secretName: admin-tls
-        hosts:
-          - k8s.cocdev.co.kr
-
 resources:
   limits:
     cpu: 100m

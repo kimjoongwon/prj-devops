@@ -14,9 +14,9 @@ NC='\033[0m' # No Color
 
 # Configuration
 NAMESPACE="prod"
-RELEASE_NAME="frontend-web-prod"
-CHART_PATH="./helm/applications/frontend/web"
-VALUES_FILE="./environments/production/frontend-web-values.yaml"
+RELEASE_NAME="fe-web-prod"
+CHART_PATH="./helm/applications/fe/web"
+VALUES_FILE="./environments/production/fe-web-values.yaml"
 COMMON_VALUES="./environments/shared/common-values.yaml"
 
 # Safety flags
