@@ -1,0 +1,50 @@
+# Frontend Web - Production 환경 ArgoCD Application
+
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: frontend-web-production
+  namespace: argocd
+  labels:
+    app.kubernetes.io/name: frontend-web
+    app.kubernetes.io/instance: production
+    environment: production
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/wallykim/prj-devops.git  # 실제 Git Repository URL로 변경 필요
+    path: helm/applications/frontend/web
+    targetRevision: main
+    helm:
+      # Production 환경 전용 values 파일 사용
+      valueFiles:
+        - ../../../../environments/production/frontend-web-values.yaml
+      parameters:
+        - name: image.tag
+          value: "1.25"  # Production에서는 안정된 버전 사용
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: frontend-web-prod
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ApplyOutOfSyncOnly=true
+    retry:
+      limit: 3
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m
+  revisionHistoryLimit: 10
+  info:
+    - name: 'Environment'
+      value: 'Production'
+    - name: 'Domain'
+      value: 'cocdev.co.kr, www.cocdev.co.kr'
+    - name: 'Admin Domain'  
+      value: 'k8s.cocdev.co.kr'
+    - name: 'Description'
+      value: 'Frontend Web Application - Production Environment'

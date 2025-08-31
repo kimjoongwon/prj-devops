@@ -1,0 +1,23 @@
+apiVersion: v2
+name: cert-manager-config
+description: A Helm chart for cert-manager ClusterIssuer configurations
+type: application
+version: 0.1.0
+appVersion: "1.0.0"
+keywords:
+  - cert-manager
+  - ssl
+  - tls
+  - letsencrypt
+  - certificates
+home: https://cert-manager.io/
+sources:
+  - https://github.com/cert-manager/cert-manager
+dependencies:
+  - name: cert-manager
+    version: "~1.13.0"
+    repository: https://charts.jetstack.io
+    condition: cert-manager.install
+maintainers:
+  - name: DevOps Team
+    email: devops@company.com

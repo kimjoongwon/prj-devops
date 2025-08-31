@@ -1,0 +1,60 @@
+# Frontend Web 애플리케이션을 위한 Kubernetes Deployment 템플릿
+# 이 파일은 Helm 차트를 통해 웹 애플리케이션을 Kubernetes 클러스터에 배포하기 위한 설정을 정의합니다.
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  # 배포 리소스의 이름 (릴리스명-차트명 형태로 생성)
+  name: {{ include "frontend-web.fullname" . }}
+  # 배포 리소스에 적용될 레이블 (추적, 선택, 관리용)
+  labels:
+    {{- include "frontend-web.labels" . | nindent 4 }}
+spec:
+  # 오토스케일링이 비활성화된 경우에만 복제본 수를 수동으로 설정
+  {{- if not .Values.autoscaling.enabled }}
+  replicas: {{ .Values.replicaCount }}
+  {{- end }}
+  # 관리할 Pod를 선택하기 위한 라벨 선택자
+  selector:
+    matchLabels:
+      {{- include "frontend-web.selectorLabels" . | nindent 6 }}
+  # Pod 템플릿 정의 (실제 실행될 컨테이너 설정)
+  template:
+    metadata:
+      # Pod에 적용될 레이블
+      labels:
+        {{- include "frontend-web.labels" . | nindent 8 }}
+    spec:
+      # Pod가 사용할 서비스 어카운트 (권한 관리용)
+      serviceAccountName: {{ include "frontend-web.serviceAccountName" . }}
+      # Pod 레벨 보안 컨텍스트 (사용자 ID, 그룹 ID 등)
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      # 컨테이너 설정
+      containers:
+        - name: {{ .Chart.Name }}
+          # 컨테이너 레벨 보안 컨텍스트
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          # 사용할 Docker 이미지 (저장소:태그 형태)
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          # 이미지 풀 정책 (Always, IfNotPresent, Never)
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          # 컨테이너가 노출할 포트
+          ports:
+            - name: http
+              containerPort: {{ .Values.service.targetPort }}
+              protocol: TCP
+          # 컨테이너가 살아있는지 확인하는 프로브 (재시작 여부 결정)
+          livenessProbe:
+            httpGet:
+              path: /
+              port: http
+          # 컨테이너가 트래픽을 받을 준비가 되었는지 확인하는 프로브
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+          # 컨테이너에 할당할 리소스 (CPU, 메모리 제한/요청)
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}

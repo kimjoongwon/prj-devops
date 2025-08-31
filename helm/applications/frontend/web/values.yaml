@@ -1,0 +1,76 @@
+# Default values for frontend-web
+# This is a YAML-formatted file.
+
+replicaCount: 1
+
+image:
+  repository: nginx
+  pullPolicy: IfNotPresent
+  tag: "latest"
+
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  create: true
+  automount: true
+  annotations: {}
+  name: ""
+
+
+podSecurityContext: {}
+
+securityContext: {}
+
+service:
+  type: ClusterIP
+  port: 80
+  targetPort: 80
+
+ingress:
+  enabled: true
+  className: "nginx"
+  annotations:
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    ingress.kubernetes.io/ssl-redirect: "false"
+  hosts:
+    - host: cocdev.co.kr
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - secretName: web-app-tls
+      hosts:
+        - cocdev.co.kr
+
+# Admin functionality within web app
+admin:
+  enabled: true
+  ingress:
+    enabled: true
+    className: "nginx"
+    annotations:
+      cert-manager.io/cluster-issuer: "letsencrypt-prod"
+      ingress.kubernetes.io/ssl-redirect: "false"
+    hosts:
+      - host: k8s.cocdev.co.kr
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: kubernetes
+                port: 443
+    tls:
+      - secretName: admin-tls
+        hosts:
+          - k8s.cocdev.co.kr
+
+resources:
+  limits:
+    cpu: 100m
+    memory: 128Mi
+  requests:
+    cpu: 50m
+    memory: 64Mi
+

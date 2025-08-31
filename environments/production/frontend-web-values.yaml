@@ -1,0 +1,68 @@
+# Production environment values for frontend-web
+# Values for production deployment
+
+replicaCount: 2
+
+image:
+  repository: nginx
+  pullPolicy: IfNotPresent
+  tag: "1.25"  # Use specific version for production
+
+ingress:
+  enabled: true
+  className: "nginx"
+  annotations:
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"  # Use production certs
+    ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/rate-limit: "100"
+    nginx.ingress.kubernetes.io/rate-limit-window: "1m"
+  hosts:
+    - host: cocdev.co.kr
+      paths:
+        - path: /
+          pathType: Prefix
+    - host: www.cocdev.co.kr
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - secretName: web-app-prod-tls
+      hosts:
+        - cocdev.co.kr
+        - www.cocdev.co.kr
+
+admin:
+  enabled: true
+  ingress:
+    enabled: true
+    className: "nginx"
+    annotations:
+      cert-manager.io/cluster-issuer: "letsencrypt-prod"
+      ingress.kubernetes.io/ssl-redirect: "true"
+      nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+      nginx.ingress.kubernetes.io/whitelist-source-range: "10.0.0.0/8,192.168.0.0/16"  # Restrict admin access
+    hosts:
+      - host: k8s.cocdev.co.kr
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: kubernetes
+                port: 443
+    tls:
+      - secretName: admin-prod-tls
+        hosts:
+          - k8s.cocdev.co.kr
+
+resources:
+  limits:
+    cpu: 500m
+    memory: 512Mi
+  requests:
+    cpu: 250m
+    memory: 256Mi
+
+# Production 환경에서는 기본 설정 사용
+# 복잡한 스케줄링 정책과 보안 설정은 제거하여 단순화

@@ -1,0 +1,31 @@
+# Application of Applications 패턴
+# 모든 환경의 애플리케이션들을 관리하는 메인 ArgoCD Application
+
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: frontend-web-apps
+  namespace: argocd
+  labels:
+    app.kubernetes.io/name: frontend-web-apps
+    app.kubernetes.io/part-of: frontend-web
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/wallykim/prj-devops.git  # 실제 Git Repository URL로 변경 필요
+    path: environments/argocd/apps
+    targetRevision: main
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: argocd
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+  info:
+    - name: 'Description'
+      value: 'Frontend Web Applications - App of Apps pattern'
+    - name: 'Environment'
+      value: 'Multi-environment (staging, production)'

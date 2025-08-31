@@ -1,0 +1,35 @@
+# Default values for cert-manager configuration
+# This is a YAML-formatted file.
+
+# Install cert-manager dependency
+cert-manager:
+  install: true
+  installCRDs: true
+
+# ClusterIssuer configurations
+clusterIssuer:
+  # Production Let's Encrypt ClusterIssuer
+  production:
+    enabled: true
+    name: letsencrypt-prod
+    server: https://acme-v02.api.letsencrypt.org/directory
+    email: admin@example.com
+    privateKeySecretRef:
+      name: letsencrypt-prod
+    solvers:
+      - http01:
+          ingress:
+            class: nginx
+            
+  # Staging Let's Encrypt ClusterIssuer  
+  staging:
+    enabled: true
+    name: letsencrypt-staging
+    server: https://acme-staging-v02.api.letsencrypt.org/directory
+    email: admin@example.com
+    privateKeySecretRef:
+      name: letsencrypt-staging
+    solvers:
+      - http01:
+          ingress:
+            class: nginx

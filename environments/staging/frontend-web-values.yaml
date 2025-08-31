@@ -1,0 +1,63 @@
+# Staging environment values for frontend-web
+# Values for staging environment (main development/testing environment)
+
+replicaCount: 1
+
+image:
+  repository: nginx
+  pullPolicy: Always  # Always pull for staging to get latest builds
+  tag: "latest"
+
+ingress:
+  enabled: true
+  className: "nginx"
+  annotations:
+    cert-manager.io/cluster-issuer: "letsencrypt-staging"
+    ingress.kubernetes.io/ssl-redirect: "false"  # Allow HTTP for development ease
+  hosts:
+    - host: cocdev.co.kr
+      paths:
+        - path: /
+          pathType: Prefix
+    - host: stg.cocdev.co.kr
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - secretName: web-app-stg-tls
+      hosts:
+        - cocdev.co.kr
+        - stg.cocdev.co.kr
+
+admin:
+  enabled: true
+  ingress:
+    enabled: true
+    className: "nginx"
+    annotations:
+      cert-manager.io/cluster-issuer: "letsencrypt-staging"
+      ingress.kubernetes.io/ssl-redirect: "false"
+    hosts:
+      - host: k8s.cocdev.co.kr
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: kubernetes
+                port: 443
+    tls:
+      - secretName: admin-stg-tls
+        hosts:
+          - k8s.cocdev.co.kr
+
+resources:
+  limits:
+    cpu: 500m
+    memory: 512Mi
+  requests:
+    cpu: 200m
+    memory: 256Mi
+
+# Staging 환경에서는 간단한 설정만 유지
+# 오토스케일링과 추가 어노테이션은 제거하여 단순화

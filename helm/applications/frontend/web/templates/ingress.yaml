@@ -1,0 +1,79 @@
+# Frontend Web 애플리케이션을 위한 Ingress 설정
+# 메인 웹 애플리케이션(cocdev.co.kr)과 관리 도구(k8s.cocdev.co.kr) 모두 포함
+
+# 메인 웹 애플리케이션 Ingress
+{{- if .Values.ingress.enabled -}}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ include "frontend-web.fullname" . }}
+  labels:
+    {{- include "frontend-web.labels" . | nindent 4 }}
+  annotations:
+    {{- toYaml .Values.ingress.annotations | nindent 4 }}
+spec:
+  ingressClassName: {{ .Values.ingress.className }}
+  tls:
+    {{- range .Values.ingress.tls }}
+    - hosts:
+        {{- range .hosts }}
+        - {{ . | quote }}
+        {{- end }}
+      secretName: {{ .secretName }}
+    {{- end }}
+  rules:
+    {{- range .Values.ingress.hosts }}
+    - host: {{ .host | quote }}
+      http:
+        paths:
+          {{- range .paths }}
+          - path: {{ .path }}
+            pathType: {{ .pathType }}
+            backend:
+              service:
+                name: {{ include "frontend-web.fullname" $ }}
+                port:
+                  number: {{ $.Values.service.port }}
+          {{- end }}
+    {{- end }}
+{{- end }}
+
+---
+
+# 관리 도구를 위한 Admin Ingress (k8s.cocdev.co.kr → kubernetes 서비스 프록시)
+{{- if and .Values.admin.enabled .Values.admin.ingress.enabled -}}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ include "frontend-web.fullname" . }}-admin
+  labels:
+    {{- include "frontend-web.labels" . | nindent 4 }}
+    app.kubernetes.io/component: admin
+  annotations:
+    {{- toYaml .Values.admin.ingress.annotations | nindent 4 }}
+spec:
+  ingressClassName: {{ .Values.admin.ingress.className }}
+  tls:
+    {{- range .Values.admin.ingress.tls }}
+    - hosts:
+        {{- range .hosts }}
+        - {{ . | quote }}
+        {{- end }}
+      secretName: {{ .secretName }}
+    {{- end }}
+  rules:
+    {{- range .Values.admin.ingress.hosts }}
+    - host: {{ .host | quote }}
+      http:
+        paths:
+          {{- range .paths }}
+          - path: {{ .path }}
+            pathType: {{ .pathType }}
+            backend:
+              service:
+                name: {{ .backend.service.name }}
+                port:
+                  number: {{ .backend.service.port }}
+          {{- end }}
+    {{- end }}
+{{- end }}

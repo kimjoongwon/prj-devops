@@ -1,0 +1,50 @@
+# Frontend Web - Staging 환경 ArgoCD Application
+
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: frontend-web-staging
+  namespace: argocd
+  labels:
+    app.kubernetes.io/name: frontend-web
+    app.kubernetes.io/instance: staging
+    environment: staging
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/wallykim/prj-devops.git  # 실제 Git Repository URL로 변경 필요
+    path: helm/applications/frontend/web
+    targetRevision: main
+    helm:
+      # Staging 환경 전용 values 파일 사용
+      valueFiles:
+        - ../../../../environments/staging/frontend-web-values.yaml
+      parameters:
+        - name: image.tag
+          value: "latest"  # Staging에서는 최신 버전 사용
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: frontend-web-staging
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ApplyOutOfSyncOnly=true
+    retry:
+      limit: 5
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m
+  revisionHistoryLimit: 10
+  info:
+    - name: 'Environment'
+      value: 'Staging'
+    - name: 'Domain'
+      value: 'stg.cocdev.co.kr'
+    - name: 'Admin Domain'
+      value: 'k8s.cocdev.co.kr (staging)'
+    - name: 'Description'
+      value: 'Frontend Web Application - Staging Environment'

@@ -1,0 +1,18 @@
+apiVersion: v2
+name: jenkins
+description: A Helm chart for Jenkins CI/CD server
+type: application
+version: 0.1.0
+appVersion: "2.440.3"
+keywords:
+  - jenkins
+  - ci
+  - cd
+  - continuous-integration
+  - continuous-delivery
+home: https://jenkins.io/
+sources:
+  - https://github.com/jenkinsci/jenkins
+maintainers:
+  - name: DevOps Team
+    email: devops@company.com

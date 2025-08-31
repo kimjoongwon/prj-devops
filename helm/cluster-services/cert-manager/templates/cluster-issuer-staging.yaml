@@ -1,0 +1,20 @@
+{{- if .Values.clusterIssuer.staging.enabled }}
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: {{ .Values.clusterIssuer.staging.name }}
+  labels:
+    {{- include "cert-manager-config.labels" . | nindent 4 }}
+spec:
+  acme:
+    # The ACME server URL
+    server: {{ .Values.clusterIssuer.staging.server }}
+    # Email address used for ACME registration
+    email: {{ .Values.clusterIssuer.staging.email }}
+    # Name of a secret used to store the ACME account private key
+    privateKeySecretRef:
+      name: {{ .Values.clusterIssuer.staging.privateKeySecretRef.name }}
+    # Enable the HTTP-01 challenge provider
+    solvers:
+      {{- toYaml .Values.clusterIssuer.staging.solvers | nindent 6 }}
+{{- end }}
