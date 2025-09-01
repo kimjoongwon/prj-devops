@@ -18,7 +18,7 @@ spec:
     helm:
       # Staging 환경 전용 values 파일 사용
       valueFiles:
-        - ../../../../environments/staging/fe-web-values.yaml
+        - ../../../environments/staging/fe-web-values.yaml
       parameters:
         - name: image.tag
           value: "latest" # Staging에서는 최신 버전 사용
