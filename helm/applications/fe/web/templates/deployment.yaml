@@ -23,17 +23,9 @@ spec:
       labels:
         {{- include "frontend-web.labels" . | nindent 8 }}
     spec:
-      # Pod가 사용할 서비스 어카운트 (권한 관리용)
-      serviceAccountName: {{ include "frontend-web.serviceAccountName" . }}
-      # Pod 레벨 보안 컨텍스트 (사용자 ID, 그룹 ID 등)
-      securityContext:
-        {{- toYaml .Values.podSecurityContext | nindent 8 }}
       # 컨테이너 설정
       containers:
         - name: {{ .Chart.Name }}
-          # 컨테이너 레벨 보안 컨텍스트
-          securityContext:
-            {{- toYaml .Values.securityContext | nindent 12 }}
           # 사용할 Docker 이미지 (저장소:태그 형태)
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           # 이미지 풀 정책 (Always, IfNotPresent, Never)

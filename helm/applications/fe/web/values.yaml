@@ -11,17 +11,6 @@ image:
 nameOverride: ""
 fullnameOverride: ""
 
-serviceAccount:
-  create: true
-  automount: true
-  annotations: {}
-  name: ""
-
-
-podSecurityContext: {}
-
-securityContext: {}
-
 service:
   type: ClusterIP
   port: 80
@@ -33,6 +22,7 @@ ingress:
   annotations:
     cert-manager.io/cluster-issuer: "letsencrypt-prod"
     ingress.kubernetes.io/ssl-redirect: "false"
+    acme.cert-manager.io/http01-edit-in-place: "true"
   hosts:
     - host: cocdev.co.kr
       paths:
@@ -49,4 +39,3 @@ resources:
   requests:
     cpu: 50m
     memory: 64Mi
-
