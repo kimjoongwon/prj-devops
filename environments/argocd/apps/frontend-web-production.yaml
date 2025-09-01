@@ -13,7 +13,7 @@ spec:
   project: default
   source:
     repoURL: https://github.com/kimjoongwon/prj-devops.git # 실제 Git Repository URL로 변경 필요
-    path: helm/applications/frontend/web
+    path: helm/applications/fe/web
     targetRevision: main
     helm:
       # Production 환경 전용 values 파일 사용
