@@ -1,12 +1,12 @@
-# Frontend Web - Staging 환경 ArgoCD Application
+# FE Web - Staging 환경 ArgoCD Application
 
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: frontend-web-staging
+  name: fe-web-stg
   namespace: argocd
   labels:
-    app.kubernetes.io/name: frontend-web
+    app.kubernetes.io/name: fe-web
     app.kubernetes.io/instance: staging
     environment: staging
 spec:
@@ -24,7 +24,7 @@ spec:
           value: "latest" # Staging에서는 최신 버전 사용
   destination:
     server: https://kubernetes.default.svc
-    namespace: frontend-web-staging
+    namespace: fe-web-stg
   syncPolicy:
     automated:
       prune: true
@@ -45,4 +45,4 @@ spec:
     - name: "Domain"
       value: "stg.cocdev.co.kr, cocdev.co.kr (staging)"
     - name: "Description"
-      value: "Frontend Web Application - Staging Environment"
+      value: "FE Web Application - Staging Environment"

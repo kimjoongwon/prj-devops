@@ -1,12 +1,12 @@
-# Frontend Web - Production 환경 ArgoCD Application
+# FE Web - Production 환경 ArgoCD Application
 
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: frontend-web-production
+  name: fe-web-prod
   namespace: argocd
   labels:
-    app.kubernetes.io/name: frontend-web
+    app.kubernetes.io/name: fe-web
     app.kubernetes.io/instance: production
     environment: production
 spec:
@@ -26,7 +26,7 @@ spec:
           value: "3" # Production 환경 고가용성
   destination:
     server: https://kubernetes.default.svc
-    namespace: frontend-web-prod
+    namespace: fe-web-prod
   syncPolicy:
     automated:
       prune: true
@@ -47,4 +47,4 @@ spec:
     - name: "Domain"
       value: "cocdev.co.kr, www.cocdev.co.kr"
     - name: "Description"
-      value: "Frontend Web Application - Production Environment"
+      value: "FE Web Application - Production Environment"

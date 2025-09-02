@@ -13,7 +13,7 @@ BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
 # Configuration
-NAMESPACE="prod"
+NAMESPACE="fe-web-prod"
 RELEASE_NAME="fe-web-prod"
 CHART_PATH="./helm/applications/fe/web"
 VALUES_FILE="./environments/production/fe-web-values.yaml"

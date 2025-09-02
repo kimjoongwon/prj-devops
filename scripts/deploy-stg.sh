@@ -13,7 +13,7 @@ BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
 # Configuration
-NAMESPACE="stg"
+NAMESPACE="fe-web-stg"
 RELEASE_NAME="fe-web-stg"
 CHART_PATH="./helm/applications/fe/web"
 VALUES_FILE="./environments/staging/fe-web-values.yaml"

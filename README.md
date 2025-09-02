@@ -23,8 +23,8 @@ prj-devops/
 │   │   ├── harbor/                # Container registry
 │   │   └── kubernetes-dashboard/  # Cluster management UI
 │   └── applications/              # Layer 3: Business applications (sync-wave: 3)
-│       └── frontend/
-│           └── web/               # Frontend web application with admin
+│       └── fe/
+│           └── web/               # FE web application with admin
 │               ├── Chart.yaml
 │               ├── values.yaml
 │               └── templates/
@@ -36,9 +36,9 @@ prj-devops/
 │                   └── _helpers.tpl
 ├── environments/                   # Environment-specific configurations
 │   ├── staging/
-│   │   └── frontend-web-values.yaml
+│   │   └── fe-web-values.yaml
 │   ├── production/
-│   │   └── frontend-web-values.yaml
+│   │   └── fe-web-values.yaml
 │   └── shared/
 │       └── common-values.yaml
 ├── scripts/                       # Deployment automation
@@ -203,13 +203,13 @@ After deployment, applications are available at:
 
 - **Cluster Services**: Infrastructure components that run at cluster level
 - **Development Tools**: CI/CD, monitoring, and management tools
-- **Applications**: Business logic applications (frontend/web)
+- **Applications**: Business logic applications (fe/web)
 
 ### Environment Values
 
 - **shared/common-values.yaml**: Common settings across all environments
-- **staging/frontend-web-values.yaml**: Staging environment configuration
-- **production/frontend-web-values.yaml**: Production environment configuration
+- **staging/fe-web-values.yaml**: Staging environment configuration
+- **production/fe-web-values.yaml**: Production environment configuration
 
 ## 🚨 Safety & Best Practices
 
@@ -259,7 +259,7 @@ After deployment, applications are available at:
 
 ```bash
 # Show deployment logs
-kubectl logs -n <namespace> -l app.kubernetes.io/name=frontend-web
+kubectl logs -n <namespace> -l app.kubernetes.io/name=fe-web
 
 # Check ingress status
 kubectl get ingress -A
@@ -312,7 +312,7 @@ spec:
 
 This structure migrates from the original flat YAML structure to a production-ready, layered Helm deployment:
 
-- **Original `1-web/`** → **`helm/applications/frontend/web/`** (Helm templated)
+- **Original `1-web/`** → **`helm/applications/fe/web/`** (Helm templated)
 - **Original `4-libs/`** → **`helm/cluster-services/`** (infrastructure layer)
 - **Original `helm/`** → **`helm/development-tools/`** (tools layer)
 - **Static YAML** → **Helm templates** with environment-specific values
