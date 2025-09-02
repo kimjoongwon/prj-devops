@@ -18,7 +18,7 @@ spec:
     helm:
       # Production 환경 전용 values 파일 사용
       valueFiles:
-        - ../../../environments/production/fe-web-values.yaml
+        - ../../../../environments/production/fe-web-values.yaml
       parameters:
         - name: image.tag
           value: "1.25" # Production에서는 안정된 버전 사용
