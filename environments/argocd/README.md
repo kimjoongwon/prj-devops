@@ -16,20 +16,23 @@ environments/argocd/
 ## 🚀 ArgoCD 연결 방법
 
 ### 1. Git Repository URL 수정
+
 각 Application 파일에서 `repoURL`을 실제 Git Repository로 변경:
 
 ```yaml
 source:
-  repoURL: https://github.com/your-username/prj-devops.git  # 실제 URL로 변경
+  repoURL: https://github.com/your-username/prj-devops.git # 실제 URL로 변경
 ```
 
 ### 2. App of Apps 배포
+
 ```bash
 # ArgoCD CLI 또는 UI를 통해 메인 Application 생성
 kubectl apply -f environments/argocd/app-of-apps.yaml
 ```
 
 ### 3. 자동 배포 확인
+
 - ArgoCD가 `app-of-apps.yaml`을 감지
 - `apps/` 폴더의 모든 Application들이 자동 생성
 - 각 환경별 자동 배포 시작
@@ -37,6 +40,7 @@ kubectl apply -f environments/argocd/app-of-apps.yaml
 ## 🎯 배포 환경
 
 ### Production 환경
+
 - **Namespace**: `frontend-web-prod`
 - **Domain**: `cocdev.co.kr`, `www.cocdev.co.kr`
 - **Admin**: `k8s.cocdev.co.kr`
@@ -45,9 +49,9 @@ kubectl apply -f environments/argocd/app-of-apps.yaml
 - **TLS Secret**: `web-prod-tls`
 
 ### Staging 환경
+
 - **Namespace**: `frontend-web-staging`
 - **Domain**: `cocdev.co.kr`, `stg.cocdev.co.kr`
-- **Admin**: `k8s.cocdev.co.kr` (staging)
 - **Image**: `nginx:latest` (최신 버전)
 - **Replicas**: 1
 - **TLS Secret**: `web-stg-tls`
@@ -63,31 +67,35 @@ kubectl apply -f environments/argocd/app-of-apps.yaml
 ## ⚙️ 설정 변경
 
 ### 이미지 버전 변경
+
 ```yaml
 # frontend-web-production.yaml
 helm:
   parameters:
     - name: image.tag
-      value: "1.26"  # 원하는 버전으로 변경
+      value: "1.26" # 원하는 버전으로 변경
     - name: replicaCount
-      value: "3"     # 복제본 수 조정
+      value: "3" # 복제본 수 조정
 ```
 
 ### TLS 인증서 설정
+
 - **Production**: `web-prod-tls`
-- **Staging**: `web-stg-tls`  
+- **Staging**: `web-stg-tls`
 - **Default**: `web-tls`
 
 ### Values 파일 수정
+
 - Production: `environments/production/frontend-web-values.yaml`
 - Staging: `environments/staging/frontend-web-values.yaml`
 
 ### 동기화 정책 조정
+
 ```yaml
 syncPolicy:
   automated:
-    prune: true      # 삭제된 리소스 자동 정리
-    selfHeal: true   # 수동 변경사항 되돌리기
+    prune: true # 삭제된 리소스 자동 정리
+    selfHeal: true # 수동 변경사항 되돌리기
 ```
 
 ## 🛡️ 보안 고려사항

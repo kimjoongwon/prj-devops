@@ -68,12 +68,14 @@ prj-devops/
 ```
 
 This deploys in order:
+
 1. **Cluster Services** (Layer 1): cert-manager, MetalLB, NFS provisioner
 2. **Development Tools** (Layer 2): Jenkins, ArgoCD, Harbor, Kubernetes Dashboard
 
 ### 2. Deploy Applications
 
 #### Staging Environment
+
 ```bash
 # Deploy to staging
 ./scripts/deploy-stg.sh
@@ -85,6 +87,7 @@ This deploys in order:
 ```
 
 #### Production Environment
+
 ```bash
 # Dry run first (recommended)
 ./scripts/deploy-all.sh production --dry-run
@@ -96,8 +99,8 @@ This deploys in order:
 ## 🔧 Environment Configuration
 
 ### Staging (Development/Testing)
+
 - **Domain**: `cocdev.co.kr`, `stg.cocdev.co.kr`
-- **Admin**: `k8s.cocdev.co.kr`
 - **Certificate**: Let's Encrypt Staging
 - **Replicas**: 2
 - **Auto-scaling**: Enabled
@@ -105,8 +108,8 @@ This deploys in order:
 - **SSL**: Optional (HTTP allowed)
 
 ### Production
+
 - **Domain**: `cocdev.co.kr`, `www.cocdev.co.kr`
-- **Admin**: `k8s.cocdev.co.kr` (IP restricted)
 - **Certificate**: Let's Encrypt Production
 - **Replicas**: 3+
 - **Auto-scaling**: Enabled
@@ -116,6 +119,7 @@ This deploys in order:
 ## 📊 Deployment Scripts
 
 ### deploy-all.sh
+
 Main orchestrator script with environment management:
 
 ```bash
@@ -133,18 +137,24 @@ Main orchestrator script with environment management:
 ```
 
 ### deploy-libraries.sh
+
 Deploys infrastructure and development tools in layers:
+
 - **Layer 1 (Cluster Services)**: cert-manager, MetalLB, NFS provisioner
 - **Layer 2 (Development Tools)**: Jenkins, ArgoCD, Harbor, Kubernetes Dashboard
 
 ### deploy-stg.sh
+
 Staging deployment with features:
+
 - Quick deployment
 - Status monitoring
 - Easy cleanup: `./deploy-stg.sh delete`
 
 ### deploy-prod.sh
+
 Production deployment with safety features:
+
 - Confirmation prompts
 - Automatic backup
 - Health verification
@@ -153,6 +163,7 @@ Production deployment with safety features:
 ## 🛡️ Security Features
 
 ### Production Security
+
 - Non-root containers
 - Read-only root filesystem
 - Resource limits enforced
@@ -161,6 +172,7 @@ Production deployment with safety features:
 - SSL/TLS termination
 
 ### Certificate Management
+
 - Automatic SSL/TLS certificates via cert-manager
 - Let's Encrypt integration
 - Staging certificates for dev/staging
@@ -169,6 +181,7 @@ Production deployment with safety features:
 ## 🔍 Monitoring & Operations
 
 ### Deployment Status
+
 ```bash
 # Check staging status
 ./scripts/deploy-stg.sh status
@@ -178,22 +191,22 @@ Production deployment with safety features:
 ```
 
 ### Accessing Applications
+
 After deployment, applications are available at:
+
 - **Staging**: https://cocdev.co.kr or https://stg.cocdev.co.kr
 - **Production**: https://cocdev.co.kr or https://www.cocdev.co.kr
-
-### Admin Interfaces
-- **Staging**: https://k8s.cocdev.co.kr
-- **Production**: https://k8s.cocdev.co.kr (IP restricted)
 
 ## 🗂️ File Organization
 
 ### Layered Architecture
+
 - **Cluster Services**: Infrastructure components that run at cluster level
-- **Development Tools**: CI/CD, monitoring, and management tools  
+- **Development Tools**: CI/CD, monitoring, and management tools
 - **Applications**: Business logic applications (frontend/web)
 
 ### Environment Values
+
 - **shared/common-values.yaml**: Common settings across all environments
 - **staging/frontend-web-values.yaml**: Staging environment configuration
 - **production/frontend-web-values.yaml**: Production environment configuration
@@ -201,6 +214,7 @@ After deployment, applications are available at:
 ## 🚨 Safety & Best Practices
 
 ### Production Deployments
+
 1. Always run dry-run first
 2. Verify in staging environment
 3. Deploy during maintenance windows
@@ -208,6 +222,7 @@ After deployment, applications are available at:
 5. Keep rollback plan ready
 
 ### Backup Strategy
+
 - Automatic backup before production deployments
 - Original files preserved in `backup/` directory
 - Helm release history for rollbacks
@@ -215,16 +230,19 @@ After deployment, applications are available at:
 ## 🔧 Customization
 
 ### Adding New Environments
+
 1. Create directory in `environments/`
 2. Add environment-specific values
 3. Update deployment scripts if needed
 
 ### Adding New Applications
+
 1. Create chart in `helm/applications/`
 2. Add environment-specific values
 3. Update deployment scripts
 
 ### Modifying Infrastructure
+
 1. Update charts in `helm/cluster-services/` or `helm/development-tools/`
 2. Test in staging first
 3. Update all environments
@@ -232,11 +250,13 @@ After deployment, applications are available at:
 ## 🐛 Troubleshooting
 
 ### Common Issues
+
 1. **Certificate Issues**: Check cert-manager logs
 2. **Ingress Issues**: Verify DNS and ingress controller
 3. **Pod Issues**: Check resources and limits
 
 ### Getting Help
+
 ```bash
 # Show deployment logs
 kubectl logs -n <namespace> -l app.kubernetes.io/name=frontend-web
@@ -251,6 +271,7 @@ kubectl get certificates -A
 ## 🔄 ArgoCD Integration
 
 ### Layered Deployment Strategy
+
 The new structure supports ArgoCD App-of-Apps pattern with sync-waves:
 
 ```yaml
@@ -267,7 +288,7 @@ spec:
     path: helm/cluster-services/metallb
     targetRevision: HEAD
 
-# Example ArgoCD Application for development tools  
+# Example ArgoCD Application for development tools
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
@@ -282,6 +303,7 @@ spec:
 ```
 
 ### Benefits
+
 - **Dependency Management**: sync-waves ensure proper deployment order
 - **Simple Paths**: All charts under `helm/` for consistent ArgoCD configuration
 - **Layer Separation**: Clear separation between infrastructure, tools, and applications

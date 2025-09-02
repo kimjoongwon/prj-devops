@@ -44,7 +44,5 @@ spec:
       value: "Staging"
     - name: "Domain"
       value: "stg.cocdev.co.kr, cocdev.co.kr (staging)"
-    - name: "Admin Domain"
-      value: "k8s.cocdev.co.kr (staging)"
     - name: "Description"
       value: "Frontend Web Application - Staging Environment"

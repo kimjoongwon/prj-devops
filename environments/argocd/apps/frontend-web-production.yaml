@@ -46,7 +46,5 @@ spec:
       value: "Production"
     - name: "Domain"
       value: "cocdev.co.kr, www.cocdev.co.kr"
-    - name: "Admin Domain"
-      value: "k8s.cocdev.co.kr"
     - name: "Description"
       value: "Frontend Web Application - Production Environment"
