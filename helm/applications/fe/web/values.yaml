@@ -3,10 +3,26 @@
 
 replicaCount: 2
 
+# nginx 리버스 프록시 컨테이너 설정
 image:
   repository: nginx
   pullPolicy: IfNotPresent
   tag: "latest"
+
+# busybox 백엔드 컨테이너 설정
+backend:
+  image:
+    repository: busybox
+    tag: "1.36"
+    pullPolicy: IfNotPresent
+  port: 8080
+  resources:
+    limits:
+      cpu: 50m
+      memory: 64Mi
+    requests:
+      cpu: 25m
+      memory: 32Mi
 
 nameOverride: ""
 fullnameOverride: ""

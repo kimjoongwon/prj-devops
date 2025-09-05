@@ -23,9 +23,10 @@ spec:
       labels:
         {{- include "frontend-web.labels" . | nindent 8 }}
     spec:
-      # 컨테이너 설정
+      # 컨테이너 설정 (멀티 컨테이너: nginx 리버스 프록시 + busybox 백엔드)
       containers:
-        - name: {{ .Chart.Name }}
+        # nginx 리버스 프록시 컨테이너
+        - name: nginx-proxy
           # 사용할 Docker 이미지 (저장소:태그 형태)
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           # 이미지 풀 정책 (Always, IfNotPresent, Never)
@@ -38,13 +39,74 @@ spec:
           # 컨테이너가 살아있는지 확인하는 프로브 (재시작 여부 결정)
           livenessProbe:
             httpGet:
-              path: /
+              path: /health
               port: http
+            initialDelaySeconds: 10
+            periodSeconds: 30
           # 컨테이너가 트래픽을 받을 준비가 되었는지 확인하는 프로브
           readinessProbe:
             httpGet:
-              path: /
+              path: /health
               port: http
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          # nginx 설정 파일 마운트
+          volumeMounts:
+            - name: nginx-config
+              mountPath: /etc/nginx/nginx.conf
+              subPath: nginx.conf
           # 컨테이너에 할당할 리소스 (CPU, 메모리 제한/요청)
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
+        
+        # busybox 백엔드 컨테이너
+        - name: busybox-backend
+          image: "{{ .Values.backend.image.repository }}:{{ .Values.backend.image.tag }}"
+          imagePullPolicy: {{ .Values.backend.image.pullPolicy }}
+          # busybox httpd 서버 실행
+          command: ["/bin/sh"]
+          args:
+            - -c
+            - |
+              mkdir -p /www
+              cp /html/index.html /www/
+              httpd -f -p {{ .Values.backend.port }} -h /www
+          ports:
+            - name: backend
+              containerPort: {{ .Values.backend.port }}
+              protocol: TCP
+          # 백엔드 헬스체크
+          livenessProbe:
+            httpGet:
+              path: /
+              port: backend
+            initialDelaySeconds: 5
+            periodSeconds: 30
+          readinessProbe:
+            httpGet:
+              path: /
+              port: backend
+            initialDelaySeconds: 2
+            periodSeconds: 10
+          # HTML 파일 마운트
+          volumeMounts:
+            - name: html-content
+              mountPath: /html
+          # 백엔드 리소스 설정
+          resources:
+            {{- toYaml .Values.backend.resources | nindent 12 }}
+      
+      # 볼륨 설정
+      volumes:
+        - name: nginx-config
+          configMap:
+            name: {{ include "frontend-web.fullname" . }}-config
+            items:
+              - key: nginx.conf
+                path: nginx.conf
+        - name: html-content
+          configMap:
+            name: {{ include "frontend-web.fullname" . }}-config
+            items:
+              - key: index.html
+                path: index.html

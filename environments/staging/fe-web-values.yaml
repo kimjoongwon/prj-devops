@@ -3,10 +3,26 @@ nameOverride: "web"
 
 replicaCount: 1
 
+# nginx 리버스 프록시 (staging)
 image:
   repository: nginx
   pullPolicy: Always # Always pull for staging to get latest builds
   tag: "latest"
+
+# busybox 백엔드 (staging)
+backend:
+  image:
+    repository: busybox
+    tag: "1.36"
+    pullPolicy: IfNotPresent
+  port: 8080
+  resources:
+    limits:
+      cpu: 100m
+      memory: 128Mi
+    requests:
+      cpu: 50m
+      memory: 64Mi
 ingress:
   enabled: true
   className: "nginx"

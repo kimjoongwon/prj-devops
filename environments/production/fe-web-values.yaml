@@ -3,10 +3,26 @@
 
 replicaCount: 3
 
+# nginx 리버스 프록시 (production)
 image:
   repository: nginx
   pullPolicy: IfNotPresent
   tag: "1.25"  # Use specific version for production
+
+# busybox 백엔드 (production)
+backend:
+  image:
+    repository: busybox
+    tag: "1.36"
+    pullPolicy: IfNotPresent
+  port: 8080
+  resources:
+    limits:
+      cpu: 100m
+      memory: 128Mi
+    requests:
+      cpu: 50m
+      memory: 64Mi
 
 ingress:
   enabled: true
