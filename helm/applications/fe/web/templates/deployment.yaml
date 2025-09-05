@@ -5,23 +5,23 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   # 배포 리소스의 이름 (릴리스명-차트명 형태로 생성)
-  name: {{ include "frontend-web.fullname" . }}
+  name: {{ include "fe-web.fullname" . }}
   # 배포 리소스에 적용될 레이블 (추적, 선택, 관리용)
   labels:
-    {{- include "frontend-web.labels" . | nindent 4 }}
+    {{- include "fe-web.labels" . | nindent 4 }}
 spec:
   # 복제본 수 설정 (오토스케일링 제거됨)
   replicas: {{ .Values.replicaCount }}
   # 관리할 Pod를 선택하기 위한 라벨 선택자
   selector:
     matchLabels:
-      {{- include "frontend-web.selectorLabels" . | nindent 6 }}
+      {{- include "fe-web.selectorLabels" . | nindent 6 }}
   # Pod 템플릿 정의 (실제 실행될 컨테이너 설정)
   template:
     metadata:
       # Pod에 적용될 레이블
       labels:
-        {{- include "frontend-web.labels" . | nindent 8 }}
+        {{- include "fe-web.labels" . | nindent 8 }}
     spec:
       # 컨테이너 설정 (멀티 컨테이너: nginx 리버스 프록시 + busybox 백엔드)
       containers:
@@ -102,13 +102,13 @@ spec:
       volumes:
         - name: nginx-config
           configMap:
-            name: {{ include "frontend-web.fullname" . }}-config
+            name: {{ include "fe-web.fullname" . }}-config
             items:
               - key: nginx.conf
                 path: nginx.conf
         - name: html-content
           configMap:
-            name: {{ include "frontend-web.fullname" . }}-config
+            name: {{ include "fe-web.fullname" . }}-config
             items:
               - key: index.html
                 path: index.html

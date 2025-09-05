@@ -1,4 +1,4 @@
-# Production environment values for frontend-web
+# Production environment values for fe-web
 # Values for production deployment
 
 replicaCount: 3

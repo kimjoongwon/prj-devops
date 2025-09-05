@@ -9,8 +9,8 @@ environments/argocd/
 ├── README.md                          # 이 파일
 ├── app-of-apps.yaml                  # App of Apps 패턴 메인 Application
 └── apps/
-    ├── frontend-web-production.yaml  # Production 환경 Application
-    └── frontend-web-staging.yaml     # Staging 환경 Application
+    ├── fe-web-production.yaml  # Production 환경 Application
+    └── fe-web-staging.yaml     # Staging 환경 Application
 ```
 
 ## 🚀 ArgoCD 연결 방법
@@ -41,7 +41,7 @@ kubectl apply -f environments/argocd/app-of-apps.yaml
 
 ### Production 환경
 
-- **Namespace**: `frontend-web-prod`
+- **Namespace**: `fe-prod`
 - **Domain**: `cocdev.co.kr`, `www.cocdev.co.kr`
 - **Admin**: `k8s.cocdev.co.kr`
 - **Image**: `nginx:1.25` (안정 버전)
@@ -50,7 +50,7 @@ kubectl apply -f environments/argocd/app-of-apps.yaml
 
 ### Staging 환경
 
-- **Namespace**: `frontend-web-staging`
+- **Namespace**: `fe-stg`
 - **Domain**: `cocdev.co.kr`, `stg.cocdev.co.kr`
 - **Image**: `nginx:latest` (최신 버전)
 - **Replicas**: 1
@@ -69,7 +69,7 @@ kubectl apply -f environments/argocd/app-of-apps.yaml
 ### 이미지 버전 변경
 
 ```yaml
-# frontend-web-production.yaml
+# fe-web-production.yaml
 helm:
   parameters:
     - name: image.tag
@@ -86,8 +86,8 @@ helm:
 
 ### Values 파일 수정
 
-- Production: `environments/production/frontend-web-values.yaml`
-- Staging: `environments/staging/frontend-web-values.yaml`
+- Production: `environments/production/fe-web-values.yaml`
+- Staging: `environments/staging/fe-web-values.yaml`
 
 ### 동기화 정책 조정
 

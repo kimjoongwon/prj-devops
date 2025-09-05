@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Deploy Production Environment Script
-# This script deploys the frontend-web application to production environment with safety checks
+# This script deploys the fe-web application to production environment with safety checks
 
 set -e
 

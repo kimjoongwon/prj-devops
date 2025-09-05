@@ -4,11 +4,11 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: frontend-web-apps
+  name: fe-web-apps
   namespace: argocd
   labels:
-    app.kubernetes.io/name: frontend-web-apps
-    app.kubernetes.io/part-of: frontend-web
+    app.kubernetes.io/name: fe-web-apps
+    app.kubernetes.io/part-of: fe-web
 spec:
   project: default
   source:
@@ -26,6 +26,6 @@ spec:
       - CreateNamespace=true
   info:
     - name: 'Description'
-      value: 'Frontend Web Applications - App of Apps pattern'
+      value: 'FE Web Applications - App of Apps pattern'
     - name: 'Environment'
       value: 'Multi-environment (staging, production)'

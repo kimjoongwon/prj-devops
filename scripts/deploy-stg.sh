@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Deploy Staging Environment Script
-# This script deploys the frontend-web application to staging environment
+# This script deploys the fe-web application to staging environment
 
 set -e
 
