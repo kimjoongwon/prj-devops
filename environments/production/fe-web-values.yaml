@@ -38,15 +38,10 @@ ingress:
       paths:
         - path: /
           pathType: Prefix
-    - host: www.cocdev.co.kr
-      paths:
-        - path: /
-          pathType: Prefix
   tls:
     - secretName: web-prod-tls
       hosts:
         - cocdev.co.kr
-        - www.cocdev.co.kr
 resources:
   limits:
     cpu: 500m
