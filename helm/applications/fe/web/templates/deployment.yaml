@@ -70,7 +70,9 @@ spec:
             - |
               mkdir -p /www
               cp /html/index.html /www/
-              httpd -f -p {{ .Values.backend.port }} -h /www
+              echo "Starting httpd on port {{ .Values.backend.port }}"
+              cd /www
+              httpd -f -p {{ .Values.backend.port }} -v
           ports:
             - name: backend
               containerPort: {{ .Values.backend.port }}
