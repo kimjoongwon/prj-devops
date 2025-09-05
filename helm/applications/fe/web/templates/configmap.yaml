@@ -124,7 +124,7 @@ data:
         <div class="container">
             <h1>🌟 Hello World! 🌟</h1>
             <p>Welcome to Frontend Web Application</p>
-            <p>Powered by nginx reverse proxy + busybox backend</p>
+            <p>쿠버네티스 학습용 작업입니다.<p>
             <div class="tech-stack">
                 <p>🔧 nginx (reverse proxy) → busybox (backend)</p>
                 <p>🌐 Domain: cocdev.co.kr & stg.cocdev.co.kr</p>
