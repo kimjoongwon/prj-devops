@@ -58,4 +58,4 @@ resources:
 
 # 환경변수 설정
 env:
-  NODE_ENV: "test"  # OpenBao에서 주입받을 기본값
+  NODE_ENV: "test-default"  # OpenBao에서 주입받을 기본값
