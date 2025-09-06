@@ -39,9 +39,6 @@ spec:
         - name: html-generator
           image: busybox:1.36
           command: ["/bin/sh", "/scripts/init-script.sh"]
-          env:
-            - name: ENV_NODE
-              value: "$(ENV_NODE)"
           volumeMounts:
             - name: html-template
               mountPath: /templates
