@@ -22,6 +22,9 @@ spec:
       # Pod에 적용될 레이블
       labels:
         {{- include "fe-web.labels" . | nindent 8 }}
+      # ConfigMap 변경 시 자동 재시작을 위한 어노테이션
+      annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
     spec:
       # 컨테이너 설정 (멀티 컨테이너: nginx 리버스 프록시 + busybox 백엔드)
       containers:
