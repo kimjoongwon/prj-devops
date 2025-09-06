@@ -34,6 +34,22 @@ spec:
           export ENV_NODE="{{ "{{ .Data.data.ENV_NODE }}" }}"
           {{ "{{- end -}}" }}
     spec:
+      # Init Container: HTML 템플릿을 환경변수로 동적 생성
+      initContainers:
+        - name: html-generator
+          image: busybox:1.36
+          command: ["/bin/sh", "/scripts/init-script.sh"]
+          env:
+            - name: ENV_NODE
+              value: "$(ENV_NODE)"
+          volumeMounts:
+            - name: html-template
+              mountPath: /templates
+            - name: init-scripts
+              mountPath: /scripts
+            - name: shared-html
+              mountPath: /shared-html
+      
       # 컨테이너 설정 (멀티 컨테이너: nginx 리버스 프록시 + busybox 백엔드)
       containers:
         # nginx 리버스 프록시 컨테이너
@@ -101,9 +117,9 @@ spec:
               port: backend
             initialDelaySeconds: 2
             periodSeconds: 10
-          # HTML 파일 마운트
+          # 동적 생성된 HTML 파일 마운트
           volumeMounts:
-            - name: html-content
+            - name: shared-html
               mountPath: /html
           # 백엔드 리소스 설정
           resources:
@@ -117,9 +133,18 @@ spec:
             items:
               - key: nginx.conf
                 path: nginx.conf
-        - name: html-content
+        - name: html-template
           configMap:
             name: {{ include "fe-web.fullname" . }}-config
             items:
-              - key: index.html
-                path: index.html
+              - key: index.html.template
+                path: index.html.template
+        - name: init-scripts
+          configMap:
+            name: {{ include "fe-web.fullname" . }}-config
+            items:
+              - key: init-script.sh
+                path: init-script.sh
+            defaultMode: 0755
+        - name: shared-html
+          emptyDir: {}

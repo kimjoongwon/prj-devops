@@ -76,7 +76,7 @@ data:
         }
     }
   
-  index.html: |
+  index.html.template: |
     <!DOCTYPE html>
     <html lang="ko">
     <head>
@@ -129,8 +129,23 @@ data:
                 <p>🔧 nginx (reverse proxy) → busybox (backend)</p>
                 <p>🌐 Domain: cocdev.co.kr & stg.cocdev.co.kr</p>
                 <p>🔒 TLS enabled with Let's Encrypt</p>
-                <p>🌍 Environment: {{ .Values.env.NODE_ENV }}</p>
+                <p>🌍 Environment: __ENV_NODE_PLACEHOLDER__</p>
             </div>
         </div>
     </body>
     </html>
+  
+  # Init Container에서 사용할 스크립트
+  init-script.sh: |
+    #!/bin/sh
+    echo "Init Container: HTML 템플릿 처리 시작"
+    
+    # 환경변수 값 확인
+    echo "ENV_NODE value: ${ENV_NODE:-not_set}"
+    
+    # HTML 템플릿을 실제 HTML로 변환
+    sed "s/__ENV_NODE_PLACEHOLDER__/${ENV_NODE:-unknown}/g" /templates/index.html.template > /shared-html/index.html
+    
+    echo "Init Container: HTML 생성 완료"
+    ls -la /shared-html/
+    cat /shared-html/index.html | grep Environment
