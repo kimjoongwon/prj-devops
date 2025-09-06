@@ -26,6 +26,8 @@ spec:
       annotations:
         checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
     spec:
+      # ServiceAccount for OpenBao access
+      serviceAccountName: {{ include "fe-web.fullname" . }}
       # 컨테이너 설정 (멀티 컨테이너: nginx 리버스 프록시 + busybox 백엔드)
       containers:
         # nginx 리버스 프록시 컨테이너
@@ -53,6 +55,10 @@ spec:
               port: http
             initialDelaySeconds: 5
             periodSeconds: 10
+          # 환경변수 설정 (OpenBao에서 주입)
+          env:
+            - name: NAVER_URL
+              value: "{{ .Values.openbao.naverUrl | default "https://naver.com" }}"
           # nginx 설정 파일 마운트
           volumeMounts:
             - name: nginx-config

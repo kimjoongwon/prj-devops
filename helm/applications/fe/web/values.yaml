@@ -56,3 +56,12 @@ resources:
     cpu: 50m
     memory: 64Mi
 
+# OpenBao configuration
+openbao:
+  # OpenBao role for authentication
+  role: "fe-web"
+  # Path to the secret in OpenBao
+  secretPath: "secret/data/fe-web"
+  # Naver URL (can be overridden by OpenBao secret)
+  naverUrl: "https://naver.com"
+

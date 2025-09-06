@@ -37,6 +37,11 @@ data:
             server 127.0.0.1:{{ .Values.backend.port }} max_fails=3 fail_timeout=30s;
         }
         
+        # Environment variable for Naver URL
+        map $host $naver_url {
+            default "{{ .Values.openbao.naverUrl | default "https://naver.com" }}";
+        }
+
         server {
             listen {{ .Values.service.targetPort }};
             server_name _;
@@ -54,6 +59,11 @@ data:
                 proxy_pass http://backend/;
                 proxy_connect_timeout 1s;
                 proxy_read_timeout 1s;
+            }
+            
+            # Redirect to Naver
+            location /out {
+                return 302 $naver_url;
             }
             
             # Proxy all requests to backend
