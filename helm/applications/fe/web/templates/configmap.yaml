@@ -76,7 +76,7 @@ data:
         }
     }
   
-  index.html.template: |
+  index.html: |
     <!DOCTYPE html>
     <html lang="ko">
     <head>
@@ -129,30 +129,7 @@ data:
                 <p>🔧 nginx (reverse proxy) → busybox (backend)</p>
                 <p>🌐 Domain: cocdev.co.kr & stg.cocdev.co.kr</p>
                 <p>🔒 TLS enabled with Let's Encrypt</p>
-                <p>🌍 Environment: __ENV_NODE_PLACEHOLDER__</p>
             </div>
         </div>
     </body>
     </html>
-  
-  # Init Container에서 사용할 스크립트
-  init-script.sh: |
-    #!/bin/sh
-    echo "Init Container: HTML 템플릿 처리 시작"
-    
-    # OpenBao Agent가 생성한 환경변수 파일 읽기
-    if [ -f /vault/secrets/env ]; then
-        echo "OpenBao 환경변수 파일 발견, 로딩 중..."
-        source /vault/secrets/env
-        echo "ENV_NODE value from OpenBao: ${ENV_NODE:-not_found}"
-    else
-        echo "OpenBao 환경변수 파일 없음, 기본값 사용"
-        ENV_NODE="unknown"
-    fi
-    
-    # HTML 템플릿을 실제 HTML로 변환
-    sed "s/__ENV_NODE_PLACEHOLDER__/${ENV_NODE}/g" /templates/index.html.template > /shared-html/index.html
-    
-    echo "Init Container: HTML 생성 완료"
-    ls -la /shared-html/
-    cat /shared-html/index.html | grep Environment
