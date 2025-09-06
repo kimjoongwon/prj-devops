@@ -140,11 +140,18 @@ data:
     #!/bin/sh
     echo "Init Container: HTML 템플릿 처리 시작"
     
-    # 환경변수 값 확인
-    echo "ENV_NODE value: ${ENV_NODE:-not_set}"
+    # OpenBao Agent가 생성한 환경변수 파일 읽기
+    if [ -f /vault/secrets/env ]; then
+        echo "OpenBao 환경변수 파일 발견, 로딩 중..."
+        source /vault/secrets/env
+        echo "ENV_NODE value from OpenBao: ${ENV_NODE:-not_found}"
+    else
+        echo "OpenBao 환경변수 파일 없음, 기본값 사용"
+        ENV_NODE="unknown"
+    fi
     
     # HTML 템플릿을 실제 HTML로 변환
-    sed "s/__ENV_NODE_PLACEHOLDER__/${ENV_NODE:-unknown}/g" /templates/index.html.template > /shared-html/index.html
+    sed "s/__ENV_NODE_PLACEHOLDER__/${ENV_NODE}/g" /templates/index.html.template > /shared-html/index.html
     
     echo "Init Container: HTML 생성 완료"
     ls -la /shared-html/

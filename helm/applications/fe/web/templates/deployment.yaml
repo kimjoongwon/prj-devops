@@ -46,6 +46,8 @@ spec:
               mountPath: /scripts
             - name: shared-html
               mountPath: /shared-html
+            - name: vault-secrets
+              mountPath: /vault/secrets
       
       # 컨테이너 설정 (멀티 컨테이너: nginx 리버스 프록시 + busybox 백엔드)
       containers:
