@@ -129,6 +129,7 @@ data:
                 <p>🔧 nginx (reverse proxy) → busybox (backend)</p>
                 <p>🌐 Domain: cocdev.co.kr & stg.cocdev.co.kr</p>
                 <p>🔒 TLS enabled with Let's Encrypt</p>
+                <p>🌍 Environment: {{ .Values.env.NODE_ENV }}</p>
             </div>
         </div>
     </body>
