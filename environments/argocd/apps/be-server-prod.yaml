@@ -3,7 +3,7 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: be-server-prod
+  name: plate-be-server-prod
   namespace: argocd
   labels:
     app.kubernetes.io/name: be-server

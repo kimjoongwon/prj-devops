@@ -3,7 +3,7 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: fe-web-stg
+  name: plate-fe-web-stg
   namespace: argocd
   labels:
     app.kubernetes.io/name: fe-web
