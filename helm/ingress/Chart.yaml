@@ -1,0 +1,15 @@
+apiVersion: v2
+name: ingress
+description: Ingress for CocDev platform - handles routing for all services
+type: application
+version: 0.1.0
+appVersion: "1.0.0"
+
+keywords:
+  - ingress
+  - nginx
+  - routing
+
+maintainers:
+  - name: CocDev Team
+    email: dev@cocdev.co.kr

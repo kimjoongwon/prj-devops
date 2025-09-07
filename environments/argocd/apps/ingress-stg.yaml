@@ -1,0 +1,51 @@
+# Ingress - Staging Environment ArgoCD Application
+
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: ingress-stg
+  namespace: argocd
+  labels:
+    app.kubernetes.io/name: ingress
+    app.kubernetes.io/part-of: cocdev-platform
+    component: ingress
+    environment: staging
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/kimjoongwon/prj-devops.git # 실제 Git Repository URL로 변경 필요
+    path: helm/ingress
+    targetRevision: main
+    helm:
+      valueFiles:
+        - values.yaml
+      parameters:
+        - name: appName
+          value: "plate"
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: plate-stg  # ingress를 staging namespace에 배포
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ApplyOutOfSyncOnly=true
+      - RespectIgnoreDifferences=true
+    retry:
+      limit: 3
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m
+  revisionHistoryLimit: 10
+  info:
+    - name: "Component"
+      value: "Ingress Controller"
+    - name: "Environment"
+      value: "Staging"
+    - name: "Domain"
+      value: "stg.cocdev.co.kr"
+    - name: "Description"
+      value: "Ingress for staging environment - handles routing for fe-web and be-server"

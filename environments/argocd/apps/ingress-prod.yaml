@@ -1,0 +1,60 @@
+# Ingress - Production ArgoCD Application
+# Ingress를 배포하는 ArgoCD Application
+
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: ingress-prod
+  namespace: argocd
+  labels:
+    app.kubernetes.io/name: ingress
+    app.kubernetes.io/part-of: cocdev-platform
+    component: ingress
+    environment: production
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/kimjoongwon/prj-devops.git # 실제 Git Repository URL로 변경 필요
+    path: helm/ingress
+    targetRevision: main
+    helm:
+      valueFiles:
+        - values.yaml
+      parameters:
+        - name: appName
+          value: "plate"
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: plate-prod  # ingress를 production namespace에 배포
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ApplyOutOfSyncOnly=true
+      - RespectIgnoreDifferences=true
+    retry:
+      limit: 3
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m
+  # ingress만 동기화하도록 리소스 필터링
+  syncOptions:
+    - Replace=true
+  ignoreDifferences:
+    - group: networking.k8s.io
+      kind: Ingress
+      jqPathExpressions:
+        - .metadata.annotations
+  revisionHistoryLimit: 10
+  info:
+    - name: "Component"
+      value: "Ingress Controller"
+    - name: "Environment"
+      value: "Production"
+    - name: "Domain"
+      value: "cocdev.co.kr"
+    - name: "Description"
+      value: "Ingress for production environment - handles routing for fe-web and be-server"

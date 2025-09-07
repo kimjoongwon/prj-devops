@@ -1,0 +1,63 @@
+# Ingress Values
+# plate-stg와 plate-prod namespace의 모든 서비스 ingress 관리
+
+# App name (default: plate)
+appName: plate
+
+ingress:
+  enabled: true
+  name: "cocdev-ingress"
+  className: "nginx"
+  annotations:
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/rate-limit: "100"
+    nginx.ingress.kubernetes.io/rate-limit-window: "1m"
+  
+  hosts:
+    - host: cocdev.co.kr
+      paths:
+        # Frontend (fe-web in plate-prod namespace)
+        - path: /
+          pathType: Prefix
+          backend:
+            service:
+              name: fe-web-prod
+              port:
+                number: 80
+        # Backend API (be-server in plate-prod namespace)
+        - path: /api
+          pathType: Prefix
+          backend:
+            service:
+              name: be-server-prod
+              port:
+                number: 8080
+    
+    - host: stg.cocdev.co.kr
+      paths:
+        # Frontend (fe-web in plate-stg namespace)
+        - path: /
+          pathType: Prefix
+          backend:
+            service:
+              name: fe-web-stg
+              port:
+                number: 80
+        # Backend API (be-server in plate-stg namespace)
+        - path: /api
+          pathType: Prefix
+          backend:
+            service:
+              name: be-server-stg
+              port:
+                number: 8080
+  
+  tls:
+    - secretName: web-prod-tls
+      hosts:
+        - cocdev.co.kr
+    - secretName: web-stg-tls
+      hosts:
+        - stg.cocdev.co.kr
