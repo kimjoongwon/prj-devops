@@ -23,7 +23,7 @@ ingress:
           pathType: Prefix
           backend:
             service:
-              name: fe-web-prod
+              name: fe-web
               port:
                 number: 80
         # Backend API
@@ -31,7 +31,7 @@ ingress:
           pathType: Prefix
           backend:
             service:
-              name: be-server-prod
+              name: be-server
               port:
                 number: 8080
   
