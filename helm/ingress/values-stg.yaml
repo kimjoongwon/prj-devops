@@ -4,6 +4,15 @@
 # App name (default: plate)
 appName: plate
 
+# Service names (actual service names in the cluster)
+services:
+  frontend:
+    name: "plate-fe-web-stg"  # Release name from ArgoCD
+    port: 80
+  backend:
+    name: "plate-be-server-stg"  # Release name from ArgoCD
+    port: 8080
+
 ingress:
   enabled: true
   name: "cocdev-ingress"
@@ -22,7 +31,7 @@ ingress:
           pathType: Prefix
           backend:
             service:
-              name: fe-web
+              name: frontend
               port:
                 number: 80
         # Backend API
@@ -30,7 +39,7 @@ ingress:
           pathType: Prefix
           backend:
             service:
-              name: be-server
+              name: backend
               port:
                 number: 8080
   
