@@ -24,24 +24,9 @@ backend:
       cpu: 50m
       memory: 64Mi
 
+# Ingress는 최상위 통합 템플릿에서 관리됨
 ingress:
-  enabled: true
-  className: "nginx"
-  annotations:
-    cert-manager.io/cluster-issuer: "letsencrypt-prod"  # Use production certs
-    ingress.kubernetes.io/ssl-redirect: "true"
-    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
-    nginx.ingress.kubernetes.io/rate-limit: "100"
-    nginx.ingress.kubernetes.io/rate-limit-window: "1m"
-  hosts:
-    - host: cocdev.co.kr
-      paths:
-        - path: /
-          pathType: Prefix
-  tls:
-    - secretName: web-prod-tls
-      hosts:
-        - cocdev.co.kr
+  enabled: false
 resources:
   limits:
     cpu: 500m

@@ -1,0 +1,16 @@
+{
+  "files.associations": {
+    "*/templates/*.yaml": "helm",
+    "*-template.yaml": "helm",
+    "Chart.yaml": "yaml",
+    "values*.yaml": "yaml"
+  },
+  "helm-intellisense.customValueFileNames": [
+    "values.yaml",
+    "values-*.yaml"
+  ],
+  "yaml.schemas": {
+    "https://json.schemastore.org/helm-chart.json": "Chart.yaml",
+    "https://json.schemastore.org/helmfile.json": "helmfile.yaml"
+  }
+}

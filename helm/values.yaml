@@ -1,0 +1,65 @@
+# 통합 Helm Chart 설정
+# 모든 서비스의 ingress를 한 곳에서 관리
+
+# Ingress 설정
+ingress:
+  enabled: true
+  name: "main-ingress"
+  className: "nginx"
+  annotations:
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/rate-limit: "100"
+    nginx.ingress.kubernetes.io/rate-limit-window: "1m"
+  
+  hosts:
+    - host: cocdev.co.kr
+      paths:
+        # Frontend (fe-web)
+        - path: /
+          pathType: Prefix
+          backend:
+            service:
+              name: fe-web-prod  # production에서는 fe-web-prod
+              port:
+                number: 80
+        # Backend API (be-server)
+        - path: /api
+          pathType: Prefix
+          backend:
+            service:
+              name: be-server-prod  # production에서는 be-server-prod
+              port:
+                number: 8080
+    
+    - host: stg.cocdev.co.kr
+      paths:
+        # Frontend (fe-web)
+        - path: /
+          pathType: Prefix
+          backend:
+            service:
+              name: fe-web-stg  # staging에서는 fe-web-stg
+              port:
+                number: 80
+        # Backend API (be-server)
+        - path: /api
+          pathType: Prefix
+          backend:
+            service:
+              name: be-server-stg  # staging에서는 be-server-stg
+              port:
+                number: 8080
+  
+  tls:
+    - secretName: web-prod-tls
+      hosts:
+        - cocdev.co.kr
+    - secretName: web-stg-tls
+      hosts:
+        - stg.cocdev.co.kr
+
+# Chart metadata
+nameOverride: ""
+fullnameOverride: ""

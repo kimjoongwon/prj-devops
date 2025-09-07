@@ -24,24 +24,9 @@ backend:
       cpu: 250m
       memory: 512Mi
 
+# Ingress is handled by fe-web, be-server is internal service only
 ingress:
-  enabled: true
-  className: "nginx"
-  annotations:
-    cert-manager.io/cluster-issuer: "letsencrypt-prod"  # Use production certs
-    ingress.kubernetes.io/ssl-redirect: "true"
-    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
-    nginx.ingress.kubernetes.io/rate-limit: "200"
-    nginx.ingress.kubernetes.io/rate-limit-window: "1m"
-  hosts:
-    - host: cocdev.co.kr
-      paths:
-        - path: /api
-          pathType: Prefix
-  tls:
-    - secretName: server-prod-tls
-      hosts:
-        - cocdev.co.kr
+  enabled: false
 
 resources:
   limits:

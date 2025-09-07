@@ -1,0 +1,93 @@
+# 공통 Ingress 템플릿 (참조용)
+# 위치: helm/applications/common/ingress.yaml
+# 새로운 서비스 추가 시 이 템플릿을 복사하여 사용
+# Multiple backend services와 custom service routing 지원
+#
+# 사용법:
+# 1. 이 파일을 새로운 서비스의 templates/ 디렉토리로 복사
+#   cp applications/common/ingress.yaml applications/NEW_SERVICE/templates/
+# 2. "CHART_NAME"을 실제 서비스명으로 변경 (예: "fe-web", "be-server")
+# 3. values.yaml에서 ingress 설정 구성
+#
+# 현재 사용 현황:
+# - fe-web: ingress 활성화 (/api 라우팅 포함)
+# - be-server: ingress 비활성화 (fe-web을 통해 라우팅)
+
+{{- if .Values.ingress.enabled -}}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ include "CHART_NAME.fullname" . }}
+  labels:
+    {{- include "CHART_NAME.labels" . | nindent 4 }}
+  {{- with .Values.ingress.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  {{- if .Values.ingress.className }}
+  ingressClassName: {{ .Values.ingress.className }}
+  {{- end }}
+  {{- if .Values.ingress.tls }}
+  tls:
+    {{- range .Values.ingress.tls }}
+    - hosts:
+        {{- range .hosts }}
+        - {{ . | quote }}
+        {{- end }}
+      secretName: {{ .secretName }}
+    {{- end }}
+  {{- end }}
+  rules:
+    {{- range .Values.ingress.hosts }}
+    - host: {{ .host | quote }}
+      http:
+        paths:
+          {{- range .paths }}
+          - path: {{ .path }}
+            pathType: {{ .pathType }}
+            backend:
+              service:
+                {{- if .backend }}
+                # Custom backend service 지정 시 사용
+                name: {{ .backend.service.name }}
+                port:
+                  number: {{ .backend.service.port.number }}
+                {{- else }}
+                # Default: 현재 차트의 기본 서비스 사용
+                name: {{ include "CHART_NAME.fullname" $ }}
+                port:
+                  number: {{ $.Values.service.port }}
+                {{- end }}
+          {{- end }}
+    {{- end }}
+{{- end }}
+
+{{/*
+새로운 서비스에 이 템플릿을 적용할 때 수정해야 할 부분:
+1. "CHART_NAME"을 실제 차트명으로 변경 (fe-web, be-server 등)
+2. include 함수의 이름들을 해당 차트의 helper 함수명으로 변경
+3. values.yaml 파일에 ingress 설정 추가
+
+예시 values.yaml 설정:
+ingress:
+  enabled: true
+  className: "nginx"
+  annotations: {}
+  hosts:
+    - host: example.com
+      paths:
+        - path: /
+          pathType: Prefix
+        - path: /api
+          pathType: Prefix
+          backend:
+            service:
+              name: backend-service
+              port:
+                number: 8080
+  tls:
+    - secretName: example-tls
+      hosts:
+        - example.com
+*/}}
