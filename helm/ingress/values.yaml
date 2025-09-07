@@ -11,7 +11,7 @@ services:
     port: 80
   backend:
     name: "plate-be-server-prod"  # Release name from ArgoCD  
-    port: 8080
+    port: 80
 
 ingress:
   enabled: true
@@ -42,7 +42,7 @@ ingress:
             service:
               name: backend
               port:
-                number: 8080
+                number: 80
   
   tls:
     - secretName: web-prod-tls
