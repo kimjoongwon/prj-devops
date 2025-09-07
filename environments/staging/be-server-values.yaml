@@ -13,7 +13,7 @@ image:
 backend:
   image:
     repository: kimjoongwon/server
-    tag: "46"
+    tag: "48"
     pullPolicy: Always # Always pull for staging
   port: 3005
   resources:
