@@ -18,7 +18,7 @@ spec:
     targetRevision: main
     helm:
       valueFiles:
-        - values.yaml
+        - values-stg.yaml
       parameters:
         - name: appName
           value: "plate"

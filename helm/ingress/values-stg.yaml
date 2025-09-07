@@ -1,5 +1,5 @@
-# Ingress Values
-# plate-stg와 plate-prod namespace의 모든 서비스 ingress 관리
+# Ingress Values - Staging
+# plate-stg namespace의 모든 서비스 ingress 관리
 
 # App name (default: plate)
 appName: plate
@@ -10,20 +10,19 @@ ingress:
   className: "nginx"
   annotations:
     cert-manager.io/cluster-issuer: "letsencrypt-prod"
-    ingress.kubernetes.io/ssl-redirect: "true"
-    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    ingress.kubernetes.io/ssl-redirect: "false"  # Allow HTTP for staging
     nginx.ingress.kubernetes.io/rate-limit: "100"
     nginx.ingress.kubernetes.io/rate-limit-window: "1m"
   
   hosts:
-    - host: cocdev.co.kr
+    - host: stg.cocdev.co.kr
       paths:
         # Frontend
         - path: /
           pathType: Prefix
           backend:
             service:
-              name: fe-web-prod
+              name: fe-web-stg
               port:
                 number: 80
         # Backend API
@@ -31,11 +30,11 @@ ingress:
           pathType: Prefix
           backend:
             service:
-              name: be-server-prod
+              name: be-server-stg
               port:
                 number: 8080
   
   tls:
-    - secretName: web-prod-tls
+    - secretName: web-stg-tls
       hosts:
-        - cocdev.co.kr
+        - stg.cocdev.co.kr
