@@ -41,6 +41,12 @@ data:
             listen {{ .Values.service.targetPort }};
             server_name _;
             
+            # Basic root location for testing
+            location = / {
+                return 200 "nginx proxy root\n";
+                add_header Content-Type text/plain;
+            }
+            
             # Health check endpoint
             location /health {
                 access_log off;

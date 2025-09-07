@@ -70,19 +70,21 @@ spec:
             - name: backend
               containerPort: {{ .Values.backend.port }}
               protocol: TCP
-          # 백엔드 헬스체크
+          # 백엔드 헬스체크 - kimjoongwon/server에 맞는 헬스체크 경로 사용
           livenessProbe:
             httpGet:
-              path: /
+              path: /health
               port: backend
             initialDelaySeconds: 30
             periodSeconds: 30
+            timeoutSeconds: 5
           readinessProbe:
             httpGet:
-              path: /
+              path: /health
               port: backend
-            initialDelaySeconds: 10
+            initialDelaySeconds: 15
             periodSeconds: 10
+            timeoutSeconds: 5
           # 백엔드 리소스 설정
           resources:
             {{- toYaml .Values.backend.resources | nindent 12 }}
