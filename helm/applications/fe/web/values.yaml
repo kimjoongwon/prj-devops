@@ -1,22 +1,24 @@
-# Default values for fe-web
-# This is a YAML-formatted file.
+# fe-web Chart 기본 값 파일
+# 이 파일은 프론트엔드 웹 애플리케이션(nginx reverse proxy + busybox 간단 백엔드) 배포에 사용되는
+# 조정 가능한 파라미터를 정의합니다.
+# 환경별 override: environments/<env>/fe-web-values.yaml 에서 이 값을 덮어씁니다.
 
-replicaCount: 2
+replicaCount: 2            # 기본 Pod 복제 수 (오토스케일링 비활성 상태)
 
 # nginx 리버스 프록시 컨테이너 설정
-image:
-  repository: nginx
-  pullPolicy: IfNotPresent
-  tag: "latest"
+image:                     # 프록시 역할을 하는 nginx 컨테이너 이미지
+  repository: nginx        # 공개 기본 nginx 레포지토리 사용 (필요시 사설 레지스트리로 변경)
+  pullPolicy: IfNotPresent  # 태그 latest 사용 시 Always 권장, 여기서는 캐시 활용
+  tag: "latest"            # 고정 버전 사용을 권장 (ex: 1.27.3-alpine)
 
 # busybox 백엔드 컨테이너 설정
-backend:
+backend:                   # busybox httpd 기반 간단한 정적/테스트 백엔드
   image:
     repository: busybox
-    tag: "1.36"
+    tag: "1.36"            # 필요시 보안 패치 반영 버전으로 갱신
     pullPolicy: IfNotPresent
-  port: 8080
-  resources:
+  port: 8080               # busybox httpd 실행 포트 (nginx upstream 대상)
+  resources:               # 백엔드 경량 리소스 프로파일
     limits:
       cpu: 50m
       memory: 64Mi
@@ -27,28 +29,28 @@ backend:
 nameOverride: ""
 fullnameOverride: ""
 
-service:
-  type: ClusterIP
-  port: 80
-  targetPort: 80
+service:                   # nginx 프록시 Service 설정
+  type: ClusterIP          # 외부 노출은 Ingress로 처리
+  port: 80                 # 클러스터 내부 서비스 포트
+  targetPort: 80           # Pod 내부 컨테이너 포트 (nginx listen)
 
-ingress:
+ingress:                   # 외부 접근 엔드포인트 (staging/prod 환경 값에서 host 교체 가능)
   enabled: true
-  className: "nginx"
-  annotations:
-    cert-manager.io/cluster-issuer: "letsencrypt-prod"
-    ingress.kubernetes.io/ssl-redirect: "false"
+  className: "nginx"       # NGINX Ingress Controller 사용
+  annotations:             # TLS 및 인증서/옵션 관련 어노테이션
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"      # cert-manager ClusterIssuer 이름
+    ingress.kubernetes.io/ssl-redirect: "false"             # prod 에서는 true 로 강제 권장
     acme.cert-manager.io/http01-edit-in-place: "true"
   hosts:
-    - host: cocdev.co.kr
+    - host: cocdev.co.kr   # 환경 override 로 다른 도메인 적용 가능
       paths:
         - path: /
           pathType: Prefix
   tls:
-    - secretName: web-tls
+    - secretName: web-tls  # cert-manager 가 채우는 TLS Secret 이름
       hosts:
         - cocdev.co.kr
-resources:
+resources:                 # nginx 컨테이너 리소스 (프록시 레이어)
   limits:
     cpu: 100m
     memory: 128Mi

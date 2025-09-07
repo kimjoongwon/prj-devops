@@ -1,9 +1,9 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: {{ include "fe-web.fullname" . }}-config
-  labels:
-    {{- include "fe-web.labels" . | nindent 4 }}
+    name: {{ include "fe-web.fullname" . }}-config   # nginx 설정 + index.html 제공
+    labels:
+        {{- include "fe-web.labels" . | nindent 4 }}
 data:
   nginx.conf: |
     events {
@@ -77,7 +77,7 @@ data:
         }
     }
   
-  index.html: |
+    index.html: |
     <!DOCTYPE html>
     <html lang="ko">
     <head>

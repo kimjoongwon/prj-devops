@@ -1,25 +1,25 @@
 #!/bin/bash
 
-# Deploy Staging Environment Script
-# This script deploys the fe-web application to staging environment
+# 스테이징 환경 배포 스크립트
+# 이 스크립트는 fe-web 애플리케이션을 스테이징 환경에 배포합니다
 
 set -e
 
-# Colors for output
+# 출력용 색상 정의
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
-# Configuration
+# 설정 변수
 NAMESPACE="fe-web-stg"
 RELEASE_NAME="fe-web-stg"
 CHART_PATH="./helm/applications/fe/web"
 VALUES_FILE="./environments/staging/fe-web-values.yaml"
 COMMON_VALUES="./environments/shared/common-values.yaml"
 
-# Functions
+# 유틸리티 함수들
 log_info() {
     echo -e "${GREEN}[INFO]${NC} $1"
 }
@@ -36,7 +36,7 @@ log_debug() {
     echo -e "${BLUE}[DEBUG]${NC} $1"
 }
 
-# Check if helm is installed
+# Helm 설치 확인
 check_helm() {
     if ! command -v helm &> /dev/null; then
         log_error "Helm is not installed. Please install Helm first."
@@ -44,7 +44,7 @@ check_helm() {
     fi
 }
 
-# Check if kubectl is available
+# kubectl 연결 상태 확인
 check_kubectl() {
     if ! kubectl cluster-info &> /dev/null; then
         log_error "Unable to connect to Kubernetes cluster."
@@ -52,7 +52,7 @@ check_kubectl() {
     fi
 }
 
-# Validate chart
+# 차트 검증
 validate_chart() {
     log_info "Validating Helm chart..."
     
@@ -66,7 +66,7 @@ validate_chart() {
     log_info "Chart validation passed"
 }
 
-# Create namespace if not exists
+# 네임스페이스 생성 (존재하지 않는 경우)
 create_namespace() {
     log_info "Creating namespace: $NAMESPACE"
     
@@ -74,7 +74,7 @@ create_namespace() {
     kubectl label namespace "$NAMESPACE" environment=development --overwrite
 }
 
-# Deploy application
+# 애플리케이션 배포
 deploy_app() {
     log_info "Deploying $RELEASE_NAME to $NAMESPACE namespace..."
     
@@ -88,7 +88,7 @@ deploy_app() {
     log_info "Deployment completed successfully"
 }
 
-# Show deployment status
+# 배포 상태 표시
 show_status() {
     log_info "Deployment Status:"
     echo
@@ -112,7 +112,7 @@ show_status() {
     kubectl get ingress -n "$NAMESPACE" -l app.kubernetes.io/instance="$RELEASE_NAME"
 }
 
-# Show access information
+# 접근 정보 표시
 show_access_info() {
     log_info "Access Information:"
     echo
@@ -130,7 +130,7 @@ show_access_info() {
     fi
 }
 
-# Main deployment function
+# 메인 배포 함수
 main() {
     log_info "Starting staging environment deployment..."
     
@@ -150,7 +150,7 @@ main() {
     log_info "Staging deployment completed successfully!"
 }
 
-# Handle script arguments
+# 스크립트 인수 처리
 case "${1:-deploy}" in
     "deploy")
         main

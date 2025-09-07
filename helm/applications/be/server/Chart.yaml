@@ -1,6 +1,6 @@
 apiVersion: v2
 name: be-server
-description: A Helm chart for BE Server Application with nginx reverse proxy
+description: nginx 리버스 프록시를 포함한 백엔드 서버 애플리케이션용 Helm 차트
 type: application
 version: 0.1.0
 appVersion: "1.0.0"

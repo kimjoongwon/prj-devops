@@ -1,6 +1,6 @@
 apiVersion: v2
 name: fe-web
-description: A Helm chart for FE Web Application with nginx reverse proxy
+description: nginx 리버스 프록시를 포함한 프론트엔드 웹 애플리케이션용 Helm 차트
 type: application
 version: 0.1.0
 appVersion: "1.0.0"

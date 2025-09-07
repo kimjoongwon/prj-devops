@@ -1,29 +1,29 @@
 #!/bin/bash
 
-# Deploy Production Environment Script
-# This script deploys the fe-web application to production environment with safety checks
+# 프로덕션 환경 배포 스크립트
+# 이 스크립트는 안전 검사와 함께 fe-web 애플리케이션을 프로덕션 환경에 배포합니다
 
 set -e
 
-# Colors for output
+# 출력용 색상 정의
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
-# Configuration
+# 설정 변수
 NAMESPACE="fe-web-prod"
 RELEASE_NAME="fe-web-prod"
 CHART_PATH="./helm/applications/fe/web"
 VALUES_FILE="./environments/production/fe-web-values.yaml"
 COMMON_VALUES="./environments/shared/common-values.yaml"
 
-# Safety flags
+# 안전 플래그
 DRY_RUN=${DRY_RUN:-false}
 SKIP_BACKUP=${SKIP_BACKUP:-false}
 
-# Functions
+# 유틸리티 함수들
 log_info() {
     echo -e "${GREEN}[INFO]${NC} $1"
 }

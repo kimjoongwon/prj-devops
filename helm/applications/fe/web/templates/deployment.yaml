@@ -4,69 +4,65 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  # 배포 리소스의 이름 (릴리스명-차트명 형태로 생성)
+  # 리소스 이름: <release>-<chart>
   name: {{ include "fe-web.fullname" . }}
-  # 배포 리소스에 적용될 레이블 (추적, 선택, 관리용)
+  # 공통 라벨 (선택/추적/ArgoCD UI 식별)
   labels:
     {{- include "fe-web.labels" . | nindent 4 }}
 spec:
-  # 복제본 수 설정 (오토스케일링 제거됨)
-  replicas: {{ .Values.replicaCount }}
-  # 관리할 Pod를 선택하기 위한 라벨 선택자
+  replicas: {{ .Values.replicaCount }}   # 스케일 아웃은 HPA 추가 시 별도 구성
   selector:
     matchLabels:
       {{- include "fe-web.selectorLabels" . | nindent 6 }}
-  # Pod 템플릿 정의 (실제 실행될 컨테이너 설정)
-  template:
+  template:                              # Pod 스펙 (이미지, 볼륨, 프로브 등)
     metadata:
-      # Pod에 적용될 레이블
       labels:
         {{- include "fe-web.labels" . | nindent 8 }}
-      # ConfigMap 변경 시 자동 재시작을 위한 어노테이션
       annotations:
+        # ConfigMap 변경을 감지하여 Pod 재배포 트리거 (롤링업데이트)
         checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
     spec:
-      # 컨테이너 설정 (멀티 컨테이너: nginx 리버스 프록시 + busybox 백엔드)
+      # 멀티 컨테이너 패턴: (1) nginx 프록시 (2) busybox httpd (교육/테스트용)
       containers:
-        # nginx 리버스 프록시 컨테이너
+        # --- nginx reverse proxy ---
         - name: nginx-proxy
-          # 사용할 Docker 이미지 (저장소:태그 형태)
+          # 프록시 이미지 (immutable 태그 권장)
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
-          # 이미지 풀 정책 (Always, IfNotPresent, Never)
+          # 이미지 풀 정책 (주: latest 사용 시 Always 권장)
           imagePullPolicy: {{ .Values.image.pullPolicy }}
-          # 컨테이너가 노출할 포트
+          # 서비스가 노출할 포트 (http 이름 -> 프로브/Service 참조)
           ports:
             - name: http
               containerPort: {{ .Values.service.targetPort }}
               protocol: TCP
-          # 컨테이너가 살아있는지 확인하는 프로브 (재시작 여부 결정)
+          # Liveness: 프로세스 hang 탐지 -> 재시작
           livenessProbe:
             httpGet:
               path: /health
               port: http
             initialDelaySeconds: 10
             periodSeconds: 30
-          # 컨테이너가 트래픽을 받을 준비가 되었는지 확인하는 프로브
+          # Readiness: 트래픽 라우팅 전 준비 확인
           readinessProbe:
             httpGet:
               path: /health
               port: http
             initialDelaySeconds: 5
             periodSeconds: 10
-          # nginx 설정 파일 마운트
+          # nginx 메인 설정 (ConfigMap -> 단일 파일 subPath)
           volumeMounts:
             - name: nginx-config
               mountPath: /etc/nginx/nginx.conf
               subPath: nginx.conf
-          # 컨테이너에 할당할 리소스 (CPU, 메모리 제한/요청)
+          # 자원 제한/요청 (스케줄링 + QoS Class 결정)
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
         
-        # busybox 백엔드 컨테이너
+        # --- busybox backend (static httpd) ---
         - name: busybox-backend
           image: "{{ .Values.backend.image.repository }}:{{ .Values.backend.image.tag }}"
           imagePullPolicy: {{ .Values.backend.image.pullPolicy }}
-          # busybox httpd 서버 실행
+          # 단순 정적 페이지 서빙 (학습/구조 테스트 목적)
           command: ["/bin/sh"]
           args:
             - -c
@@ -80,7 +76,7 @@ spec:
             - name: backend
               containerPort: {{ .Values.backend.port }}
               protocol: TCP
-          # 백엔드 헬스체크
+          # Liveness/Readiness: 단순 루트 경로 확인
           livenessProbe:
             httpGet:
               path: /
@@ -93,15 +89,15 @@ spec:
               port: backend
             initialDelaySeconds: 2
             periodSeconds: 10
-          # HTML 파일 마운트
+          # 정적 HTML(ConfigMap) 마운트
           volumeMounts:
             - name: html-content
               mountPath: /html
-          # 백엔드 리소스 설정
+          # 자원 제한/요청
           resources:
             {{- toYaml .Values.backend.resources | nindent 12 }}
       
-      # 볼륨 설정
+      # 공용 볼륨 정의 (ConfigMap -> 각각 파일 분리)
       volumes:
         - name: nginx-config
           configMap:

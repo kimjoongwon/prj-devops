@@ -1,30 +1,41 @@
-# DevOps Project - Production-Ready Helm Charts
+# DevOps 프로젝트 - 프로덕션 레디 Helm 차트
 
-This project provides a production-ready Kubernetes deployment structure using Helm charts, organized for multi-environment deployments.
+이 프로젝트는 Helm 차트를 사용한 프로덕션 준비된 Kubernetes 배포 구조를 제공하며, 다중 환경 배포를 위해 체계적으로 구성되어 있습니다.
 
-## 📁 Project Structure
+## 🌟 프로젝트 개요
+
+본 DevOps 프로젝트는 현대적인 클라우드 네이티브 애플리케이션 배포를 위한 완전한 Infrastructure as Code (IaC) 솔루션입니다. 
+
+### 주요 특징
+- **계층화된 아키텍처**: 클러스터 서비스, 개발 도구, 애플리케이션의 3계층 구조
+- **멀티 환경 지원**: 스테이징과 프로덕션 환경의 완전한 분리
+- **GitOps 통합**: ArgoCD를 통한 자동화된 배포 파이프라인
+- **보안 강화**: 프로덕션급 보안 설정과 인증서 관리
+- **자동화된 배포**: 원클릭 배포 스크립트와 롤백 지원
+
+## 📁 프로젝트 구조
 
 ```
 prj-devops/
-├── helm/                           # All Helm charts organized by deployment layers
-│   ├── cluster-services/          # Layer 1: Cluster-level infrastructure (sync-wave: 1)
-│   │   ├── cert-manager/          # SSL/TLS certificate management
+├── helm/                           # 배포 계층별로 구성된 모든 Helm 차트
+│   ├── cluster-services/          # 계층 1: 클러스터 레벨 인프라 (sync-wave: 1)
+│   │   ├── cert-manager/          # SSL/TLS 인증서 관리
 │   │   │   ├── Chart.yaml
 │   │   │   ├── values.yaml
 │   │   │   └── templates/
-│   │   ├── metallb/               # Load balancer
-│   │   └── nfs-provisioner/       # Storage provisioner
-│   ├── development-tools/         # Layer 2: Development & Operations tools (sync-wave: 2)
-│   │   ├── jenkins/               # CI/CD server
+│   │   ├── metallb/               # 로드 밸런서
+│   │   └── nfs-provisioner/       # 스토리지 프로비저너
+│   ├── development-tools/         # 계층 2: 개발 및 운영 도구 (sync-wave: 2)
+│   │   ├── jenkins/               # CI/CD 서버
 │   │   │   ├── Chart.yaml
 │   │   │   ├── values.yaml
 │   │   │   └── templates/
-│   │   ├── argocd/                # GitOps tool
-│   │   ├── harbor/                # Container registry
-│   │   └── kubernetes-dashboard/  # Cluster management UI
-│   └── applications/              # Layer 3: Business applications (sync-wave: 3)
+│   │   ├── argocd/                # GitOps 도구
+│   │   ├── harbor/                # 컨테이너 레지스트리
+│   │   └── kubernetes-dashboard/  # 클러스터 관리 UI
+│   └── applications/              # 계층 3: 비즈니스 애플리케이션 (sync-wave: 3)
 │       └── fe/
-│           └── web/               # FE web application with admin
+│           └── web/               # 프론트엔드 웹 애플리케이션 (관리자 포함)
 │               ├── Chart.yaml
 │               ├── values.yaml
 │               └── templates/
@@ -34,65 +45,65 @@ prj-devops/
 │                   ├── admin/
 │                   │   └── admin-ingress.yaml
 │                   └── _helpers.tpl
-├── environments/                   # Environment-specific configurations
+├── environments/                   # 환경별 설정 파일
 │   ├── staging/
-│   │   └── fe-web-values.yaml
+│   │   └── fe-web-values.yaml     # 스테이징 환경 설정
 │   ├── production/
-│   │   └── fe-web-values.yaml
+│   │   └── fe-web-values.yaml     # 프로덕션 환경 설정
 │   └── shared/
-│       └── common-values.yaml
-├── scripts/                       # Deployment automation
-│   ├── deploy-all.sh             # Main deployment orchestrator
-│   ├── deploy-libraries.sh       # Cluster services & tools deployment
-│   ├── deploy-stg.sh             # Staging deployment
-│   └── deploy-prod.sh            # Production deployment (with safety checks)
-└── backup/                       # Backup of original files
+│       └── common-values.yaml     # 공통 설정
+├── scripts/                       # 배포 자동화 스크립트
+│   ├── deploy-all.sh             # 메인 배포 오케스트레이터
+│   ├── deploy-libraries.sh       # 클러스터 서비스 및 도구 배포
+│   ├── deploy-stg.sh             # 스테이징 배포
+│   └── deploy-prod.sh            # 프로덕션 배포 (안전 검사 포함)
+└── backup/                       # 원본 파일 백업
     ├── 1-web/
     ├── 4-libs/
     └── helm/
 ```
 
-## 🚀 Quick Start
+## 🚀 빠른 시작
 
-### Prerequisites
+### 사전 준비사항
 
-- Kubernetes cluster access
-- Helm 3.x installed
-- kubectl configured
+- Kubernetes 클러스터 접근 권한
+- Helm 3.x 설치
+- kubectl 설정 완료
 
-### 1. Deploy Infrastructure & Tools
+### 1. 인프라 및 도구 배포
 
 ```bash
-# Deploy cluster services and development tools
+# 클러스터 서비스와 개발 도구 배포
 ./scripts/deploy-libraries.sh
 ```
 
-This deploys in order:
+다음 순서로 배포됩니다:
 
-1. **Cluster Services** (Layer 1): cert-manager, MetalLB, NFS provisioner
-2. **Development Tools** (Layer 2): Jenkins, ArgoCD, Harbor, Kubernetes Dashboard
+1. **클러스터 서비스** (계층 1): cert-manager, MetalLB, NFS 프로비저너
+2. **개발 도구** (계층 2): Jenkins, ArgoCD, Harbor, Kubernetes 대시보드
 
-### 2. Deploy Applications
+### 2. 애플리케이션 배포
 
-#### Staging Environment
+#### 스테이징 환경
 
 ```bash
-# Deploy to staging
+# 스테이징 환경에 배포
 ./scripts/deploy-stg.sh
 
-# Or use the main script
+# 또는 메인 스크립트 사용
 ./scripts/deploy-all.sh staging
-# or simply (staging is default)
+# 또는 간단하게 (기본값이 스테이징)
 ./scripts/deploy-all.sh
 ```
 
-#### Production Environment
+#### 프로덕션 환경
 
 ```bash
-# Dry run first (recommended)
+# 먼저 드라이런 실행 (권장)
 ./scripts/deploy-all.sh production --dry-run
 
-# Deploy to production
+# 프로덕션 배포
 ./scripts/deploy-all.sh production
 ```
 

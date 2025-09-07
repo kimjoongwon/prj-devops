@@ -1,11 +1,11 @@
 #!/bin/bash
 
-# Deploy All Components Script
-# This script orchestrates the deployment of libraries and applications
+# 전체 컴포넌트 배포 스크립트
+# 이 스크립트는 라이브러리와 애플리케이션의 배포를 오케스트레이션합니다
 
 set -e
 
-# Colors for output
+# 출력용 색상 정의
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
@@ -13,11 +13,11 @@ BLUE='\033[0;34m'
 PURPLE='\033[0;35m'
 NC='\033[0m' # No Color
 
-# Configuration
+# 설정 변수
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ENVIRONMENT=${1:-staging}
 
-# Functions
+# 유틸리티 함수들
 log_info() {
     echo -e "${GREEN}[INFO]${NC} $1"
 }

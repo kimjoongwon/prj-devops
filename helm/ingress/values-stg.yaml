@@ -1,16 +1,17 @@
-# Ingress Values - Staging
-# plate-stg namespace의 모든 서비스 ingress 관리
+# 공용 Ingress Chart Staging 값
+# 목적: plate-stg 네임스페이스 서비스(frontend/backend)를 외부(stg 서브도메인)로 노출
+# 차이점: HTTP 허용(ssl-redirect=false), TLS는 실서명(또는 스테이징) 인증서, 도메인 stg.cocdev.co.kr
 
 # App name (default: plate)
 appName: plate
 
 # Service names (actual service names in the cluster)
-services:
+services:                 # ArgoCD 릴리스명 기준 Service 오브젝트 이름 매핑
   frontend:
-    name: "plate-fe-web-stg"  # Release name from ArgoCD
+    name: "plate-fe-web-stg"
     port: 80
   backend:
-    name: "plate-be-server-stg"  # Release name from ArgoCD
+    name: "plate-be-server-stg"
     port: 80
 
 ingress:
@@ -18,15 +19,15 @@ ingress:
   name: "cocdev-ingress"
   className: "nginx"
   annotations:
-    cert-manager.io/cluster-issuer: "letsencrypt-prod"
-    ingress.kubernetes.io/ssl-redirect: "false"  # Allow HTTP for staging
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"   # 필요 시 스테이징 ClusterIssuer 로 교체
+    ingress.kubernetes.io/ssl-redirect: "false"          # Staging 은 HTTP 허용 (테스트 편의)
     nginx.ingress.kubernetes.io/rate-limit: "100"
     nginx.ingress.kubernetes.io/rate-limit-window: "1m"
   
   hosts:
     - host: stg.cocdev.co.kr
       paths:
-        # Frontend
+        # 전체 루트 -> 프론트엔드
         - path: /
           pathType: Prefix
           backend:
@@ -34,7 +35,7 @@ ingress:
               name: frontend
               port:
                 number: 80
-        # Backend API
+        # /api prefix -> 백엔드 API
         - path: /api
           pathType: Prefix
           backend:
@@ -44,6 +45,6 @@ ingress:
                 number: 80
   
   tls:
-    - secretName: web-stg-tls
+    - secretName: web-stg-tls   # cert-manager가 채우는 스테이징용 TLS 시크릿 (또는 동일 실서명)
       hosts:
         - stg.cocdev.co.kr
