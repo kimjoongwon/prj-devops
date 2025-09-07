@@ -1,0 +1,55 @@
+# Production environment values for be-server
+# Values for production deployment
+
+replicaCount: 3
+
+# nginx 리버스 프록시 (production)
+image:
+  repository: nginx
+  pullPolicy: IfNotPresent
+  tag: "1.25"  # Use specific version for production
+
+# server 백엔드 (production)
+backend:
+  image:
+    repository: kimjoongwon/server
+    tag: "46"
+    pullPolicy: IfNotPresent
+  port: 3005
+  resources:
+    limits:
+      cpu: 500m
+      memory: 1Gi
+    requests:
+      cpu: 250m
+      memory: 512Mi
+
+ingress:
+  enabled: true
+  className: "nginx"
+  annotations:
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"  # Use production certs
+    ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/rate-limit: "200"
+    nginx.ingress.kubernetes.io/rate-limit-window: "1m"
+  hosts:
+    - host: cocdev.co.kr
+      paths:
+        - path: /api
+          pathType: Prefix
+  tls:
+    - secretName: server-prod-tls
+      hosts:
+        - cocdev.co.kr
+
+resources:
+  limits:
+    cpu: 300m
+    memory: 512Mi
+  requests:
+    cpu: 150m
+    memory: 256Mi
+
+# Production 환경에서는 기본 설정 사용
+# 복잡한 스케줄링 정책과 보안 설정은 제거하여 단순화
