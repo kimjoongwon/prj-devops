@@ -15,7 +15,7 @@ backend:
     repository: kimjoongwon/server
     tag: "46"
     pullPolicy: Always # Always pull for staging
-  port: 8080
+  port: 3005
   resources:
     limits:
       cpu: 300m
