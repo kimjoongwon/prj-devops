@@ -21,7 +21,7 @@ spec:
         - ../../../../environments/staging/be-server-values.yaml
       parameters:
         - name: backend.image.tag
-          value: "46" # 지정된 서버 이미지 태그
+          value: "48" # 지정된 서버 이미지 태그
   destination:
     server: https://kubernetes.default.svc
     namespace: plate-stg
