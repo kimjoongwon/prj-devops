@@ -4,11 +4,11 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: fe-web-apps
+  name: cocdev-platform-apps
   namespace: argocd
   labels:
-    app.kubernetes.io/name: fe-web-apps
-    app.kubernetes.io/part-of: fe-web
+    app.kubernetes.io/name: cocdev-platform-apps
+    app.kubernetes.io/part-of: cocdev-platform
 spec:
   project: default
   source:
@@ -26,6 +26,10 @@ spec:
       - CreateNamespace=true
   info:
     - name: 'Description'
-      value: 'FE Web Applications - App of Apps pattern'
+      value: 'CocDev Platform - App of Apps pattern'
     - name: 'Environment'
       value: 'Multi-environment (staging, production)'
+    - name: 'Components'
+      value: 'fe-web, be-server, ingress'
+    - name: 'Namespaces'
+      value: 'plate-prod, plate-stg'

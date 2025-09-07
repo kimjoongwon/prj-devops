@@ -24,7 +24,7 @@ spec:
           value: "latest" # Staging에서는 최신 버전 사용
   destination:
     server: https://kubernetes.default.svc
-    namespace: fe-web-stg
+    namespace: plate-stg
   syncPolicy:
     automated:
       prune: true

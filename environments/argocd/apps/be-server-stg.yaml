@@ -24,7 +24,7 @@ spec:
           value: "46" # 지정된 서버 이미지 태그
   destination:
     server: https://kubernetes.default.svc
-    namespace: be-server-stg
+    namespace: plate-stg
   syncPolicy:
     automated:
       prune: true
