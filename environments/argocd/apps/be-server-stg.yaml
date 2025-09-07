@@ -1,0 +1,48 @@
+# BE Server - Staging 환경 ArgoCD Application
+
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: be-server-stg
+  namespace: argocd
+  labels:
+    app.kubernetes.io/name: be-server
+    app.kubernetes.io/instance: staging
+    environment: staging
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/kimjoongwon/prj-devops.git # 실제 Git Repository URL로 변경 필요
+    path: helm/applications/be/server
+    targetRevision: main
+    helm:
+      # Staging 환경 전용 values 파일 사용
+      valueFiles:
+        - ../../../../environments/staging/be-server-values.yaml
+      parameters:
+        - name: backend.image.tag
+          value: "46" # 지정된 서버 이미지 태그
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: be-server-stg
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ApplyOutOfSyncOnly=true
+    retry:
+      limit: 5
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m
+  revisionHistoryLimit: 10
+  info:
+    - name: "Environment"
+      value: "Staging"
+    - name: "Domain"
+      value: "cocdev.co.kr/api (staging)"
+    - name: "Description"
+      value: "BE Server Application - Staging Environment"
