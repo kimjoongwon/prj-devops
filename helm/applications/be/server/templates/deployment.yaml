@@ -1,0 +1,97 @@
+# Backend Server 애플리케이션을 위한 Kubernetes Deployment 템플릿
+# 이 파일은 Helm 차트를 통해 서버 애플리케이션을 Kubernetes 클러스터에 배포하기 위한 설정을 정의합니다.
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  # 배포 리소스의 이름 (릴리스명-차트명 형태로 생성)
+  name: {{ include "be-server.fullname" . }}
+  # 배포 리소스에 적용될 레이블 (추적, 선택, 관리용)
+  labels:
+    {{- include "be-server.labels" . | nindent 4 }}
+spec:
+  # 복제본 수 설정
+  replicas: {{ .Values.replicaCount }}
+  # 관리할 Pod를 선택하기 위한 라벨 선택자
+  selector:
+    matchLabels:
+      {{- include "be-server.selectorLabels" . | nindent 6 }}
+  # Pod 템플릿 정의 (실제 실행될 컨테이너 설정)
+  template:
+    metadata:
+      # Pod에 적용될 레이블
+      labels:
+        {{- include "be-server.labels" . | nindent 8 }}
+      # ConfigMap 변경 시 자동 재시작을 위한 어노테이션
+      annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
+    spec:
+      # 컨테이너 설정 (멀티 컨테이너: nginx 리버스 프록시 + server 백엔드)
+      containers:
+        # nginx 리버스 프록시 컨테이너
+        - name: nginx-proxy
+          # 사용할 Docker 이미지 (저장소:태그 형태)
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          # 이미지 풀 정책 (Always, IfNotPresent, Never)
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          # 컨테이너가 노출할 포트
+          ports:
+            - name: http
+              containerPort: {{ .Values.service.targetPort }}
+              protocol: TCP
+          # 컨테이너가 살아있는지 확인하는 프로브 (재시작 여부 결정)
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 30
+          # 컨테이너가 트래픽을 받을 준비가 되었는지 확인하는 프로브
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          # nginx 설정 파일 마운트
+          volumeMounts:
+            - name: nginx-config
+              mountPath: /etc/nginx/nginx.conf
+              subPath: nginx.conf
+          # 컨테이너에 할당할 리소스 (CPU, 메모리 제한/요청)
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+        
+        # server 백엔드 컨테이너
+        - name: server-backend
+          image: "{{ .Values.backend.image.repository }}:{{ .Values.backend.image.tag }}"
+          imagePullPolicy: {{ .Values.backend.image.pullPolicy }}
+          ports:
+            - name: backend
+              containerPort: {{ .Values.backend.port }}
+              protocol: TCP
+          # 백엔드 헬스체크
+          livenessProbe:
+            httpGet:
+              path: /
+              port: backend
+            initialDelaySeconds: 30
+            periodSeconds: 30
+          readinessProbe:
+            httpGet:
+              path: /
+              port: backend
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          # 백엔드 리소스 설정
+          resources:
+            {{- toYaml .Values.backend.resources | nindent 12 }}
+      
+      # 볼륨 설정
+      volumes:
+        - name: nginx-config
+          configMap:
+            name: {{ include "be-server.fullname" . }}-config
+            items:
+              - key: nginx.conf
+                path: nginx.conf

@@ -1,0 +1,58 @@
+# Default values for be-server
+# This is a YAML-formatted file.
+
+replicaCount: 2
+
+# nginx 리버스 프록시 컨테이너 설정
+image:
+  repository: nginx
+  pullPolicy: IfNotPresent
+  tag: "latest"
+
+# server 백엔드 컨테이너 설정
+backend:
+  image:
+    repository: kimjoongwon/server
+    tag: "46"
+    pullPolicy: IfNotPresent
+  port: 3005
+  resources:
+    limits:
+      cpu: 200m
+      memory: 256Mi
+    requests:
+      cpu: 100m
+      memory: 128Mi
+
+nameOverride: ""
+fullnameOverride: ""
+
+service:
+  type: ClusterIP
+  port: 80
+  targetPort: 80
+
+ingress:
+  enabled: true
+  className: "nginx"
+  annotations:
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    ingress.kubernetes.io/ssl-redirect: "false"
+    acme.cert-manager.io/http01-edit-in-place: "true"
+  hosts:
+    - host: cocdev.co.kr
+      paths:
+        - path: /api
+          pathType: Prefix
+  tls:
+    - secretName: server-tls
+      hosts:
+        - cocdev.co.kr
+
+resources:
+  limits:
+    cpu: 100m
+    memory: 128Mi
+  requests:
+    cpu: 50m
+    memory: 64Mi

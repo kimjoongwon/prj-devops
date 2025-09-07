@@ -1,0 +1,77 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "be-server.fullname" . }}-config
+  labels:
+    {{- include "be-server.labels" . | nindent 4 }}
+data:
+  nginx.conf: |
+    events {
+        worker_connections 1024;
+    }
+    
+    http {
+        include       /etc/nginx/mime.types;
+        default_type  application/octet-stream;
+        
+        # Logging
+        access_log /var/log/nginx/access.log;
+        error_log /var/log/nginx/error.log;
+        
+        # Gzip compression
+        gzip on;
+        gzip_vary on;
+        gzip_min_length 10240;
+        gzip_proxied expired no-cache no-store private;
+        gzip_types
+            text/plain
+            text/css
+            text/xml
+            text/javascript
+            application/x-javascript
+            application/xml+rss
+            application/json;
+        
+        # Upstream server backend
+        upstream backend {
+            server 127.0.0.1:{{ .Values.backend.port }} max_fails=3 fail_timeout=30s;
+        }
+        
+        server {
+            listen {{ .Values.service.targetPort }};
+            server_name _;
+            
+            # Health check endpoint
+            location /health {
+                access_log off;
+                return 200 "nginx proxy healthy\n";
+                add_header Content-Type text/plain;
+            }
+            
+            # Backend health check
+            location /backend-health {
+                access_log off;
+                proxy_pass http://backend/;
+                proxy_connect_timeout 1s;
+                proxy_read_timeout 1s;
+            }
+            
+            # Proxy all requests to backend server
+            location / {
+                proxy_pass http://backend;
+                proxy_set_header Host $host;
+                proxy_set_header X-Real-IP $remote_addr;
+                proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+                proxy_set_header X-Forwarded-Proto $scheme;
+                proxy_connect_timeout 5s;
+                proxy_send_timeout 60s;
+                proxy_read_timeout 60s;
+                
+                # 에러 처리
+                proxy_next_upstream error timeout invalid_header http_500 http_502 http_503 http_504;
+                
+                # 디버깅을 위한 헤더 추가
+                add_header X-Proxy-Backend "server-backend";
+            }
+        }
+    }
