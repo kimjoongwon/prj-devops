@@ -68,7 +68,7 @@ spec:
             - -c
             - |
               mkdir -p /www
-              cp /html/index.html /www/
+              echo "<h1>Backend Server</h1><p>Simple busybox httpd backend</p>" > /www/index.html
               echo "Starting httpd on port {{ .Values.backend.port }}"
               cd /www
               httpd -f -p {{ .Values.backend.port }} -v
@@ -89,10 +89,6 @@ spec:
               port: backend
             initialDelaySeconds: 2
             periodSeconds: 10
-          # 정적 HTML(ConfigMap) 마운트
-          volumeMounts:
-            - name: html-content
-              mountPath: /html
           # 자원 제한/요청
           resources:
             {{- toYaml .Values.backend.resources | nindent 12 }}
@@ -105,9 +101,3 @@ spec:
             items:
               - key: nginx.conf
                 path: nginx.conf
-        - name: html-content
-          configMap:
-            name: {{ include "fe-web.fullname" . }}-config
-            items:
-              - key: index.html
-                path: index.html
