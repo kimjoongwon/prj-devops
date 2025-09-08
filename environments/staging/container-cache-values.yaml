@@ -2,7 +2,7 @@
 pvc:
   enabled: true
   name: container-builder-pvc
-  storageClass: nfs-client
+  storageClass: openebs-hostpath
   accessModes:
     - ReadWriteMany
   size: 30Gi          # Staging 은 더 작은 용량

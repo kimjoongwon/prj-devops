@@ -2,7 +2,7 @@
 pvc:
   enabled: true
   name: container-builder-pvc
-  storageClass: nfs-client
+  storageClass: openebs-hostpath
   accessModes:
     - ReadWriteMany
   size: 50Gi          # Production 용량
