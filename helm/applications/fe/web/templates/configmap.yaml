@@ -57,80 +57,10 @@ data:
                 proxy_read_timeout 1s;
             }
             
-            # Proxy all requests to backend
+            # nginx default welcome page
             location / {
-                proxy_pass http://backend;
-                proxy_set_header Host $host;
-                proxy_set_header X-Real-IP $remote_addr;
-                proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-                proxy_set_header X-Forwarded-Proto $scheme;
-                proxy_connect_timeout 5s;
-                proxy_send_timeout 60s;
-                proxy_read_timeout 60s;
-                
-                # 에러 처리
-                proxy_next_upstream error timeout invalid_header http_500 http_502 http_503 http_504;
-                
-                # 디버깅을 위한 헤더 추가
-                add_header X-Proxy-Backend "busybox-httpd";
+                root /usr/share/nginx/html;
+                index index.html index.htm;
             }
         }
     }
-  
-    index.html: |
-    <!DOCTYPE html>
-    <html lang="ko">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Hello World - Frontend Web</title>
-        <style>
-            body {
-                font-family: 'Arial', sans-serif;
-                margin: 0;
-                padding: 0;
-                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                display: flex;
-                justify-content: center;
-                align-items: center;
-                min-height: 100vh;
-                color: white;
-            }
-            .container {
-                text-align: center;
-                background: rgba(255, 255, 255, 0.1);
-                padding: 3rem;
-                border-radius: 20px;
-                backdrop-filter: blur(10px);
-                box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-            }
-            h1 {
-                font-size: 3rem;
-                margin-bottom: 1rem;
-                text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
-            }
-            p {
-                font-size: 1.2rem;
-                margin-bottom: 0.5rem;
-                opacity: 0.9;
-            }
-            .tech-stack {
-                margin-top: 2rem;
-                font-size: 0.9rem;
-                opacity: 0.7;
-            }
-        </style>
-    </head>
-    <body>
-        <div class="container">
-            <h1>🌟 Hello World! 🌟</h1>
-            <p>Welcome to Frontend Web Application</p>
-            <p>쿠버네티스 학습용 작업입니다.<p>
-            <div class="tech-stack">
-                <p>🔧 nginx (reverse proxy) → busybox (backend)</p>
-                <p>🌐 Domain: cocdev.co.kr & stg.cocdev.co.kr</p>
-                <p>🔒 TLS enabled with Let's Encrypt</p>
-            </div>
-        </div>
-    </body>
-    </html>
