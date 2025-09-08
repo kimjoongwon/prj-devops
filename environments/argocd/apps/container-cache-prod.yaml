@@ -1,0 +1,34 @@
+# Container Build Cache PVC - Production
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: plate-container-cache-prod
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"  # Storage 먼저 생성
+  labels:
+    app.kubernetes.io/name: container-cache
+    environment: production
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/kimjoongwon/prj-devops.git
+    path: helm/applications/storage/container-cache
+    targetRevision: main
+    helm:
+      valueFiles:
+        - ../../../../environments/production/container-cache-values.yaml
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: plate-prod
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ApplyOutOfSyncOnly=true
+  revisionHistoryLimit: 3
+  info:
+    - name: Purpose
+      value: "Shared Docker/Build cache PVC (Production)"

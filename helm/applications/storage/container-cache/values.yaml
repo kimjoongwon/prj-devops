@@ -1,0 +1,13 @@
+# container-cache chart values
+# 환경별 override 로 PVC 용량/StorageClass 조정
+
+pvc:
+  enabled: true
+  name: container-builder-pvc
+  storageClass: nfs-client
+  accessModes:
+    - ReadWriteMany
+  size: 50Gi
+  annotations: {}
+  labels: {}
+  mountPath: /var/lib/docker  # (참고) 실제 사용 애플리케이션 차트에서 volumeClaimTemplates 또는 PVC mount 로 연결

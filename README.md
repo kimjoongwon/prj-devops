@@ -26,7 +26,6 @@ prj-devops/
 │   │   ├── metallb/               # 로드 밸런서
 │   │   └── nfs-provisioner/       # 스토리지 프로비저너
 │   ├── development-tools/         # 계층 2: 개발 및 운영 도구 (sync-wave: 2)
-│   │   ├── jenkins/               # CI/CD 서버
 │   │   │   ├── Chart.yaml
 │   │   │   ├── values.yaml
 │   │   │   └── templates/
@@ -81,7 +80,7 @@ prj-devops/
 다음 순서로 배포됩니다:
 
 1. **클러스터 서비스** (계층 1): cert-manager, MetalLB, NFS 프로비저너
-2. **개발 도구** (계층 2): Jenkins, ArgoCD, Harbor, Kubernetes 대시보드
+2. **개발 도구** (계층 2): ArgoCD, Harbor, Kubernetes 대시보드
 
 ### 2. 애플리케이션 배포
 
@@ -152,7 +151,7 @@ prj-devops/
 인프라 및 개발 도구를 계층 순서대로 배포:
 
 - **1계층 (Cluster Services)**: cert-manager, MetalLB, NFS Provisioner
-- **2계층 (Development Tools)**: Jenkins, ArgoCD, Harbor, Kubernetes Dashboard
+- **2계층 (Development Tools)**: ArgoCD, Harbor, Kubernetes Dashboard
 
 ### deploy-stg.sh
 
@@ -303,13 +302,13 @@ spec:
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: jenkins
+  name: container-cache
   annotations:
     argocd.argoproj.io/sync-wave: "2"  # Deploy after cluster services
 spec:
   source:
     repoURL: https://github.com/company/prj-devops
-    path: helm/development-tools/jenkins
+  path: helm/applications/storage/container-cache
     targetRevision: HEAD
 ```
 

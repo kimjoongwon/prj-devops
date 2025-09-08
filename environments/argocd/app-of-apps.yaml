@@ -30,6 +30,6 @@ spec:
     - name: 'Environment'
       value: 'Multi-environment (staging, production)'
     - name: 'Components'
-      value: 'fe-web, be-server, ingress'
+      value: 'fe-web, be-server, ingress, container-cache'
     - name: 'Namespaces'
       value: 'plate-prod, plate-stg'
