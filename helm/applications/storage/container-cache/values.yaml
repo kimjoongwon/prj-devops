@@ -6,7 +6,7 @@ pvc:
   name: container-builder-pvc
   storageClass: nfs-client
   accessModes:
-    - ReadWriteMany
+    - ReadWriteOnce
   size: 50Gi
   annotations: {}
   labels: {}
