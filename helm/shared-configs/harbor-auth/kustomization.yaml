@@ -1,0 +1,25 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+metadata:
+  name: harbor-auth-eso
+  namespace: default
+
+resources:
+  - serviceaccount.yaml
+  - openbao-token-secret.yaml
+  - secret-store.yaml
+  - external-secret.yaml
+
+commonLabels:
+  app.kubernetes.io/name: harbor-auth-eso
+  app.kubernetes.io/component: external-secrets
+  app.kubernetes.io/part-of: harbor-integration
+
+commonAnnotations:
+  argocd.argoproj.io/managed: "true"
+  config.kubernetes.io/origin: |
+    configuredIn: kustomization.yaml
+    configuredBy:
+      apiVersion: kustomize.config.k8s.io/v1beta1
+      kind: Kustomization

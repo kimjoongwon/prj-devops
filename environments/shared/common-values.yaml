@@ -2,8 +2,9 @@
 # Common configurations for all deployments
 
 # Global image pull secrets
+# ESO automatically generates harbor-docker-secret for Harbor registry access
 imagePullSecrets:
-  - name: docker-registry-secret
+  - name: harbor-docker-secret
 
 # Common service account configuration
 serviceAccount:

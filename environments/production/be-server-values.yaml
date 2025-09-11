@@ -3,17 +3,17 @@
 
 replicaCount: 3
 
-# nginx 리버스 프록시 (production)
+# nginx 리버스 프록시 (production) - Using Docker Hub
 image:
   repository: nginx
   pullPolicy: IfNotPresent
   tag: "1.25"  # Use specific version for production
 
-# server 백엔드 (production)
+# server 백엔드 (production) - Updated to use Harbor registry
 backend:
   image:
-    repository: kimjoongwon/server
-    tag: "48"
+    repository: harbor.cocdev.co.kr/server-stg/server
+    tag: "latest"
     pullPolicy: IfNotPresent
   port: 3005
   resources:
