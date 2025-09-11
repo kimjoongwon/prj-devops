@@ -14,7 +14,7 @@ image:                     # 프록시 nginx 이미지
 backend:                   # 실제 비즈니스 로직 서비스 컨테이너
   image:
     repository: kimjoongwon/server  # 사용자 정의 이미지 (CI 파이프라인 아티팩트)
-    tag: "48"                       # 버전 태그 (증분 배포 시 교체)
+    tag: "latest"                       # 버전 태그 (증분 배포 시 교체)
     pullPolicy: IfNotPresent
   port: 3005                        # 내부 애플리케이션 리스닝 포트
   resources:                        # 비교적 무거운 로직 가정한 리소스 요청/제한
