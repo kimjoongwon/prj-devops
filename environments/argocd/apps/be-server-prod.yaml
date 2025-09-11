@@ -20,8 +20,6 @@ spec:
       valueFiles:
         - ../../../../environments/production/be-server-values.yaml
       parameters:
-        - name: backend.image.tag
-          value: "48" # 지정된 서버 이미지 태그
         - name: replicaCount
           value: "3" # Production 환경 고가용성
   destination:
