@@ -19,6 +19,10 @@ spec:
       annotations:
         checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}  # 설정 변경 감지
     spec:
+      imagePullSecrets:
+        {{- with .Values.imagePullSecrets }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
       # 멀티 컨테이너 구성: (1) nginx 프록시 (2) server 애플리케이션
       containers:
         # --- reverse proxy (nginx) ---
