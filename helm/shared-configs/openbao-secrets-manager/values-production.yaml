@@ -1,0 +1,98 @@
+# Production environment specific values
+# Override default values for production environment
+
+# Target namespaces - production only
+global:
+  namespaces:
+    - plate-prod
+
+# Environment-specific configuration
+environments:
+  production:
+    namespace: "plate-prod"
+    remoteRef:
+      key: "server/production"
+
+# External Secrets configuration for production
+externalSecrets:
+  secretStore:
+    name: "openbao-env-production"
+    labels:
+      environment: production
+      tier: production
+    annotations:
+      description: "OpenBao SecretStore for production environment"
+      monitoring: "enabled"
+
+  externalSecret:
+    name: "app-env-secrets-production"
+    refreshInterval: "1h"  # Standard refresh interval for production
+    target:
+      name: "app-env-secrets"
+      template:
+        metadata:
+          labels:
+            environment: production
+            tier: production
+            backup: "enabled"
+    
+    # Production-specific secret data mapping
+    data:
+      - secretKey: "APP_NAME"
+        remoteRef:
+          key: "server/production"
+          property: "APP_NAME"
+
+# Resource limits for production (more robust)
+resources:
+  limits:
+    cpu: 200m
+    memory: 256Mi
+  requests:
+    cpu: 20m
+    memory: 128Mi
+
+# Production security context
+securityContext:
+  runAsNonRoot: true
+  runAsUser: 1001
+  fsGroup: 1001
+  readOnlyRootFilesystem: true
+
+# Production node selector (if specific nodes are used for production)
+nodeSelector:
+  node-type: production
+
+# Production tolerations and affinity
+tolerations:
+  - key: "production"
+    operator: "Equal"
+    value: "true"
+    effect: "NoSchedule"
+
+affinity:
+  nodeAffinity:
+    preferredDuringSchedulingIgnoredDuringExecution:
+    - weight: 100
+      preference:
+        matchExpressions:
+        - key: environment
+          operator: In
+          values:
+          - production
+
+# Harbor configuration for production
+harbor:
+  enabled: true
+  refreshInterval: "1h"  # Standard refresh for production
+  production:
+    remoteRef:
+      key: "harbor/production"
+
+# OpenBao token configuration
+openbao:
+  token:
+    create: true
+    annotations:
+      description: "OpenBao token for production environment"
+      monitoring: "enabled"

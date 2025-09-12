@@ -1,0 +1,66 @@
+# Staging environment specific values
+# Override default values for staging environment
+
+# Target namespaces - staging only
+global:
+  namespaces:
+    - plate-stg
+
+# Environment-specific configuration
+environments:
+  staging:
+    namespace: "plate-stg"
+    remoteRef:
+      key: "server/staging"
+
+# External Secrets configuration for staging
+externalSecrets:
+  secretStore:
+    name: "openbao-env-staging"
+    labels:
+      environment: staging
+      tier: non-production
+    annotations:
+      description: "OpenBao SecretStore for staging environment"
+
+  externalSecret:
+    name: "app-env-secrets-staging"
+    refreshInterval: "30m"  # More frequent refresh for staging
+    target:
+      name: "app-env-secrets"
+      template:
+        metadata:
+          labels:
+            environment: staging
+            tier: non-production
+    
+    # Staging-specific secret data mapping
+    data:
+      - secretKey: "APP_NAME"
+        remoteRef:
+          key: "server/staging"
+          property: "APP_NAME"
+
+# Resource limits for staging (lighter than production)
+resources:
+  limits:
+    cpu: 50m
+    memory: 64Mi
+  requests:
+    cpu: 5m
+    memory: 32Mi
+
+# Harbor configuration for staging
+harbor:
+  enabled: true
+  refreshInterval: "30m"  # More frequent refresh for staging
+  staging:
+    remoteRef:
+      key: "harbor/staging"
+
+# OpenBao token configuration
+openbao:
+  token:
+    create: true
+    annotations:
+      description: "OpenBao token for staging environment"

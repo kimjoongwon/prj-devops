@@ -1,0 +1,134 @@
+# Default values for openbao-secrets-manager
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+# Global configuration
+global:
+  # Target namespaces where secrets will be created
+  namespaces:
+    - plate-stg
+    - plate-prod
+
+# OpenBao configuration
+openbao:
+  # OpenBao server URL
+  server: "https://openbao.cocdev.co.kr"
+  # Secret engine path
+  path: "secret"
+  # API version
+  version: "v2"
+  # Authentication method
+  auth:
+    # Token secret reference
+    tokenSecretRef:
+      name: "openbao-token"
+      key: "token"
+  # OpenBao token management
+  token:
+    # Whether to create the token secret
+    create: true
+    # Token value (will be base64 encoded)
+    value: ""
+    # Additional annotations for token secret
+    annotations: {}
+
+# External Secrets configuration
+externalSecrets:
+  # Install external-secrets operator as dependency
+  install: false
+  
+  # SecretStore configuration
+  secretStore:
+    name: "openbao-env"
+    labels: {}
+    annotations: {}
+
+  # ExternalSecret configuration
+  externalSecret:
+    name: "app-env-secrets"
+    # Refresh interval for secret synchronization
+    refreshInterval: "1h"
+    # Target secret configuration
+    target:
+      name: "app-env-secrets"
+      creationPolicy: "Owner"
+      template:
+        type: "Opaque"
+        metadata:
+          labels:
+            app.kubernetes.io/component: "env-secrets"
+        data: {}
+    
+    # Secret data mapping
+    data:
+      - secretKey: "APP_NAME"
+        remoteRef:
+          key: "server/production"
+          property: "APP_NAME"
+
+# Environment-specific overrides
+environments:
+  staging:
+    namespace: "plate-stg"
+    remoteRef:
+      key: "server/staging"
+  production:
+    namespace: "plate-prod"
+    remoteRef:
+      key: "server/production"
+
+# Resource management
+resources:
+  limits:
+    cpu: 100m
+    memory: 128Mi
+  requests:
+    cpu: 10m
+    memory: 64Mi
+
+# Security context
+securityContext:
+  runAsNonRoot: true
+  runAsUser: 1001
+  fsGroup: 1001
+
+# Node selector
+nodeSelector: {}
+
+# Tolerations
+tolerations: []
+
+# Affinity
+affinity: {}
+
+# ServiceAccount configuration
+serviceAccount:
+  # Specifies whether a service account should be created
+  create: true
+  # Automatically mount a ServiceAccount's API credentials
+  automountServiceAccountToken: true
+  # Annotations to add to the service account
+  annotations: {}
+  # The name of the service account to use
+  name: ""
+
+# Harbor registry authentication
+harbor:
+  # Enable Harbor registry secret creation
+  enabled: true
+  # External secret name for Harbor auth
+  externalSecretName: "harbor-registry-secret"
+  # Target secret name
+  targetSecretName: "harbor-docker-secret"
+  # Refresh interval
+  refreshInterval: "1h"
+  # Environment-specific configuration
+  staging:
+    remoteRef:
+      key: "harbor/staging"
+  production:
+    remoteRef:
+      key: "harbor/production"
+  development:
+    remoteRef:
+      key: "harbor/development"

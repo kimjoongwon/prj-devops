@@ -1,0 +1,25 @@
+apiVersion: v2
+name: openbao-secrets-manager
+description: OpenBao secrets management using External Secrets Operator for environment variables and registry authentication
+type: application
+version: 0.1.0
+appVersion: "1.0"
+keywords:
+  - openbao
+  - vault
+  - external-secrets
+  - environment-variables
+  - harbor
+  - registry-auth
+home: https://github.com/external-secrets/external-secrets
+sources:
+  - https://github.com/external-secrets/external-secrets
+maintainers:
+  - name: DevOps Team
+dependencies:
+  - name: external-secrets
+    version: "0.9.11"
+    repository: https://charts.external-secrets.io
+    condition: externalSecrets.install
+annotations:
+  category: Security
