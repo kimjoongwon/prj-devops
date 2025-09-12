@@ -18,6 +18,7 @@ spec:
     helm:
       # Staging 환경 전용 values 파일 사용
       valueFiles:
+        - ../../../../environments/shared/common-values.yaml
         - ../../../../environments/staging/be-server-values.yaml
   destination:
     server: https://kubernetes.default.svc
