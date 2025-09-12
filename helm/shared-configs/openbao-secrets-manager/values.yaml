@@ -59,11 +59,11 @@ externalSecrets:
             app.kubernetes.io/component: "env-secrets"
         data: {}
     
-    # Secret data mapping
+    # Secret data mapping (will be overridden by environment-specific values)
     data:
       - secretKey: "APP_NAME"
         remoteRef:
-          key: "server/production"
+          key: "server/default"  # Default path, should be overridden
           property: "APP_NAME"
 
 # Environment-specific overrides
