@@ -25,7 +25,7 @@ externalSecrets:
 
   externalSecret:
     name: "app-env-secrets-staging"
-    refreshInterval: "30m"  # More frequent refresh for staging
+    refreshInterval: "30m" # More frequent refresh for staging
     target:
       name: "app-env-secrets"
       template:
@@ -33,7 +33,7 @@ externalSecrets:
           labels:
             environment: staging
             tier: non-production
-    
+
     # Staging-specific secret data mapping
     data:
       - secretKey: "APP_NAME"
@@ -53,7 +53,7 @@ resources:
 # Harbor configuration for staging
 harbor:
   enabled: true
-  refreshInterval: "30m"  # More frequent refresh for staging
+  refreshInterval: "30m" # More frequent refresh for staging
   staging:
     remoteRef:
       key: "harbor/staging"
