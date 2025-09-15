@@ -4,7 +4,7 @@
 pvc:
   enabled: true
   name: container-builder-pvc
-  storageClass: nfs-client
+  storageClass: "openebs-single-replica"  # openebs-zfs, openebs-hostpath 등 환경에 맞게 조정
   accessModes:
     - ReadWriteOnce
   size: 50Gi
