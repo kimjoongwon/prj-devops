@@ -2,7 +2,7 @@
 pvc:
   enabled: true
   name: container-builder-pvc
-  storageClass: openebs-single-replica
+  storageClass: openebs-hostpath
   accessModes:
     - ReadWriteOnce
   size: 30Gi          # Staging 은 더 작은 용량

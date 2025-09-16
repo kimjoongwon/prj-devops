@@ -2,10 +2,10 @@
 pvc:
   enabled: true
   name: container-builder-pvc
-  storageClass: "openebs-single-replica"
+  storageClass: "openebs-hostpath"
   accessModes:
     - ReadWriteOnce
-  size: 50Gi          # Production 용량
+  size: 50Gi # Production 용량
   annotations: {}
   labels:
     environment: production
