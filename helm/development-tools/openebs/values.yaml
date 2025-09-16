@@ -120,7 +120,7 @@ loki:
             prefix: loki_index_
             period: 24h
     commonConfig:
-      replication_factor: 1
+      replication_factor: 2
 
     ingester:
       chunk_encoding: snappy
@@ -138,7 +138,7 @@ loki:
       max_label_names_per_series: 20
 
   singleBinary:
-    replicas: 1
+    replicas: 2
     drivesPerNode: 1
     persistence:
       # -- Enabled persistence for loki
@@ -151,7 +151,7 @@ loki:
       size: 2Gi
 
   minio:
-    replicas: 1
+    replicas: 2
     drivesPerNode: 1
     mode: distributed
     # Disable this if you want to enabled external s3 bucket, and uncomment the storage section above.
