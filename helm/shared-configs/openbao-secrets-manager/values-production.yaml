@@ -93,7 +93,7 @@ harbor:
 openbao:
   token:
     create: true
-    value: "cy5kR0JuSGFweW1nTkNnc2s4NVZRaU1JYXk="
+    value: "cy5xWk5wSWJMYVBPaWk5TWNLUHZJc2VpMkg="
     annotations:
       description: "OpenBao token for production environment"
       monitoring: "enabled"
