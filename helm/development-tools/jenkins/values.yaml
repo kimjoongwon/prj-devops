@@ -114,13 +114,13 @@ controller:
   #   - --httpPort=8080
 
   # -- Resource allocation (Requests and Limits)
-  resources:
-    requests:
-      cpu: "50m"
-      memory: "256Mi"
-    limits:
-      cpu: "2000m"
-      memory: "4096Mi"
+  # resources:
+  #   requests:
+  #     cpu: "500m"
+  #     memory: "1Gi"
+  #   limits:
+  #     cpu: "4000m"
+  #     memory: "8Gi"
 
   # Share process namespace to allow sidecar containers to interact with processes in other containers in the same pod
   shareProcessNamespace: false

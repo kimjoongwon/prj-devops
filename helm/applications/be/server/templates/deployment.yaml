@@ -49,8 +49,8 @@ spec:
             - name: nginx-config
               mountPath: /etc/nginx/nginx.conf
               subPath: nginx.conf
-          resources:
-            {{- toYaml .Values.resources | nindent 12 }}
+          {% comment %} resources:
+            {{- toYaml .Values.resources | nindent 12 }} {% endcomment %}
         
         # --- application container ---
         - name: server-backend
@@ -75,8 +75,8 @@ spec:
           #   initialDelaySeconds: 15
           #   periodSeconds: 10
           #   timeoutSeconds: 5
-          resources:
-            {{- toYaml .Values.backend.resources | nindent 12 }}
+          {% comment %} resources:
+            {{- toYaml .Values.backend.resources | nindent 12 }} {% endcomment %}
       
   # ConfigMap 기반 nginx.conf 마운트
       volumes:

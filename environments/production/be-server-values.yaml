@@ -7,7 +7,7 @@ replicaCount: 1
 image:
   repository: nginx
   pullPolicy: IfNotPresent
-  tag: "1.25"  # Use specific version for production
+  tag: "1.25" # Use specific version for production
 
 # server 백엔드 (production) - Updated to use Harbor registry
 backend:
@@ -24,7 +24,7 @@ backend:
       cpu: 250m
       memory: 512Mi
 
-# Service configuration  
+# Service configuration
 service:
   type: LoadBalancer
   port: 80
@@ -41,6 +41,5 @@ resources:
   requests:
     cpu: 150m
     memory: 256Mi
-
 # Production 환경에서는 기본 설정 사용
 # 복잡한 스케줄링 정책과 보안 설정은 제거하여 단순화
