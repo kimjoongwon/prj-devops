@@ -77,8 +77,10 @@ spec:
           #   initialDelaySeconds: 15
           #   periodSeconds: 10
           #   timeoutSeconds: 5
-          {% comment %} resources:
-            {{- toYaml .Values.backend.resources | nindent 12 }} {% endcomment %}
+          {{/*
+          resources:
+            {{- toYaml .Values.backend.resources | nindent 12 }}
+          */}}
       
   # ConfigMap 기반 nginx.conf 마운트
       volumes:

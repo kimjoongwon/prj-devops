@@ -55,8 +55,10 @@ spec:
               mountPath: /etc/nginx/nginx.conf
               subPath: nginx.conf
           # 자원 제한/요청 (스케줄링 + QoS Class 결정)
-          {% comment %} resources:
-            {{- toYaml .Values.resources | nindent 12 }} {% endcomment %}
+          {{/*
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          */}}
         
         # --- busybox backend (static httpd) ---
         - name: busybox-backend
@@ -90,8 +92,10 @@ spec:
             initialDelaySeconds: 2
             periodSeconds: 10
           # 자원 제한/요청
-          {% comment %} resources:
-            {{- toYaml .Values.backend.resources | nindent 12 }} {% endcomment %}
+          {{/*
+          resources:
+            {{- toYaml .Values.backend.resources | nindent 12 }}
+          */}}
       
       # 공용 볼륨 정의 (ConfigMap -> 각각 파일 분리)
       volumes:
