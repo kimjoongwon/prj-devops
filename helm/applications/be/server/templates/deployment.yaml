@@ -49,8 +49,10 @@ spec:
             - name: nginx-config
               mountPath: /etc/nginx/nginx.conf
               subPath: nginx.conf
-          {% comment %} resources:
-            {{- toYaml .Values.resources | nindent 12 }} {% endcomment %}
+          {{/*
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          */}}
         
         # --- application container ---
         - name: server-backend
