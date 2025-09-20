@@ -145,7 +145,7 @@ echo -e "${YELLOW}🐳 Harbor 이미지 Pull 테스트${NC}"
 
 # 테스트용 Pod 생성 및 확인
 TEST_POD="harbor-auth-test-$(date +%s)"
-TEST_IMAGE="harbor.cocdev.co.kr/harbor/server-stg/server:48"
+TEST_IMAGE="harbor.cocdev.co.kr/harbor/stg-server/server:48"
 
 echo "테스트 Pod: $TEST_POD"
 echo "테스트 이미지: $TEST_IMAGE"

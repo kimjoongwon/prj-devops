@@ -12,7 +12,7 @@ image:
 # server 백엔드 (staging) - Updated to use Harbor registry
 backend:
   image:
-    repository: harbor.cocdev.co.kr/server-stg/server
+    repository: harbor.cocdev.co.kr/stg-server/server
     tag: "latest"
     pullPolicy: Always # Always pull for staging
   port: 3005
