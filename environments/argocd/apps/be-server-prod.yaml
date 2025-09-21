@@ -20,9 +20,6 @@ spec:
       valueFiles:
         - ../../../../environments/shared/common-values.yaml
         - ../../../../environments/production/be-server-values.yaml
-      parameters:
-        - name: replicaCount
-          value: "3" # Production 환경 고가용성
   destination:
     server: https://kubernetes.default.svc
     namespace: plate-prod
