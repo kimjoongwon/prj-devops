@@ -53,13 +53,13 @@ spec:
             {{- toYaml .Values.resources | nindent 12 }}
         
         # --- application container ---
-        # - name: server-backend
-        #   image: "{{ .Values.backend.image.repository }}:{{ .Values.backend.image.tag }}"
-        #   imagePullPolicy: {{ .Values.backend.image.pullPolicy }}
-        #   ports:
-        #     - name: backend
-        #       containerPort: {{ .Values.backend.port }}
-        #       protocol: TCP
+        - name: server-backend
+          image: "{{ .Values.backend.image.repository }}:{{ .Values.backend.image.tag }}"
+          imagePullPolicy: {{ .Values.backend.image.pullPolicy }}
+          ports:
+            - name: backend
+              containerPort: {{ .Values.backend.port }}
+              protocol: TCP
           # (헬스체크 비활성화: 초기 개발 중 문제 진단 목적)
           # livenessProbe:
           #   httpGet:
@@ -75,8 +75,8 @@ spec:
           #   initialDelaySeconds: 15
           #   periodSeconds: 10
           #   timeoutSeconds: 5
-          # resources:
-          #   {{- toYaml .Values.backend.resources | nindent 12 }}
+          resources:
+            {{- toYaml .Values.backend.resources | nindent 12 }}
       
   # ConfigMap 기반 nginx.conf 마운트
       volumes:
