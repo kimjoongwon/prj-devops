@@ -33,6 +33,16 @@ spec:
             - name: http
               containerPort: {{ .Values.service.targetPort }}
               protocol: TCP
+          {{- if .Values.appSecrets.enabled }}
+          env:
+            {{- range .Values.appSecrets.envVars }}
+            - name: {{ .name }}
+              valueFrom:
+                secretKeyRef:
+                  name: {{ $.Values.appSecrets.secretName }}
+                  key: {{ .secretKey }}
+            {{- end }}
+          {{- end }}
           livenessProbe:
             httpGet:
               path: /health
@@ -60,6 +70,16 @@ spec:
             - name: backend
               containerPort: {{ .Values.backend.port }}
               protocol: TCP
+          {{- if .Values.appSecrets.enabled }}
+          env:
+            {{- range .Values.appSecrets.envVars }}
+            - name: {{ .name }}
+              valueFrom:
+                secretKeyRef:
+                  name: {{ $.Values.appSecrets.secretName }}
+                  key: {{ .secretKey }}
+            {{- end }}
+          {{- end }}
           # (헬스체크 비활성화: 초기 개발 중 문제 진단 목적)
           # livenessProbe:
           #   httpGet:

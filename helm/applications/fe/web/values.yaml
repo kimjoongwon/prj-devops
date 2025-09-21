@@ -26,6 +26,19 @@ backend:                   # busybox httpd 기반 간단한 정적/테스트 백
       cpu: 25m
       memory: 32Mi
 
+# 애플리케이션 환경변수 Secret 설정
+appSecrets:
+  enabled: true                     # Secret 환경변수 주입 활성화
+  secretName: app-env-secrets       # 참조할 Secret 리소스명
+  envVars:                          # 주입할 환경변수 목록
+    - name: APP_NAME                # 컨테이너 내 환경변수명
+      secretKey: APP_NAME           # Secret 내 키명
+    # 추가 환경변수 예시:
+    # - name: API_KEY
+    #   secretKey: api-key
+    # - name: FEATURE_FLAGS
+    #   secretKey: feature-flags
+
 nameOverride: ""
 fullnameOverride: ""
 

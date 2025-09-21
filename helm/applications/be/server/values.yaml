@@ -2,22 +2,22 @@
 # 서버 레이어 (nginx 프록시 + 실제 애플리케이션 컨테이너) 배포 설정.
 # 환경별 오버라이드: environments/<env>/be-server-values.yaml
 
-replicaCount: 2            # 기본 복제본 수
+replicaCount: 2 # 기본 복제본 수
 
 # nginx 리버스 프록시 컨테이너 설정
-image:                     # 프록시 nginx 이미지
+image: # 프록시 nginx 이미지
   repository: nginx
   pullPolicy: IfNotPresent
-  tag: "latest"            # 고정 버전 태그 권장
+  tag: "latest" # 고정 버전 태그 권장
 
 # server 백엔드 컨테이너 설정
-backend:                   # 실제 비즈니스 로직 서비스 컨테이너
+backend: # 실제 비즈니스 로직 서비스 컨테이너
   image:
-    repository: kimjoongwon/server  # 사용자 정의 이미지 (CI 파이프라인 아티팩트)
-    tag: "latest"                       # 버전 태그 (증분 배포 시 교체)
+    repository: kimjoongwon/server # 사용자 정의 이미지 (CI 파이프라인 아티팩트)
+    tag: "latest" # 버전 태그 (증분 배포 시 교체)
     pullPolicy: IfNotPresent
-  port: 3005                        # 내부 애플리케이션 리스닝 포트
-  resources:                        # 비교적 무거운 로직 가정한 리소스 요청/제한
+  port: 3005 # 내부 애플리케이션 리스닝 포트
+  resources: # 비교적 무거운 로직 가정한 리소스 요청/제한
     limits:
       cpu: 200m
       memory: 256Mi
@@ -25,20 +25,33 @@ backend:                   # 실제 비즈니스 로직 서비스 컨테이너
       cpu: 100m
       memory: 128Mi
 
+# 애플리케이션 환경변수 Secret 설정
+appSecrets:
+  enabled: true # Secret 환경변수 주입 활성화
+  secretName: app-env-secrets # 참조할 Secret 리소스명
+  envVars: # 주입할 환경변수 목록
+    - name: APP_NAME # 컨테이너 내 환경변수명
+      secretKey: APP_NAME # Secret 내 키명
+    # 추가 환경변수 예시:
+    # - name: DATABASE_URL
+    #   secretKey: db-url
+    # - name: JWT_SECRET
+    #   secretKey: jwt-secret
+
 nameOverride: ""
 fullnameOverride: ""
 
-service:                   # 외부/Ingress 앞단 Service (nginx target)
+service: # 외부/Ingress 앞단 Service (nginx target)
   type: ClusterIP
   port: 80
-  targetPort: 8080         # nginx 프록시 컨테이너 포트 (backend:3005 로 프록시됨)
+  targetPort: 8080 # nginx 프록시 컨테이너 포트 (backend:3005 로 프록시됨)
 
-ingress:                   # /api 경로만 노출 (FE Ingress 통합 시 disable 가능)
+ingress: # /api 경로만 노출 (FE Ingress 통합 시 disable 가능)
   enabled: true
   className: "nginx"
   annotations:
     cert-manager.io/cluster-issuer: "letsencrypt-prod"
-    ingress.kubernetes.io/ssl-redirect: "false"  # prod 환경에서는 true 권장
+    ingress.kubernetes.io/ssl-redirect: "false" # prod 환경에서는 true 권장
     acme.cert-manager.io/http01-edit-in-place: "true"
   hosts:
     - host: cocdev.co.kr
@@ -50,7 +63,7 @@ ingress:                   # /api 경로만 노출 (FE Ingress 통합 시 disabl
       hosts:
         - cocdev.co.kr
 
-resources:                 # nginx 프록시 컨테이너 리소스
+resources: # nginx 프록시 컨테이너 리소스
   limits:
     cpu: 100m
     memory: 128Mi

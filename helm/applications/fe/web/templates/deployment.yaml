@@ -35,6 +35,16 @@ spec:
             - name: http
               containerPort: {{ .Values.service.targetPort }}
               protocol: TCP
+          {{- if .Values.appSecrets.enabled }}
+          env:
+            {{- range .Values.appSecrets.envVars }}
+            - name: {{ .name }}
+              valueFrom:
+                secretKeyRef:
+                  name: {{ $.Values.appSecrets.secretName }}
+                  key: {{ .secretKey }}
+            {{- end }}
+          {{- end }}
           # Liveness: 프로세스 hang 탐지 -> 재시작
           livenessProbe:
             httpGet:
@@ -78,6 +88,16 @@ spec:
             - name: backend
               containerPort: {{ .Values.backend.port }}
               protocol: TCP
+          {{- if .Values.appSecrets.enabled }}
+          env:
+            {{- range .Values.appSecrets.envVars }}
+            - name: {{ .name }}
+              valueFrom:
+                secretKeyRef:
+                  name: {{ $.Values.appSecrets.secretName }}
+                  key: {{ .secretKey }}
+            {{- end }}
+          {{- end }}
           # Liveness/Readiness: 단순 루트 경로 확인
           livenessProbe:
             httpGet:
