@@ -23,52 +23,13 @@ spec:
         {{- with .Values.imagePullSecrets }}
         {{- toYaml . | nindent 8 }}
         {{- end }}
-      # 멀티 컨테이너 구성: (1) nginx 프록시 (2) server 애플리케이션
       containers:
-        # --- reverse proxy (nginx) ---
-        - name: nginx-proxy
+        - name: server-backend
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
             - name: http
               containerPort: {{ .Values.service.targetPort }}
-              protocol: TCP
-          {{- if .Values.appSecrets.enabled }}
-          env:
-            {{- range .Values.appSecrets.envVars }}
-            - name: {{ .name }}
-              valueFrom:
-                secretKeyRef:
-                  name: {{ $.Values.appSecrets.secretName }}
-                  key: {{ .secretKey }}
-            {{- end }}
-          {{- end }}
-          livenessProbe:
-            httpGet:
-              path: /health
-              port: http
-            initialDelaySeconds: 10
-            periodSeconds: 30
-          readinessProbe:
-            httpGet:
-              path: /health
-              port: http
-            initialDelaySeconds: 5
-            periodSeconds: 10
-          volumeMounts:
-            - name: nginx-config
-              mountPath: /etc/nginx/nginx.conf
-              subPath: nginx.conf
-          resources:
-            {{- toYaml .Values.resources | nindent 12 }}
-        
-        # --- application container ---
-        - name: server-backend
-          image: "{{ .Values.backend.image.repository }}:{{ .Values.backend.image.tag }}"
-          imagePullPolicy: {{ .Values.backend.image.pullPolicy }}
-          ports:
-            - name: backend
-              containerPort: {{ .Values.backend.port }}
               protocol: TCP
           {{- if .Values.appSecrets.enabled }}
           env:
@@ -96,13 +57,4 @@ spec:
           #   periodSeconds: 10
           #   timeoutSeconds: 5
           resources:
-            {{- toYaml .Values.backend.resources | nindent 12 }}
-      
-  # ConfigMap 기반 nginx.conf 마운트
-      volumes:
-        - name: nginx-config
-          configMap:
-            name: {{ include "be-server.fullname" . }}-config
-            items:
-              - key: nginx.conf
-                path: nginx.conf
+            {{- toYaml .Values.resources | nindent 12 }}
