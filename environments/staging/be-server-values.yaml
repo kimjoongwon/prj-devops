@@ -3,32 +3,17 @@ nameOverride: "server"
 
 replicaCount: 1
 
-# nginx 리버스 프록시 (staging) - Using Docker Hub
+# Backend server configuration (staging) - Using Harbor registry
 image:
-  repository: nginx
+  repository: harbor.cocdev.co.kr/stg-server/server
   pullPolicy: Always # Always pull for staging to get latest builds
   tag: "latest"
-
-# server 백엔드 (staging) - Updated to use Harbor registry
-backend:
-  image:
-    repository: harbor.cocdev.co.kr/stg-server/server
-    tag: "latest"
-    pullPolicy: Always # Always pull for staging
-  port: 3005
-  resources:
-    limits:
-      cpu: 500m
-      memory: 1Gi
-    requests:
-      cpu: 200m
-      memory: 512Mi
 
 # Service configuration
 service:
   type: ClusterIP
-  port: 80
-  targetPort: 8080
+  port: 3005
+  targetPort: 3005
 
 # Ingress is handled by fe-web, be-server is internal service only
 ingress:
@@ -36,10 +21,10 @@ ingress:
 
 resources:
   limits:
-    cpu: 200m
-    memory: 256Mi
+    cpu: 500m
+    memory: 1Gi
   requests:
-    cpu: 100m
-    memory: 128Mi
+    cpu: 200m
+    memory: 512Mi
 # Staging 환경에서는 간단한 설정만 유지
 # 오토스케일링과 추가 어노테이션은 제거하여 단순화
