@@ -20,7 +20,7 @@ spec:
         - ../../../../environments/staging/container-cache-values.yaml
   destination:
     server: https://kubernetes.default.svc
-    namespace: plate-stg
+    namespace: devops-tools
   syncPolicy:
     automated:
       prune: true

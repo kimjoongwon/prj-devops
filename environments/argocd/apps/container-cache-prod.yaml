@@ -20,7 +20,7 @@ spec:
         - ../../../../environments/production/container-cache-values.yaml
   destination:
     server: https://kubernetes.default.svc
-    namespace: plate-prod
+    namespace: devops-tools
   syncPolicy:
     automated:
       prune: true
