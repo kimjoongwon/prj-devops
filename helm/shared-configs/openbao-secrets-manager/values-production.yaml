@@ -38,10 +38,106 @@ externalSecrets:
     
     # Production-specific secret data mapping
     data:
+      - secretKey: "APP_PORT"
+        remoteRef:
+          key: "server/production"
+          property: "APP_PORT"
       - secretKey: "APP_NAME"
         remoteRef:
           key: "server/production"
           property: "APP_NAME"
+      - secretKey: "APP_ADMIN_EMAIL"
+        remoteRef:
+          key: "server/production"
+          property: "APP_ADMIN_EMAIL"
+      - secretKey: "API_PREFIX"
+        remoteRef:
+          key: "server/production"
+          property: "API_PREFIX"
+      - secretKey: "APP_FALLBACK_LANGUAGE"
+        remoteRef:
+          key: "server/production"
+          property: "APP_FALLBACK_LANGUAGE"
+      - secretKey: "APP_HEADER_LANGUAGE"
+        remoteRef:
+          key: "server/production"
+          property: "APP_HEADER_LANGUAGE"
+      - secretKey: "FRONTEND_DOMAIN"
+        remoteRef:
+          key: "server/production"
+          property: "FRONTEND_DOMAIN"
+      - secretKey: "BACKEND_DOMAIN"
+        remoteRef:
+          key: "server/production"
+          property: "BACKEND_DOMAIN"
+      - secretKey: "NODE_ENV"
+        remoteRef:
+          key: "server/production"
+          property: "NODE_ENV"
+      - secretKey: "AWS_ACCESS_KEY_ID"
+        remoteRef:
+          key: "server/production"
+          property: "AWS_ACCESS_KEY_ID"
+      - secretKey: "AWS_SECRET_ACCESS_KEY"
+        remoteRef:
+          key: "server/production"
+          property: "AWS_SECRET_ACCESS_KEY"
+      - secretKey: "AWS_REGION"
+        remoteRef:
+          key: "server/production"
+          property: "AWS_REGION"
+      - secretKey: "AWS_S3_BUCKET_NAME"
+        remoteRef:
+          key: "server/production"
+          property: "AWS_S3_BUCKET_NAME"
+      - secretKey: "SMTP_HOST"
+        remoteRef:
+          key: "server/production"
+          property: "SMTP_HOST"
+      - secretKey: "SMTP_PORT"
+        remoteRef:
+          key: "server/production"
+          property: "SMTP_PORT"
+      - secretKey: "SMTP_USERNAME"
+        remoteRef:
+          key: "server/production"
+          property: "SMTP_USERNAME"
+      - secretKey: "SMTP_PASSWORD"
+        remoteRef:
+          key: "server/production"
+          property: "SMTP_PASSWORD"
+      - secretKey: "SMTP_SENDER"
+        remoteRef:
+          key: "server/production"
+          property: "SMTP_SENDER"
+      - secretKey: "AUTH_JWT_SECRET"
+        remoteRef:
+          key: "server/production"
+          property: "AUTH_JWT_SECRET"
+      - secretKey: "AUTH_JWT_TOKEN_EXPIRES_IN"
+        remoteRef:
+          key: "server/production"
+          property: "AUTH_JWT_TOKEN_EXPIRES_IN"
+      - secretKey: "AUTH_JWT_TOKEN_REFRESH_IN"
+        remoteRef:
+          key: "server/production"
+          property: "AUTH_JWT_TOKEN_REFRESH_IN"
+      - secretKey: "AUTH_JWT_SALT_ROUNDS"
+        remoteRef:
+          key: "server/production"
+          property: "AUTH_JWT_SALT_ROUNDS"
+      - secretKey: "CORS_ENABLED"
+        remoteRef:
+          key: "server/production"
+          property: "CORS_ENABLED"
+      - secretKey: "DATABASE_URL"
+        remoteRef:
+          key: "server/production"
+          property: "DATABASE_URL"
+      - secretKey: "DIRECT_URL"
+        remoteRef:
+          key: "server/production"
+          property: "DIRECT_URL"
 
 # Resource limits for production (more robust)
 resources:

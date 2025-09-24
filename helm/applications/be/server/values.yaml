@@ -30,13 +30,56 @@ appSecrets:
   enabled: true # Secret 환경변수 주입 활성화
   secretName: app-env-secrets # 참조할 Secret 리소스명
   envVars: # 주입할 환경변수 목록
-    - name: APP_NAME # 컨테이너 내 환경변수명
-      secretKey: APP_NAME # Secret 내 키명
-    # 추가 환경변수 예시:
-    # - name: DATABASE_URL
-    #   secretKey: db-url
-    # - name: JWT_SECRET
-    #   secretKey: jwt-secret
+    - name: APP_PORT
+      secretKey: APP_PORT
+    - name: APP_NAME
+      secretKey: APP_NAME
+    - name: APP_ADMIN_EMAIL
+      secretKey: APP_ADMIN_EMAIL
+    - name: API_PREFIX
+      secretKey: API_PREFIX
+    - name: APP_FALLBACK_LANGUAGE
+      secretKey: APP_FALLBACK_LANGUAGE
+    - name: APP_HEADER_LANGUAGE
+      secretKey: APP_HEADER_LANGUAGE
+    - name: FRONTEND_DOMAIN
+      secretKey: FRONTEND_DOMAIN
+    - name: BACKEND_DOMAIN
+      secretKey: BACKEND_DOMAIN
+    - name: NODE_ENV
+      secretKey: NODE_ENV
+    - name: AWS_ACCESS_KEY_ID
+      secretKey: AWS_ACCESS_KEY_ID
+    - name: AWS_SECRET_ACCESS_KEY
+      secretKey: AWS_SECRET_ACCESS_KEY
+    - name: AWS_REGION
+      secretKey: AWS_REGION
+    - name: AWS_S3_BUCKET_NAME
+      secretKey: AWS_S3_BUCKET_NAME
+    - name: SMTP_HOST
+      secretKey: SMTP_HOST
+    - name: SMTP_PORT
+      secretKey: SMTP_PORT
+    - name: SMTP_USERNAME
+      secretKey: SMTP_USERNAME
+    - name: SMTP_PASSWORD
+      secretKey: SMTP_PASSWORD
+    - name: SMTP_SENDER
+      secretKey: SMTP_SENDER
+    - name: AUTH_JWT_SECRET
+      secretKey: AUTH_JWT_SECRET
+    - name: AUTH_JWT_TOKEN_EXPIRES_IN
+      secretKey: AUTH_JWT_TOKEN_EXPIRES_IN
+    - name: AUTH_JWT_TOKEN_REFRESH_IN
+      secretKey: AUTH_JWT_TOKEN_REFRESH_IN
+    - name: AUTH_JWT_SALT_ROUNDS
+      secretKey: AUTH_JWT_SALT_ROUNDS
+    - name: CORS_ENABLED
+      secretKey: CORS_ENABLED
+    - name: DATABASE_URL
+      secretKey: DATABASE_URL
+    - name: DIRECT_URL
+      secretKey: DIRECT_URL
 
 nameOverride: ""
 fullnameOverride: ""

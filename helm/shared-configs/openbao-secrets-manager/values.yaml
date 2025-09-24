@@ -61,10 +61,106 @@ externalSecrets:
     
     # Secret data mapping (will be overridden by environment-specific values)
     data:
-      - secretKey: "APP_NAME"
+      - secretKey: "APP_PORT"
         remoteRef:
           key: "server/default"  # Default path, should be overridden
+          property: "APP_PORT"
+      - secretKey: "APP_NAME"
+        remoteRef:
+          key: "server/default"
           property: "APP_NAME"
+      - secretKey: "APP_ADMIN_EMAIL"
+        remoteRef:
+          key: "server/default"
+          property: "APP_ADMIN_EMAIL"
+      - secretKey: "API_PREFIX"
+        remoteRef:
+          key: "server/default"
+          property: "API_PREFIX"
+      - secretKey: "APP_FALLBACK_LANGUAGE"
+        remoteRef:
+          key: "server/default"
+          property: "APP_FALLBACK_LANGUAGE"
+      - secretKey: "APP_HEADER_LANGUAGE"
+        remoteRef:
+          key: "server/default"
+          property: "APP_HEADER_LANGUAGE"
+      - secretKey: "FRONTEND_DOMAIN"
+        remoteRef:
+          key: "server/default"
+          property: "FRONTEND_DOMAIN"
+      - secretKey: "BACKEND_DOMAIN"
+        remoteRef:
+          key: "server/default"
+          property: "BACKEND_DOMAIN"
+      - secretKey: "NODE_ENV"
+        remoteRef:
+          key: "server/default"
+          property: "NODE_ENV"
+      - secretKey: "AWS_ACCESS_KEY_ID"
+        remoteRef:
+          key: "server/default"
+          property: "AWS_ACCESS_KEY_ID"
+      - secretKey: "AWS_SECRET_ACCESS_KEY"
+        remoteRef:
+          key: "server/default"
+          property: "AWS_SECRET_ACCESS_KEY"
+      - secretKey: "AWS_REGION"
+        remoteRef:
+          key: "server/default"
+          property: "AWS_REGION"
+      - secretKey: "AWS_S3_BUCKET_NAME"
+        remoteRef:
+          key: "server/default"
+          property: "AWS_S3_BUCKET_NAME"
+      - secretKey: "SMTP_HOST"
+        remoteRef:
+          key: "server/default"
+          property: "SMTP_HOST"
+      - secretKey: "SMTP_PORT"
+        remoteRef:
+          key: "server/default"
+          property: "SMTP_PORT"
+      - secretKey: "SMTP_USERNAME"
+        remoteRef:
+          key: "server/default"
+          property: "SMTP_USERNAME"
+      - secretKey: "SMTP_PASSWORD"
+        remoteRef:
+          key: "server/default"
+          property: "SMTP_PASSWORD"
+      - secretKey: "SMTP_SENDER"
+        remoteRef:
+          key: "server/default"
+          property: "SMTP_SENDER"
+      - secretKey: "AUTH_JWT_SECRET"
+        remoteRef:
+          key: "server/default"
+          property: "AUTH_JWT_SECRET"
+      - secretKey: "AUTH_JWT_TOKEN_EXPIRES_IN"
+        remoteRef:
+          key: "server/default"
+          property: "AUTH_JWT_TOKEN_EXPIRES_IN"
+      - secretKey: "AUTH_JWT_TOKEN_REFRESH_IN"
+        remoteRef:
+          key: "server/default"
+          property: "AUTH_JWT_TOKEN_REFRESH_IN"
+      - secretKey: "AUTH_JWT_SALT_ROUNDS"
+        remoteRef:
+          key: "server/default"
+          property: "AUTH_JWT_SALT_ROUNDS"
+      - secretKey: "CORS_ENABLED"
+        remoteRef:
+          key: "server/default"
+          property: "CORS_ENABLED"
+      - secretKey: "DATABASE_URL"
+        remoteRef:
+          key: "server/default"
+          property: "DATABASE_URL"
+      - secretKey: "DIRECT_URL"
+        remoteRef:
+          key: "server/default"
+          property: "DIRECT_URL"
 
 # Environment-specific overrides
 environments:
