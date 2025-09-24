@@ -11,11 +11,10 @@ image:
 
 # Service configuration
 service:
-  type: ClusterIP
-  port: 3005
-  targetPort: 3005
-
-# Ingress is handled by fe-web, be-server is internal service only
+  type: LoadBalancer
+  port: 80
+  targetPort: 80
+  # Ingress is handled by fe-web, be-server is internal service only
 ingress:
   enabled: false
 

@@ -12,8 +12,8 @@ image:
 # Service configuration
 service:
   type: LoadBalancer
-  port: 3005
-  targetPort: 3005
+  port: 80
+  targetPort: 80
 
 # Ingress is handled by fe-web, be-server is internal service only
 ingress:
