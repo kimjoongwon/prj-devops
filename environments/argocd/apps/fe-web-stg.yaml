@@ -19,9 +19,6 @@ spec:
       # Staging 환경 전용 values 파일 사용
       valueFiles:
         - ../../../../environments/staging/fe-web-values.yaml
-      parameters:
-        - name: image.tag
-          value: "latest" # Staging에서는 최신 버전 사용
   destination:
     server: https://kubernetes.default.svc
     namespace: plate-stg

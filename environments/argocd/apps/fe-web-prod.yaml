@@ -19,11 +19,6 @@ spec:
       # Production 환경 전용 values 파일 사용
       valueFiles:
         - ../../../../environments/production/fe-web-values.yaml
-      parameters:
-        - name: image.tag
-          value: "1.25" # Production에서는 안정된 버전 사용
-        - name: replicaCount
-          value: "3" # Production 환경 고가용성
   destination:
     server: https://kubernetes.default.svc
     namespace: plate-prod
