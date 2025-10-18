@@ -1,0 +1,67 @@
+# be-llm Chart 기본 값 파일
+# LangChain 기반 LLM 서비스 배포 설정
+# 환경별 오버라이드: environments/<env>/be-llm-values.yaml
+
+replicaCount: 1 # 기본 복제본 수
+
+# LLM 서버 컨테이너 설정 (Harbor 레지스트리)
+image:
+  repository: harbor.cocdev.co.kr/stg-llm/server # Harbor LLM 이미지
+  pullPolicy: IfNotPresent
+  tag: "latest" # 환경별로 버전 태그 지정 권장
+
+# 애플리케이션 포트 설정
+port: 8000 # LangChain 서버 리스닝 포트
+
+# 애플리케이션 환경변수 Secret 설정
+appSecrets:
+  enabled: true # Secret 환경변수 주입 활성화
+  secretName: app-env-secrets # 참조할 Secret 리소스명
+  envVars: # 주입할 환경변수 목록
+    - name: OPENAI_API_KEY
+      secretKey: OPENAI_API_KEY
+    - name: ANTHROPIC_API_KEY
+      secretKey: ANTHROPIC_API_KEY
+    - name: LANGCHAIN_API_KEY
+      secretKey: LANGCHAIN_API_KEY
+    - name: LANGCHAIN_TRACING_V2
+      secretKey: LANGCHAIN_TRACING_V2
+    - name: LLM_MODEL_NAME
+      secretKey: LLM_MODEL_NAME
+    - name: LLM_TEMPERATURE
+      secretKey: LLM_TEMPERATURE
+    - name: LLM_MAX_TOKENS
+      secretKey: LLM_MAX_TOKENS
+
+nameOverride: ""
+fullnameOverride: ""
+
+service: # Kubernetes Service 설정
+  type: ClusterIP
+  port: 80
+  targetPort: 8000 # 컨테이너 포트
+
+ingress: # 외부 접근 설정 (llm.cocdev.co.kr)
+  enabled: true
+  className: "nginx"
+  annotations:
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    ingress.kubernetes.io/ssl-redirect: "false" # prod 환경에서는 true 권장
+    acme.cert-manager.io/http01-edit-in-place: "true"
+  hosts:
+    - host: llm.cocdev.co.kr
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - secretName: llm-tls
+      hosts:
+        - llm.cocdev.co.kr
+
+resources: # 리소스 제한 및 요청
+  limits:
+    cpu: 1000m
+    memory: 2Gi
+  requests:
+    cpu: 500m
+    memory: 1Gi

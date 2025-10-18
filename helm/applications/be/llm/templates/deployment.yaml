@@ -1,0 +1,59 @@
+# LLM 서비스 애플리케이션을 위한 Kubernetes Deployment 템플릿
+# LangChain 기반 LLM 서버를 Kubernetes 클러스터에 배포하기 위한 설정
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "be-llm.fullname" . }}
+  labels:
+    {{- include "be-llm.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "be-llm.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "be-llm.labels" . | nindent 8 }}
+    spec:
+      serviceAccountName: {{ include "be-llm.fullname" . }}
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: llm-server
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.port }}
+              protocol: TCP
+          {{- if .Values.appSecrets.enabled }}
+          env:
+            {{- range .Values.appSecrets.envVars }}
+            - name: {{ .name }}
+              valueFrom:
+                secretKeyRef:
+                  name: {{ $.Values.appSecrets.secretName }}
+                  key: {{ .secretKey }}
+            {{- end }}
+          {{- end }}
+          # 헬스체크 설정 (필요시 활성화)
+          # livenessProbe:
+          #   httpGet:
+          #     path: /health
+          #     port: http
+          #   initialDelaySeconds: 30
+          #   periodSeconds: 30
+          #   timeoutSeconds: 5
+          # readinessProbe:
+          #   httpGet:
+          #     path: /health
+          #     port: http
+          #   initialDelaySeconds: 15
+          #   periodSeconds: 10
+          #   timeoutSeconds: 5
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}

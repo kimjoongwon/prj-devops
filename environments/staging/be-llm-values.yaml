@@ -1,0 +1,44 @@
+# Name override for cleaner resource names
+nameOverride: "llm"
+
+replicaCount: 1
+
+# LLM server configuration (staging) - Using Harbor registry
+image:
+  repository: harbor.cocdev.co.kr/stg-llm/server
+  pullPolicy: Always # Always pull for staging to get latest builds
+  tag: "latest"
+
+# Service configuration
+service:
+  type: ClusterIP
+  port: 80
+  targetPort: 8000
+
+# Ingress configuration for llm.cocdev.co.kr
+ingress:
+  enabled: true
+  className: "nginx"
+  annotations:
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    ingress.kubernetes.io/ssl-redirect: "false"
+    acme.cert-manager.io/http01-edit-in-place: "true"
+  hosts:
+    - host: llm.cocdev.co.kr
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - secretName: llm-tls
+      hosts:
+        - llm.cocdev.co.kr
+
+resources:
+  limits:
+    cpu: 1000m
+    memory: 2Gi
+  requests:
+    cpu: 500m
+    memory: 1Gi
+
+# LLM 관련 환경변수는 app-env-secrets에서 관리
