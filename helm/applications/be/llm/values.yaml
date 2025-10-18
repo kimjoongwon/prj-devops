@@ -14,24 +14,24 @@ image:
 port: 8000 # LangChain 서버 리스닝 포트
 
 # 애플리케이션 환경변수 Secret 설정
-appSecrets:
-  enabled: true # Secret 환경변수 주입 활성화
-  secretName: app-env-secrets # 참조할 Secret 리소스명
-  envVars: # 주입할 환경변수 목록
-    - name: OPENAI_API_KEY
-      secretKey: OPENAI_API_KEY
-    - name: ANTHROPIC_API_KEY
-      secretKey: ANTHROPIC_API_KEY
-    - name: LANGCHAIN_API_KEY
-      secretKey: LANGCHAIN_API_KEY
-    - name: LANGCHAIN_TRACING_V2
-      secretKey: LANGCHAIN_TRACING_V2
-    - name: LLM_MODEL_NAME
-      secretKey: LLM_MODEL_NAME
-    - name: LLM_TEMPERATURE
-      secretKey: LLM_TEMPERATURE
-    - name: LLM_MAX_TOKENS
-      secretKey: LLM_MAX_TOKENS
+# appSecrets:
+#   enabled: true # Secret 환경변수 주입 활성화
+#   secretName: app-env-secrets # 참조할 Secret 리소스명
+#   envVars: # 주입할 환경변수 목록
+#     - name: OPENAI_API_KEY
+#       secretKey: OPENAI_API_KEY
+#     - name: ANTHROPIC_API_KEY
+#       secretKey: ANTHROPIC_API_KEY
+#     - name: LANGCHAIN_API_KEY
+#       secretKey: LANGCHAIN_API_KEY
+#     - name: LANGCHAIN_TRACING_V2
+#       secretKey: LANGCHAIN_TRACING_V2
+#     - name: LLM_MODEL_NAME
+#       secretKey: LLM_MODEL_NAME
+#     - name: LLM_TEMPERATURE
+#       secretKey: LLM_TEMPERATURE
+#     - name: LLM_MAX_TOKENS
+#       secretKey: LLM_MAX_TOKENS
 
 nameOverride: ""
 fullnameOverride: ""
