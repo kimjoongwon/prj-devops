@@ -30,7 +30,7 @@ spec:
             - name: http
               containerPort: {{ .Values.port }}
               protocol: TCP
-          {{- if .Values.appSecrets.enabled }}
+          {{- if and .Values.appSecrets .Values.appSecrets.enabled }}
           env:
             {{- range .Values.appSecrets.envVars }}
             - name: {{ .name }}
