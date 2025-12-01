@@ -1,3 +1,4 @@
+# yaml-language-server: $schema=https://json.schemastore.org/chart
 apiVersion: v2
 name: plate-llm
 description: Plate LLM 서비스용 Helm 차트
