@@ -1,0 +1,16 @@
+apiVersion: v2
+name: plate-api
+description: Plate API 서버용 Helm 차트
+type: application
+version: 0.1.0
+appVersion: "1.0.0"
+keywords:
+  - plate
+  - api
+  - backend
+home: https://cocdev.co.kr
+sources:
+  - https://github.com/kimjoongwon/prj-devops
+maintainers:
+  - name: Plate Team
+    email: dev@cocdev.co.kr

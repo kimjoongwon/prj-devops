@@ -1,0 +1,17 @@
+apiVersion: v2
+name: plate-llm
+description: Plate LLM 서비스용 Helm 차트
+type: application
+version: 0.1.0
+appVersion: "1.0.0"
+keywords:
+  - plate
+  - llm
+  - ai
+  - langchain
+home: https://cocdev.co.kr
+sources:
+  - https://github.com/kimjoongwon/prj-devops
+maintainers:
+  - name: Plate Team
+    email: dev@cocdev.co.kr

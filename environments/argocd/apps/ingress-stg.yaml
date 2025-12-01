@@ -42,10 +42,10 @@ spec:
   revisionHistoryLimit: 10
   info:
     - name: "Component"
-      value: "Ingress Controller"
+      value: "인그레스 컨트롤러"
     - name: "Environment"
       value: "Staging"
     - name: "Domain"
       value: "stg.cocdev.co.kr"
     - name: "Description"
-      value: "Ingress for staging environment - handles routing for fe-web and be-server"
+      value: "스테이징 환경 인그레스 - plate-web 및 plate-api 라우팅 처리"

@@ -1,0 +1,45 @@
+# Plate LLM - Staging 환경 ArgoCD Application
+
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: plate-llm-stg
+  namespace: argocd
+  labels:
+    app.kubernetes.io/name: plate-llm
+    app.kubernetes.io/instance: staging
+    environment: staging
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/kimjoongwon/prj-devops.git
+    path: helm/applications/plate-llm
+    targetRevision: main
+    helm:
+      # Staging 환경 전용 values 파일 사용
+      valueFiles:
+        - values-stg.yaml
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: plate-stg
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ApplyOutOfSyncOnly=true
+    retry:
+      limit: 5
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m
+  revisionHistoryLimit: 10
+  info:
+    - name: "Environment"
+      value: "Staging"
+    - name: "Domain"
+      value: "llm.cocdev.co.kr"
+    - name: "Description"
+      value: "Plate LLM Service - LangChain based LLM service"

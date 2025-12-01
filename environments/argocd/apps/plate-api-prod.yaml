@@ -1,27 +1,27 @@
-# FE Web - Staging 환경 ArgoCD Application
+# Plate API - Production 환경 ArgoCD Application
 
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: plate-fe-web-stg
+  name: plate-api-prod
   namespace: argocd
   labels:
-    app.kubernetes.io/name: fe-web
-    app.kubernetes.io/instance: staging
-    environment: staging
+    app.kubernetes.io/name: plate-api
+    app.kubernetes.io/instance: production
+    environment: production
 spec:
   project: default
   source:
     repoURL: https://github.com/kimjoongwon/prj-devops.git # 실제 Git Repository URL로 변경 필요
-    path: helm/applications/fe/web
+    path: helm/applications/plate-api
     targetRevision: main
     helm:
-      # Staging 환경 전용 values 파일 사용
+      # Production 환경 전용 values 파일 사용
       valueFiles:
-        - ../../../../environments/staging/fe-web-values.yaml
+        - values-prod.yaml
   destination:
     server: https://kubernetes.default.svc
-    namespace: plate-stg
+    namespace: plate-prod
   syncPolicy:
     automated:
       prune: true
@@ -30,7 +30,7 @@ spec:
       - CreateNamespace=true
       - ApplyOutOfSyncOnly=true
     retry:
-      limit: 5
+      limit: 3
       backoff:
         duration: 5s
         factor: 2
@@ -38,8 +38,8 @@ spec:
   revisionHistoryLimit: 10
   info:
     - name: "Environment"
-      value: "Staging"
+      value: "Production"
     - name: "Domain"
-      value: "stg.cocdev.co.kr, cocdev.co.kr (staging)"
+      value: "cocdev.co.kr/api, www.cocdev.co.kr/api"
     - name: "Description"
-      value: "FE Web Application - Staging Environment"
+      value: "Plate API Server - Production Environment"

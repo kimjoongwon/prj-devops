@@ -18,48 +18,94 @@
 ```
 prj-devops/
 ├── helm/                           # 배포 계층별로 구성된 모든 Helm 차트
-│   ├── cluster-services/          # 계층 1: 클러스터 레벨 인프라 (sync-wave: 1)
+│   ├── cluster-services/          # 계층 1: 클러스터 레벨 인프라
 │   │   ├── cert-manager/          # SSL/TLS 인증서 관리
 │   │   │   ├── Chart.yaml
 │   │   │   ├── values.yaml
 │   │   │   └── templates/
 │   │   ├── metallb/               # 로드 밸런서
 │   │   └── nfs-provisioner/       # 스토리지 프로비저너
-│   ├── development-tools/         # 계층 2: 개발 및 운영 도구 (sync-wave: 2)
+│   │       ├── Chart.yaml
+│   │       ├── values.yaml
+│   │       └── templates/
+│   ├── development-tools/         # 계층 2: 개발 및 운영 도구
+│   │   ├── argocd/                # GitOps 도구
 │   │   │   ├── Chart.yaml
 │   │   │   ├── values.yaml
 │   │   │   └── templates/
-│   │   ├── argocd/                # GitOps 도구
 │   │   ├── harbor/                # 컨테이너 레지스트리
+│   │   ├── grafana/               # 모니터링 대시보드
+│   │   ├── prometheus/            # 메트릭 수집
+│   │   ├── jenkins/               # CI/CD
+│   │   ├── fluentd/               # 로그 수집
+│   │   ├── openbao/               # 시크릿 관리
 │   │   └── kubernetes-dashboard/  # 클러스터 관리 UI
-│   └── applications/              # 계층 3: 비즈니스 애플리케이션 (sync-wave: 3)
-│       └── fe/
-│           └── web/               # 프론트엔드 웹 애플리케이션 (관리자 포함)
-│               ├── Chart.yaml
-│               ├── values.yaml
-│               └── templates/
-│                   ├── deployment.yaml
-│                   ├── service.yaml
-│                   ├── ingress.yaml
-│                   ├── admin/
-│                   │   └── admin-ingress.yaml
-│                   └── _helpers.tpl
-├── environments/                   # 환경별 설정 파일
+│   ├── applications/              # 계층 3: Plate 서비스 애플리케이션
+│   │   ├── plate-web/             # Plate 웹 서비스
+│   │   │   ├── Chart.yaml
+│   │   │   ├── values.yaml
+│   │   │   ├── values-stg.yaml
+│   │   │   ├── values-prod.yaml
+│   │   │   └── templates/
+│   │   │       ├── deployment.yaml
+│   │   │       ├── service.yaml
+│   │   │       ├── configmap.yaml
+│   │   │       ├── serviceaccount.yaml
+│   │   │       └── _helpers.tpl
+│   │   ├── plate-api/             # Plate API 서버
+│   │   │   ├── Chart.yaml
+│   │   │   ├── values.yaml
+│   │   │   ├── values-stg.yaml
+│   │   │   ├── values-prod.yaml
+│   │   │   └── templates/
+│   │   ├── plate-llm/             # Plate LLM 서비스
+│   │   │   ├── Chart.yaml
+│   │   │   ├── values.yaml
+│   │   │   ├── values-stg.yaml
+│   │   │   └── templates/
+│   │   └── plate-cache/           # Plate 컨테이너 캐시 스토리지
+│   │       ├── Chart.yaml
+│   │       ├── values.yaml
+│   │       ├── values-stg.yaml
+│   │       ├── values-prod.yaml
+│   │       └── templates/
+│   ├── ingress/                   # 통합 Ingress 설정
+│   │   ├── Chart.yaml
+│   │   ├── values.yaml
+│   │   ├── values-stg.yaml
+│   │   └── templates/
+│   └── shared-configs/            # 공유 설정
+│       └── openbao-secrets-manager/  # OpenBao 시크릿 매니저 통합
+│           ├── Chart.yaml
+│           ├── values.yaml
+│           ├── values-staging.yaml
+│           ├── values-production.yaml
+│           └── templates/
+├── environments/                   # ArgoCD 정의 및 환경 디렉토리
+│   ├── argocd/                    # ArgoCD 관련 설정
+│   │   ├── app-of-apps.yaml       # App of Apps 패턴 메인 파일
+│   │   └── apps/                  # 개별 ArgoCD Application 정의
+│   │       ├── plate-web-stg.yaml
+│   │       ├── plate-web-prod.yaml
+│   │       ├── plate-api-stg.yaml
+│   │       ├── plate-api-prod.yaml
+│   │       ├── plate-llm-stg.yaml
+│   │       ├── plate-cache-stg.yaml
+│   │       ├── plate-cache-prod.yaml
+│   │       ├── ingress-stg.yaml
+│   │       ├── ingress-prod.yaml
+│   │       ├── openbao-secrets-manager-stg.yaml
+│   │       └── openbao-secrets-manager-prod.yaml
 │   ├── staging/
-│   │   └── fe-web-values.yaml     # 스테이징 환경 설정
-│   ├── production/
-│   │   └── fe-web-values.yaml     # 프로덕션 환경 설정
-│   └── shared/
-│       └── common-values.yaml     # 공통 설정
-├── scripts/                       # 배포 자동화 스크립트
-│   ├── deploy-all.sh             # 메인 배포 오케스트레이터
-│   ├── deploy-libraries.sh       # 클러스터 서비스 및 도구 배포
-│   ├── deploy-stg.sh             # 스테이징 배포
-│   └── deploy-prod.sh            # 프로덕션 배포 (안전 검사 포함)
-└── backup/                       # 원본 파일 백업
-    ├── 1-web/
-    ├── 4-libs/
-    └── helm/
+│   └── production/
+└── scripts/                       # 배포 자동화 스크립트
+    ├── deploy-all.sh             # 메인 배포 오케스트레이터
+    ├── deploy-libraries.sh       # 클러스터 서비스 및 도구 배포
+    ├── deploy-stg.sh             # 스테이징 배포
+    ├── deploy-prod.sh            # 프로덕션 배포 (안전 검사 포함)
+    ├── deploy-harbor-auth.sh     # Harbor 인증 설정
+    ├── verify-harbor-auth.sh     # Harbor 인증 검증
+    └── migrate-images-to-harbor.sh  # Harbor 이미지 마이그레이션
 ```
 
 ## 🚀 빠른 시작
@@ -153,6 +199,35 @@ prj-devops/
 - **1계층 (Cluster Services)**: cert-manager, MetalLB, NFS Provisioner
 - **2계층 (Development Tools)**: ArgoCD, Harbor, Kubernetes Dashboard
 
+관리 원칙:
+- 설정값은 각 차트 디렉토리의 `values.yaml`로 형상 관리 (예: `helm/cluster-services/*/values.yaml`, `helm/development-tools/*/values.yaml`)
+- 배포는 `./scripts/deploy-libraries.sh` 또는 Helm CLI(`helm upgrade --install`)로 수행
+### Cluster Services & Development Tools 운영 원칙
+
+- 차트 값 관리: 각 차트 디렉토리의 `values.yaml`에 저장하고 Git에 커밋하여 형상 관리합니다
+- 배포 방식: 스크립트(`./scripts/deploy-libraries.sh`) 또는 Helm CLI(`helm upgrade --install`)로 수행합니다
+- 변경 절차:
+  - `values.yaml` 수정 → Pull Request/리뷰 → 스테이징 적용 → 프로덕션 적용
+- 권장 검사:
+  - 린트: `helm lint helm/development-tools/<차트>` 또는 `helm lint helm/cluster-services/<차트>`
+  - 렌더 확인: `helm template helm/development-tools/<차트> -f values.yaml`
+
+### Plate Applications 운영 원칙
+
+- 관리 원칙:
+  - 각 애플리케이션 차트(plate-web, plate-api, plate-llm, plate-cache)는 차트 루트에 환경별 values(`values-stg.yaml`, `values-prod.yaml`)를 보관합니다
+  - ArgoCD Application은 차트 경로(`helm/applications/<서비스>`)와 해당 환경 values만 지정하여 배포합니다
+- 변경 절차:
+  - 스테이징: `values-stg.yaml` 수정 → PR/리뷰 → ArgoCD 동기화로 적용 → 검증
+  - 프로덕션: 검증 완료 후 `values-prod.yaml` 반영 → ArgoCD 동기화로 적용
+  - 템플릿(templates/*.yaml) 변경 시 반드시 린트/렌더 확인 수행
+- 권장 검사:
+  - 린트: `helm lint helm/applications/<서비스>`
+  - 렌더 확인(스테이징): `helm template helm/applications/<서비스> -f helm/applications/<서비스>/values-stg.yaml`
+  - 렌더 확인(프로덕션): `helm template helm/applications/<서비스> -f helm/applications/<서비스>/values-prod.yaml`
+- 롤백:
+  - Git에서 이전 커밋으로 되돌린 뒤 ArgoCD 재동기화(실제 상태는 Git이 단일 진실 원천)
+
 ### deploy-stg.sh
 
 스테이징 전용 배포 스크립트 (특징):
@@ -217,10 +292,10 @@ prj-devops/
 
 ### 환경별 Values 파일
 
-- **shared/common-values.yaml**: 환경 공통 기본값
-- **staging/fe-web-values.yaml**: 스테이징 전용 설정
-- **production/fe-web-values.yaml**: 프로덕션 전용 설정
-
+- Plate 애플리케이션: 각 차트 디렉토리의 환경별 파일을 사용합니다
+  - 스테이징: `helm/applications/<서비스>/values-stg.yaml` (예: `plate-web/values-stg.yaml`, `plate-api/values-stg.yaml`)
+  - 프로덕션: `helm/applications/<서비스>/values-prod.yaml` (예: `plate-web/values-prod.yaml`, `plate-api/values-prod.yaml`)
+- 인프라/도구(클러스터 서비스, 개발 도구): 각 차트 디렉토리의 `values.yaml`로 형상 관리합니다. 예: `helm/cluster-services/cert-manager/values.yaml`, `helm/development-tools/harbor/values.yaml`
 ## 🚨 Safety & Best Practices
 
 ### 프로덕션 배포 모범 절차
@@ -269,7 +344,7 @@ prj-devops/
 
 ```bash
 # Show deployment logs
-kubectl logs -n <namespace> -l app.kubernetes.io/name=fe-web
+kubectl logs -n <namespace> -l app.kubernetes.io/name=plate-web
 
 # Check ingress status
 kubectl get ingress -A
@@ -285,48 +360,50 @@ kubectl get certificates -A
 이 구조는 ArgoCD App-of-Apps 패턴 및 sync-wave 어노테이션을 활용하여 의존 순서를 보장합니다:
 
 ```yaml
-# Example ArgoCD Application for cluster services
+# Example ArgoCD Application for applications
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: metallb
-  annotations:
-    argocd.argoproj.io/sync-wave: "1"  # Deploy first
+  name: plate-cache-stg
+  namespace: argocd
 spec:
+  project: default
   source:
-    repoURL: https://github.com/company/prj-devops
-    path: helm/cluster-services/metallb
-    targetRevision: HEAD
-
-# Example ArgoCD Application for development tools
-apiVersion: argoproj.io/v1alpha1
-kind: Application
-metadata:
-  name: container-cache
-  annotations:
-    argocd.argoproj.io/sync-wave: "2"  # Deploy after cluster services
-spec:
-  source:
-    repoURL: https://github.com/company/prj-devops
-  path: helm/applications/storage/container-cache
-    targetRevision: HEAD
+    repoURL: https://github.com/kimjoongwon/prj-devops
+    path: helm/applications/plate-cache
+    targetRevision: main
+    helm:
+      valueFiles:
+        - values-stg.yaml
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: devops-tools
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
 ```
 
+참고: Cluster Services(예: cert-manager, MetalLB)와 Development Tools(예: Harbor, Grafana)는 Helm 차트의 `values.yaml`로 형상 관리하며, 스크립트 또는 Helm CLI로 배포합니다.
 ### 장점 요약
 
-- **의존성 순서 보장**: sync-wave 로 서비스 초기화 순서 제어
+- **명확한 계층 분리**: 인프라(cluster-services) / 도구(development-tools) / 앱(applications)의 책임 경계 명확
 - **경로 일관성**: 모든 차트를 `helm/` 트리 하위에 배치 → ArgoCD 설정 단순화
-- **명확한 계층 분리**: 인프라 / 도구 / 앱 코드의 책임 경계 명확
+- **환경별 설정 관리**: `environments/` 디렉토리에서 스테이징/프로덕션 values 중앙 관리
+- **GitOps 통합**: ArgoCD를 통한 선언적 배포 및 자동 동기화
+- **멀티 애플리케이션 지원**: plate-web, plate-api, plate-llm, plate-cache 등 Plate 서비스 통합 관리
 
-### 마이그레이션 노트
+### ArgoCD Application 구조
 
-기존 평면(flat) YAML 배포 구조를 프로덕션 지향 계층형 Helm 구조로 전환:
+이 프로젝트는 ArgoCD의 App-of-Apps 패턴을 활용하여 모든 애플리케이션을 관리합니다:
 
-- **기존 `1-web/`** → **`helm/applications/fe/web/`** (Helm 템플릿화)
-- **기존 `4-libs/`** → **`helm/cluster-services/`** (인프라 계층)
-- **기존 루트 `helm/`** → **`helm/development-tools/`** (도구 계층)
-- **정적 YAML** → **환경별 values 지원 Helm 템플릿**
-- **단일 배포 흐름** → **ArgoCD sync-wave 기반 다계층/다환경 지원**
+- **App of Apps**: `environments/argocd/app-of-apps.yaml`이 모든 하위 Application을 관리
+- **개별 Application**: `environments/argocd/apps/` 디렉토리에 각 서비스별 ArgoCD Application 정의
+- **환경 분리**: 스테이징과 프로덕션 환경이 별도의 Application으로 관리됨
+- **Values 오버라이드**: 각 Application은 `helm.valueFiles`를 통해 환경별 설정 적용
+- **자동 동기화**: `syncPolicy.automated`로 Git 저장소 변경 시 자동 배포
 
 ---
 

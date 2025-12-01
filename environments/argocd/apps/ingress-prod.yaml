@@ -51,10 +51,10 @@ spec:
   revisionHistoryLimit: 10
   info:
     - name: "Component"
-      value: "Ingress Controller"
+      value: "인그레스 컨트롤러"
     - name: "Environment"
       value: "Production"
     - name: "Domain"
       value: "cocdev.co.kr"
     - name: "Description"
-      value: "Ingress for production environment - handles routing for fe-web and be-server"
+      value: "프로덕션 환경 인그레스 - plate-web 및 plate-api 라우팅 처리"

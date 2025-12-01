@@ -1,23 +1,23 @@
-# Container Build Cache PVC - Staging
+# Plate Cache - Staging
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: plate-container-cache-stg
+  name: plate-cache-stg
   namespace: argocd
   annotations:
     argocd.argoproj.io/sync-wave: "1"  # Storage 먼저 생성
   labels:
-    app.kubernetes.io/name: container-cache
+    app.kubernetes.io/name: plate-cache
     environment: staging
 spec:
   project: default
   source:
     repoURL: https://github.com/kimjoongwon/prj-devops.git
-    path: helm/applications/storage/container-cache
+    path: helm/applications/plate-cache
     targetRevision: main
     helm:
       valueFiles:
-        - ../../../../environments/staging/container-cache-values.yaml
+        - values-stg.yaml
   destination:
     server: https://kubernetes.default.svc
     namespace: devops-tools
@@ -31,4 +31,4 @@ spec:
   revisionHistoryLimit: 3
   info:
     - name: Purpose
-      value: "Shared Docker/Build cache PVC (Staging)"
+      value: "Plate Container Cache Storage (Staging)"
