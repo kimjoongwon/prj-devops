@@ -1,54 +1,75 @@
-# Ingress - Production ArgoCD Application
-# Ingress를 배포하는 ArgoCD Application
+# Ingress - Production 환경 ArgoCD Application
+# Ingress 컨트롤러를 배포하여 plate-web 및 plate-api 라우팅 처리
 
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
   name: plate-ingress-prod
-  namespace: argocd
+  namespace: argocd  # ArgoCD가 설치된 네임스페이스
   labels:
     app.kubernetes.io/name: ingress
     app.kubernetes.io/part-of: cocdev-platform
     component: ingress
     environment: production
 spec:
+  # ArgoCD 프로젝트 지정 (default는 모든 클러스터/네임스페이스 접근 가능)
   project: default
+
+  # Git 소스 설정
   source:
-    repoURL: https://github.com/kimjoongwon/prj-devops.git # 실제 Git Repository URL로 변경 필요
-    path: helm/ingress
-    targetRevision: main
+    repoURL: https://github.com/kimjoongwon/prj-devops.git  # Git 저장소 URL
+    path: helm/ingress                                      # Helm 차트 경로
+    targetRevision: main                                    # 추적할 브랜치/태그 (main 브랜치 자동 추적)
     helm:
+      # 환경별 values 파일
       valueFiles:
-        - values.yaml
+        - values.yaml  # Production 기본 설정 파일
+      # Helm 파라미터 동적 오버라이드
       parameters:
         - name: appName
-          value: "plate"
+          value: "plate"  # 애플리케이션 이름 지정
+
+  # 배포 대상 클러스터 및 네임스페이스
   destination:
-    server: https://kubernetes.default.svc
-    namespace: plate-prod  # ingress를 production namespace에 배포
+    server: https://kubernetes.default.svc  # 클러스터 API 서버 (in-cluster)
+    namespace: plate-prod                   # ingress를 production namespace에 배포
+
+  # 동기화 정책
   syncPolicy:
+    # 자동 동기화 설정 (Git Push 시 자동 반영, 기본 폴링 주기 3분)
     automated:
-      prune: true
-      selfHeal: true
+      prune: true      # Git에서 삭제된 리소스를 클러스터에서도 자동 삭제
+      selfHeal: true   # 클러스터에서 수동 변경 시 Git 상태로 자동 복구
+    
+    # 동기화 옵션
     syncOptions:
-      - CreateNamespace=true
-      - ApplyOutOfSyncOnly=true
-      - RespectIgnoreDifferences=true
+      - CreateNamespace=true           # 네임스페이스가 없으면 자동 생성
+      - ApplyOutOfSyncOnly=true        # 변경된 리소스만 적용 (성능 최적화)
+      - RespectIgnoreDifferences=true  # ignoreDifferences 설정 준수
+    
+    # 동기화 실패 시 재시도 정책 (Production은 보수적 설정)
     retry:
-      limit: 3
+      limit: 3              # 최대 재시도 횟수
       backoff:
-        duration: 5s
-        factor: 2
-        maxDuration: 3m
+        duration: 5s        # 첫 재시도 대기 시간
+        factor: 2           # 재시도마다 대기 시간 배수 증가 (5s → 10s → 20s)
+        maxDuration: 3m     # 최대 대기 시간
+
   # ingress만 동기화하도록 리소스 필터링
   syncOptions:
-    - Replace=true
+    - Replace=true  # 리소스 교체 방식 적용
+
+  # 특정 필드에 대한 변경 무시 설정
   ignoreDifferences:
     - group: networking.k8s.io
       kind: Ingress
       jqPathExpressions:
-        - .metadata.annotations
+        - .metadata.annotations  # Ingress annotations 변경 무시 (클러스터가 자동 추가하는 annotation 때문)
+
+  # Git 이력 보관 개수 (롤백 가능한 리비전 수)
   revisionHistoryLimit: 10
+
+  # ArgoCD UI에 표시될 애플리케이션 정보
   info:
     - name: "Component"
       value: "인그레스 컨트롤러"
