@@ -8,11 +8,11 @@ appName: plate
 # Service names (actual service names in the cluster)
 services:               # 실제 Kubernetes Service 이름과 포트 매핑 (ArgoCD Release 명 기준)
   frontend:
-    name: "plate-fe-web-prod"  # 프론트엔드 서비스 (nginx reverse proxy)
+    name: "plate-fe-web-prod"  # 프론트엔드 서비스
     port: 80
   backend:
-    name: "plate-be-server-prod"  # 백엔드 API 서비스
-    port: 80
+    name: "plate-api-prod-plate-api"  # 백엔드 API 서비스 (Release: plate-api-prod, Chart: plate-api)
+    port: 3006  # backend 애플리케이션 실제 포트
 
 ingress:
   enabled: true
