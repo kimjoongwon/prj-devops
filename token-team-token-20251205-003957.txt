@@ -1,0 +1,15 @@
+# OpenBao Token Information
+# Generated: Fri Dec  5 00:39:57 KST 2025
+# WARNING: Keep this file secure and never commit to git!
+
+Token: s.vQemuaHN8vEOsgfwbUXVJ4yx
+Token (Base64): LW4gcy52UWVtdWFITjh2RU9zZ2Z3YlVYVko0eXgK
+Accessor: CsWv4u48crd7nKRwzfB0DL6l
+Policy: esc-policy
+Display Name: team-token
+TTL: 720h
+Period: 24h
+
+# Usage:
+# export VAULT_TOKEN=s.vQemuaHN8vEOsgfwbUXVJ4yx
+# vault kv get secret/server/staging
