@@ -1,3 +1,4 @@
+# Plate API Backend Service
 apiVersion: v1
 kind: Service
 metadata:
@@ -7,8 +8,8 @@ metadata:
 spec:
   type: {{ .Values.service.type }}
   ports:
-    - port: {{ .Values.service.port }}
-      targetPort: http
+    - port: {{ .Values.service.port }}           # External service port
+      targetPort: http                           # Container port (backend.port: 3006)
       protocol: TCP
       name: http
   selector:

@@ -1,5 +1,5 @@
-# Backend Server 애플리케이션을 위한 Kubernetes Deployment 템플릿
-# 이 파일은 Helm 차트를 통해 서버 애플리케이션을 Kubernetes 클러스터에 배포하기 위한 설정을 정의합니다.
+# Plate API Backend Deployment 템플릿
+# 백엔드 애플리케이션(port 3006)을 Kubernetes 클러스터에 배포
 
 apiVersion: apps/v1
 kind: Deployment
@@ -24,8 +24,8 @@ spec:
         {{- end }}
       containers:
         - name: server-backend
-          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
-          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          image: "{{ .Values.backend.image.repository }}:{{ .Values.backend.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.backend.image.pullPolicy }}
           ports:
             - name: http
               containerPort: {{ .Values.backend.port }}
@@ -56,4 +56,4 @@ spec:
           #   periodSeconds: 10
           #   timeoutSeconds: 5
           resources:
-            {{- toYaml .Values.resources | nindent 12 }}
+            {{- toYaml .Values.backend.resources | nindent 12 }}

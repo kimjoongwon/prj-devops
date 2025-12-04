@@ -1,23 +1,17 @@
-# be-server Chart 기본 값 파일
-# 서버 레이어 (nginx 프록시 + 실제 애플리케이션 컨테이너) 배포 설정.
-# 환경별 오버라이드: environments/<env>/be-server-values.yaml
+# Plate API Backend Chart 기본 값 파일
+# Kubernetes에 배포할 백엔드 서버 설정
+# 환경별 오버라이드: values-prod.yaml, values-stg.yaml
 
 replicaCount: 2 # 기본 복제본 수
 
-# Backend 서버 컨테이너 설정 (nginx 프록시 불필요)
-image: # 실제 비즈니스 로직 서비스 컨테이너
-  repository: kimjoongwon/server
-  pullPolicy: IfNotPresent
-  tag: "latest" # 버전 태그 (증분 배포 시 교체)
-
-# server 백엔드 컨테이너 설정
-backend: # 실제 비즈니스 로직 서비스 컨테이너
+# Backend 애플리케이션 설정
+backend:
   image:
-    repository: kimjoongwon/server # 사용자 정의 이미지 (CI 파이프라인 아티팩트)
-    tag: "latest" # 버전 태그 (증분 배포 시 교체)
+    repository: kimjoongwon/server  # 백엔드 애플리케이션 이미지
+    tag: "latest"  # 버전 태그 (증분 배포 시 교체)
     pullPolicy: IfNotPresent
-  port: 3006 # 내부 애플리케이션 리스닝 포트
-  resources: # 비교적 무거운 로직 가정한 리소스 요청/제한
+  port: 3006  # 백엔드 애플리케이션 포트
+  resources:
     limits:
       cpu: 200m
       memory: 256Mi
@@ -105,11 +99,3 @@ ingress: # /api 경로만 노출 (FE Ingress 통합 시 disable 가능)
     - secretName: server-tls
       hosts:
         - cocdev.co.kr
-
-resources: # nginx 프록시 컨테이너 리소스
-  limits:
-    cpu: 100m
-    memory: 128Mi
-  requests:
-    cpu: 50m
-    memory: 64Mi

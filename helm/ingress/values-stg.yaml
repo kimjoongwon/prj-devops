@@ -11,8 +11,8 @@ services:                 # ArgoCD 릴리스명 기준 Service 오브젝트 이�
     name: "plate-fe-web-stg"
     port: 80
   backend:
-    name: "plate-api-stg-server"  # 백엔드 API 서비스 (Release: plate-api-stg, nameOverride: server)
-    port: 3006  # backend 애플리케이션 실제 포트
+    name: "plate-api-stg"
+    port: 3006
 
 ingress:
   enabled: true

@@ -1,29 +1,28 @@
-# Name override for cleaner resource names
-nameOverride: "server"
+# Staging environment values for Plate API
+# Override from values.yaml for staging environment
 
 replicaCount: 1
 
-# Backend server configuration (staging) - Using Harbor registry
-image:
-  repository: harbor.cocdev.co.kr/stg-server/server
-  pullPolicy: Always # Always pull for staging to get latest builds
-  tag: "latest"
+# Staging 이미지 저장소 (Harbor registry)
+backend:
+  image:
+    repository: harbor.cocdev.co.kr/stg-server/server
+    tag: "latest"
+    pullPolicy: Always  # Always pull for latest builds in staging
+  resources:
+    limits:
+      cpu: 500m
+      memory: 1Gi
+    requests:
+      cpu: 200m
+      memory: 512Mi
 
-# Service configuration
+# Service configuration (LoadBalancer for staging)
 service:
   type: LoadBalancer
   port: 80
   targetPort: 3006
-  # Ingress is handled by fe-web, be-server is internal service only
+
+# Ingress disabled (ingress는 별도 chart에서 관리)
 ingress:
   enabled: false
-
-resources:
-  limits:
-    cpu: 500m
-    memory: 1Gi
-  requests:
-    cpu: 200m
-    memory: 512Mi
-# Staging 환경에서는 간단한 설정만 유지
-# 오토스케일링과 추가 어노테이션은 제거하여 단순화
