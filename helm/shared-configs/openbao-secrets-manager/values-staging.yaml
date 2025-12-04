@@ -158,6 +158,6 @@ harbor:
 openbao:
   token:
     create: true
-    value: "cy5laDdtazVONlgySG1OSE9jREkxRFJ0ajg="
+    value: "cy5mMnllWFBmMGVyZ2VkRTEyazNVTk9neDg="
     annotations:
       description: "OpenBao token for staging environment"
