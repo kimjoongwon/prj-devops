@@ -9,7 +9,7 @@ spec:
   type: {{ .Values.service.type }}
   ports:
     - port: {{ .Values.service.port }}           # External service port
-      targetPort: http                           # Container port (backend.port: 3006)
+      targetPort: {{ .Values.service.targetPort }} # Container port (backend.port: 3006)
       protocol: TCP
       name: http
   selector:
