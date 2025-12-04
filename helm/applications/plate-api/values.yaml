@@ -16,7 +16,7 @@ backend: # 실제 비즈니스 로직 서비스 컨테이너
     repository: kimjoongwon/server # 사용자 정의 이미지 (CI 파이프라인 아티팩트)
     tag: "latest" # 버전 태그 (증분 배포 시 교체)
     pullPolicy: IfNotPresent
-  port: 3005 # 내부 애플리케이션 리스닝 포트
+  port: 3006 # 내부 애플리케이션 리스닝 포트
   resources: # 비교적 무거운 로직 가정한 리소스 요청/제한
     limits:
       cpu: 200m
@@ -87,7 +87,7 @@ fullnameOverride: ""
 service: # 외부/Ingress 앞단 Service (nginx target)
   type: ClusterIP
   port: 80
-  targetPort: 8080 # nginx 프록시 컨테이너 포트 (backend:3005 로 프록시됨)
+  targetPort: 8080 # nginx 프록시 컨테이너 포트 (backend:3006 로 프록시됨)
 
 ingress: # /api 경로만 노출 (FE Ingress 통합 시 disable 가능)
   enabled: true
