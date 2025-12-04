@@ -4,11 +4,11 @@
 
 replicaCount: 2 # 기본 복제본 수
 
-# nginx 리버스 프록시 컨테이너 설정
-image: # 프록시 nginx 이미지
-  repository: nginx
+# Backend 서버 컨테이너 설정 (nginx 프록시 불필요)
+image: # 실제 비즈니스 로직 서비스 컨테이너
+  repository: kimjoongwon/server
   pullPolicy: IfNotPresent
-  tag: "latest" # 고정 버전 태그 권장
+  tag: "latest" # 버전 태그 (증분 배포 시 교체)
 
 # server 백엔드 컨테이너 설정
 backend: # 실제 비즈니스 로직 서비스 컨테이너
@@ -84,10 +84,10 @@ appSecrets:
 nameOverride: ""
 fullnameOverride: ""
 
-service: # 외부/Ingress 앞단 Service (nginx target)
+service: # 외부/Ingress 앞단 Service
   type: ClusterIP
   port: 80
-  targetPort: 8080 # nginx 프록시 컨테이너 포트 (backend:3006 로 프록시됨)
+  targetPort: 3006 # backend 애플리케이션 포트
 
 ingress: # /api 경로만 노출 (FE Ingress 통합 시 disable 가능)
   enabled: true

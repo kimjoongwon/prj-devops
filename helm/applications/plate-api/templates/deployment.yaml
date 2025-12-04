@@ -16,8 +16,7 @@ spec:
     metadata:
       labels:
         {{- include "be-server.labels" . | nindent 8 }}
-      annotations:
-        checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}  # 설정 변경 감지
+      annotations: {}
     spec:
       imagePullSecrets:
         {{- with .Values.imagePullSecrets }}
@@ -29,7 +28,7 @@ spec:
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
             - name: http
-              containerPort: {{ .Values.service.targetPort }}
+              containerPort: {{ .Values.backend.port }}
               protocol: TCP
           {{- if .Values.appSecrets.enabled }}
           env:
