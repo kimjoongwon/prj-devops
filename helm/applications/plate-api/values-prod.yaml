@@ -9,6 +9,7 @@ backend:
     repository: harbor.cocdev.co.kr/stg-server/server
     tag: "latest"
     pullPolicy: IfNotPresent
+  port: 3006
   resources:
     limits:
       cpu: 500m

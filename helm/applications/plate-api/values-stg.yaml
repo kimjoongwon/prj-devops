@@ -9,6 +9,7 @@ backend:
     repository: harbor.cocdev.co.kr/stg-server/server
     tag: "latest"
     pullPolicy: Always  # Always pull for latest builds in staging
+  port: 3006
   resources:
     limits:
       cpu: 500m
