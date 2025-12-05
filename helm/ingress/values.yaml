@@ -12,7 +12,7 @@ services:               # 실제 Kubernetes Service 이름과 포트 매핑 (Arg
     port: 80
   backend:
     name: "plate-api-prod"
-    port: 3006
+    port: 80
 
 ingress:
   enabled: true
