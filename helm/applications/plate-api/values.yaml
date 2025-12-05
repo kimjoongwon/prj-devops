@@ -2,22 +2,14 @@
 # Kubernetes에 배포할 백엔드 서버 설정
 # 환경별 오버라이드: values-prod.yaml, values-stg.yaml
 
-replicaCount: 2 # 기본 복제본 수
+# Harbor registry authentication
+imagePullSecrets:
+  - name: harbor-registry-secret
 
-# Backend 애플리케이션 설정
-backend:
-  image:
-    repository: kimjoongwon/server  # 백엔드 애플리케이션 이미지
-    tag: "latest"  # 버전 태그 (증분 배포 시 교체)
-    pullPolicy: IfNotPresent
-  port: 3006  # 백엔드 애플리케이션 포트
-  resources:
-    limits:
-      cpu: 200m
-      memory: 256Mi
-    requests:
-      cpu: 100m
-      memory: 128Mi
+service:
+  type: LoadBalancer
+  port: 80
+  targetPort: 3006
 
 # 애플리케이션 환경변수 Secret 설정
 appSecrets:
@@ -74,28 +66,3 @@ appSecrets:
       secretKey: DATABASE_URL
     - name: DIRECT_URL
       secretKey: DIRECT_URL
-
-nameOverride: ""
-fullnameOverride: ""
-
-service: # 외부/Ingress 앞단 Service
-  type: ClusterIP
-  port: 80
-  targetPort: 3006 # backend 애플리케이션 포트
-
-ingress: # /api 경로만 노출 (FE Ingress 통합 시 disable 가능)
-  enabled: true
-  className: "nginx"
-  annotations:
-    cert-manager.io/cluster-issuer: "letsencrypt-prod"
-    ingress.kubernetes.io/ssl-redirect: "false" # prod 환경에서는 true 권장
-    acme.cert-manager.io/http01-edit-in-place: "true"
-  hosts:
-    - host: cocdev.co.kr
-      paths:
-        - path: /api
-          pathType: Prefix
-  tls:
-    - secretName: server-tls
-      hosts:
-        - cocdev.co.kr

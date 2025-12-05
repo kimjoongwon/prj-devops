@@ -16,13 +16,3 @@ backend:
     requests:
       cpu: 200m
       memory: 512Mi
-
-# Service configuration (LoadBalancer for staging)
-service:
-  type: LoadBalancer
-  port: 80
-  targetPort: 3006
-
-# Ingress disabled (ingress는 별도 chart에서 관리)
-ingress:
-  enabled: false
