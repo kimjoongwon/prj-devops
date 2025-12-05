@@ -41,7 +41,7 @@ appSecrets:
 
 # Harbor registry authentication
 imagePullSecrets:
-  - name: harbor-registry-secret
+  - name: harbor-docker-secret
 
 service: # nginx 프록시 Service 설정
   type: ClusterIP # 외부 노출은 Ingress로 처리

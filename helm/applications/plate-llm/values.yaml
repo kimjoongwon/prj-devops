@@ -35,7 +35,7 @@ port: 8000 # LangChain 서버 리스닝 포트
 
 # Harbor registry authentication
 imagePullSecrets:
-  - name: harbor-registry-secret
+  - name: harbor-docker-secret
 
 service: # Kubernetes Service 설정
   type: ClusterIP
