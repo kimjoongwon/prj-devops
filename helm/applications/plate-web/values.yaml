@@ -39,30 +39,15 @@ appSecrets:
     # - name: FEATURE_FLAGS
     #   secretKey: feature-flags
 
-nameOverride: ""
-fullnameOverride: ""
+# Harbor registry authentication
+imagePullSecrets:
+  - name: harbor-registry-secret
 
 service: # nginx 프록시 Service 설정
   type: ClusterIP # 외부 노출은 Ingress로 처리
   port: 80 # 클러스터 내부 서비스 포트
   targetPort: 80 # Pod 내부 컨테이너 포트 (nginx listen)
 
-ingress: # 외부 접근 엔드포인트 (staging/prod 환경 값에서 host 교체 가능)
-  enabled: true
-  className: "nginx" # NGINX Ingress Controller 사용
-  annotations: # TLS 및 인증서/옵션 관련 어노테이션
-    cert-manager.io/cluster-issuer: "letsencrypt-prod" # cert-manager ClusterIssuer 이름
-    ingress.kubernetes.io/ssl-redirect: "false" # prod 에서는 true 로 강제 권장
-    acme.cert-manager.io/http01-edit-in-place: "true"
-  hosts:
-    - host: cocdev.co.kr # 환경 override 로 다른 도메인 적용 가능
-      paths:
-        - path: /
-          pathType: Prefix
-  tls:
-    - secretName: web-tls # cert-manager 가 채우는 TLS Secret 이름
-      hosts:
-        - cocdev.co.kr
 resources: # nginx 컨테이너 리소스 (프록시 레이어)
   limits:
     cpu: 100m

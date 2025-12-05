@@ -5,23 +5,27 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   # 리소스 이름: <release>-<chart>
-  name: {{ include "fe-web.fullname" . }}
+  name: {{ include "plate-web.name" . }}
   # 공통 라벨 (선택/추적/ArgoCD UI 식별)
   labels:
-    {{- include "fe-web.labels" . | nindent 4 }}
+    {{- include "plate-web.labels" . | nindent 4 }}
 spec:
   replicas: {{ .Values.replicaCount }}   # 스케일 아웃은 HPA 추가 시 별도 구성
   selector:
     matchLabels:
-      {{- include "fe-web.selectorLabels" . | nindent 6 }}
+      {{- include "plate-web.selectorLabels" . | nindent 6 }}
   template:                              # Pod 스펙 (이미지, 볼륨, 프로브 등)
     metadata:
       labels:
-        {{- include "fe-web.labels" . | nindent 8 }}
+        {{- include "plate-web.labels" . | nindent 8 }}
       annotations:
         # ConfigMap 변경을 감지하여 Pod 재배포 트리거 (롤링업데이트)
         checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
     spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
       # 멀티 컨테이너 패턴: (1) nginx 프록시 (2) busybox httpd (교육/테스트용)
       containers:
         # --- nginx reverse proxy ---
@@ -121,7 +125,7 @@ spec:
       volumes:
         - name: nginx-config
           configMap:
-            name: {{ include "fe-web.fullname" . }}-config
+            name: {{ include "plate-web.name" . }}-config
             items:
               - key: nginx.conf
                 path: nginx.conf

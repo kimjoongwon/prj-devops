@@ -8,9 +8,5 @@
   "helm-intellisense.customValueFileNames": [
     "values.yaml",
     "values-*.yaml"
-  ],
-  "yaml.schemas": {
-    "https://json.schemastore.org/helm-chart.json": "Chart.yaml",
-    "https://json.schemastore.org/helmfile.json": "helmfile.yaml"
-  }
+  ]
 }

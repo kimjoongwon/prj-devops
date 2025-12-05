@@ -1,9 +1,9 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ include "fe-web.fullname" . }}    # Service 이름 (DNS: <name>.<ns>.svc)
+  name: {{ include "plate-web.name" . }}    # Service 이름 (DNS: <name>.<ns>.svc)
   labels:
-    {{- include "fe-web.labels" . | nindent 4 }}
+    {{- include "plate-web.labels" . | nindent 4 }}
 spec:
   type: {{ .Values.service.type }}            # ClusterIP / NodePort / LoadBalancer (Ingress 사용 ⇒ ClusterIP 유지)
   ports:
@@ -12,4 +12,4 @@ spec:
       protocol: TCP
       name: http
   selector:                                   # 연결할 Pod 선택 라벨
-    {{- include "fe-web.selectorLabels" . | nindent 4 }}
+    {{- include "plate-web.selectorLabels" . | nindent 4 }}
