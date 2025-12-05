@@ -21,7 +21,7 @@ backend:
 
 # Harbor registry authentication
 imagePullSecrets:
-  - name: harbor-registry-secret
+  - name: harbor-docker-secret
 
 service:
   type: LoadBalancer
