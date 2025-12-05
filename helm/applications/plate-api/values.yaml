@@ -21,7 +21,8 @@ backend:
 
 # 애플리케이션 환경변수 Secret 설정
 appSecrets:
-  enabled: true # Secret 환경변수 주입 비활성화 (테스트용)
+  enabled: true # Secret 환경변수 주입 활성화
+  secretName: app-env-secrets # Kubernetes Secret 이름
   envVars: # 주입할 환경변수 목록
     - name: APP_PORT
       secretKey: APP_PORT
