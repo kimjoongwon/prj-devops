@@ -1,15 +1,14 @@
-# Plate Cache - Production 환경 ArgoCD Application
+# Plate Cache - Container Builder PVC ArgoCD Application
 
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: plate-cache-prod
+  name: plate-cache
   namespace: argocd  # ArgoCD가 설치된 네임스페이스
   annotations:
-    argocd.argoproj.io/sync-wave: "1"  # Storage를 먼저 생성 (낙은 sync-wave가 먼저 배포됨)
+    argocd.argoproj.io/sync-wave: "1"  # Storage를 먼저 생성 (낮은 sync-wave가 먼저 배포됨)
   labels:
     app.kubernetes.io/name: plate-cache
-    environment: production
 spec:
   # ArgoCD 프로젝트 지정 (default는 모든 클러스터/네임스페이스 접근 가능)
   project: default
@@ -19,10 +18,6 @@ spec:
     repoURL: https://github.com/kimjoongwon/prj-devops.git  # Git 저장소 URL
     path: helm/applications/plate-cache                     # Helm 차트 경로
     targetRevision: main                                    # 추적할 브랜치/태그 (main 브랜치 자동 추적)
-    helm:
-      # 환경별 values 파일 (차트 루트 기준 상대 경로)
-      valueFiles:
-        - values-prod.yaml  # Production 환경 설정 파일
 
   # 배포 대상 클러스터 및 네임스페이스
   destination:
@@ -35,7 +30,7 @@ spec:
     automated:
       prune: true      # Git에서 삭제된 리소스를 클러스터에서도 자동 삭제
       selfHeal: true   # 클러스터에서 수동 변경 시 Git 상태로 자동 복구
-    
+
     # 동기화 옵션
     syncOptions:
       - CreateNamespace=true      # 네임스페이스가 없으면 자동 생성
@@ -47,4 +42,4 @@ spec:
   # ArgoCD UI에 표시될 애플리케이션 정보
   info:
     - name: Purpose
-      value: "Plate Container Cache Storage (Production)"
+      value: "Plate Container Cache Storage"
