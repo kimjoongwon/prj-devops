@@ -2446,8 +2446,6 @@ server:
       cert-manager.io/cluster-issuer: "letsencrypt-prod"
       ingress.kubernetes.io/ssl-redirect: "false"
       acme.cert-manager.io/http01-edit-in-place: "true"
-      nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
-      nginx.ingress.kubernetes.io/ssl-passthrough: "true"
 
 
     # -- Defines which ingress controller will implement the resource
