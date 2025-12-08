@@ -16,8 +16,8 @@ spec:
       labels:
         {{- include "plate-web.labels" . | nindent 8 }}
       annotations:
-        # ConfigMap 변경을 감지하여 Pod 재배포 트리거 (롤링업데이트)
-        checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
+        # 배포 추적용 어노테이션
+        app.kubernetes.io/component: web
     spec:
       {{- with .Values.imagePullSecrets }}
       imagePullSecrets:
@@ -49,16 +49,14 @@ spec:
           # Liveness: 프로세스 hang 탐지 -> 재시작
           livenessProbe:
             httpGet:
-              path: /health
+              path: /
               port: http
             initialDelaySeconds: 10
             periodSeconds: 30
           # Readiness: 트래픽 라우팅 전 준비 확인
           readinessProbe:
             httpGet:
-              path: /health
+              path: /
               port: http
             initialDelaySeconds: 5
             periodSeconds: 10
-          # 볼륨 마운트 제거 - nginx 기본 페이지 사용
-      # 볼륨 정의 제거 - nginx 기본 페이지 사용
