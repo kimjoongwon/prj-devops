@@ -34,18 +34,8 @@ spec:
           # 서비스가 노출할 포트 (http 이름 -> 프로브/Service 참조)
           ports:
             - name: http
-              containerPort: {{ .Values.service.targetPort }}
+              containerPort: {{ .Values.service.targetPort | default 80 }}
               protocol: TCP
-          {{- if .Values.appSecrets.enabled }}
-          env:
-            {{- range .Values.appSecrets.envVars }}
-            - name: {{ .name }}
-              valueFrom:
-                secretKeyRef:
-                  name: {{ $.Values.appSecrets.secretName }}
-                  key: {{ .secretKey }}
-            {{- end }}
-          {{- end }}
           # Liveness: 프로세스 hang 탐지 -> 재시작
           livenessProbe:
             httpGet:
