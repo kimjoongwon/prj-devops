@@ -1,6 +1,3 @@
-# Frontend Web 애플리케이션을 위한 Kubernetes Deployment 템플릿
-# 이 파일은 Helm 차트를 통해 웹 애플리케이션을 Kubernetes 클러스터에 배포하기 위한 설정을 정의합니다.
-
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -26,7 +23,7 @@ spec:
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      # 멀티 컨테이너 패턴: (1) nginx 프록시 (2) busybox httpd (교육/테스트용)
+      # nginx reverse proxy 컨테이너만 사용
       containers:
         # --- nginx reverse proxy ---
         - name: nginx-proxy
@@ -63,69 +60,16 @@ spec:
               port: http
             initialDelaySeconds: 5
             periodSeconds: 10
-          # nginx 메인 설정 (ConfigMap -> 단일 파일 subPath)
+          # index.html 파일만 마운트
           volumeMounts:
-            - name: nginx-config
-              mountPath: /etc/nginx/nginx.conf
-              subPath: nginx.conf
-          # 자원 제한/요청 (스케줄링 + QoS Class 결정)
-          {{/*
-          resources:
-            {{- toYaml .Values.resources | nindent 12 }}
-          */}}
-        
-        # --- busybox backend (static httpd) ---
-        - name: busybox-backend
-          image: "{{ .Values.backend.image.repository }}:{{ .Values.backend.image.tag }}"
-          imagePullPolicy: {{ .Values.backend.image.pullPolicy }}
-          # 단순 정적 페이지 서빙 (학습/구조 테스트 목적)
-          command: ["/bin/sh"]
-          args:
-            - -c
-            - |
-              mkdir -p /www
-              echo "<h1>Backend Server</h1><p>Simple busybox httpd backend</p>" > /www/index.html
-              echo "Starting httpd on port {{ .Values.backend.port }}"
-              cd /www
-              httpd -f -p {{ .Values.backend.port }} -v
-          ports:
-            - name: backend
-              containerPort: {{ .Values.backend.port }}
-              protocol: TCP
-          {{- if .Values.appSecrets.enabled }}
-          env:
-            {{- range .Values.appSecrets.envVars }}
-            - name: {{ .name }}
-              valueFrom:
-                secretKeyRef:
-                  name: {{ $.Values.appSecrets.secretName }}
-                  key: {{ .secretKey }}
-            {{- end }}
-          {{- end }}
-          # Liveness/Readiness: 단순 루트 경로 확인
-          livenessProbe:
-            httpGet:
-              path: /
-              port: backend
-            initialDelaySeconds: 5
-            periodSeconds: 30
-          readinessProbe:
-            httpGet:
-              path: /
-              port: backend
-            initialDelaySeconds: 2
-            periodSeconds: 10
-          # 자원 제한/요청
-          {{/*
-          resources:
-            {{- toYaml .Values.backend.resources | nindent 12 }}
-          */}}
-      
-      # 공용 볼륨 정의 (ConfigMap -> 각각 파일 분리)
+            - name: nginx-index
+              mountPath: /usr/share/nginx/html/index.html
+              subPath: index.html
+      # configMap 볼륨 정의
       volumes:
-        - name: nginx-config
+        - name: nginx-index
           configMap:
             name: {{ include "plate-web.name" . }}-config
             items:
-              - key: nginx.conf
-                path: nginx.conf
+              - key: index.html
+                path: index.html
