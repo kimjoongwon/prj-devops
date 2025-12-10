@@ -8,10 +8,10 @@ appName: plate
 # Service names (actual service names in the cluster)
 services:                 # ArgoCD 릴리스명 기준 Service 오브젝트 이름 매핑
   frontend:
-    name: "plate-fe-web-stg"
+    name: "plate-web-stg"
     port: 80
   backend:
-    name: "plate-be-server-stg"
+    name: "plate-api-stg"
     port: 80
 
 ingress:
@@ -21,9 +21,7 @@ ingress:
   annotations:
     cert-manager.io/cluster-issuer: "letsencrypt-prod"   # 필요 시 스테이징 ClusterIssuer 로 교체
     ingress.kubernetes.io/ssl-redirect: "false"          # Staging 은 HTTP 허용 (테스트 편의)
-    nginx.ingress.kubernetes.io/rate-limit: "100"
-    nginx.ingress.kubernetes.io/rate-limit-window: "1m"
-  
+    acme.cert-manager.io/http01-edit-in-place: "true"
   hosts:
     - host: stg.cocdev.co.kr
       paths:

@@ -4,20 +4,20 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "be-llm.fullname" . }}
+  name: {{ include "plate-llm.name" . }}
   labels:
-    {{- include "be-llm.labels" . | nindent 4 }}
+    {{- include "plate-llm.labels" . | nindent 4 }}
 spec:
   replicas: {{ .Values.replicaCount }}
   selector:
     matchLabels:
-      {{- include "be-llm.selectorLabels" . | nindent 6 }}
+      {{- include "plate-llm.selectorLabels" . | nindent 6 }}
   template:
     metadata:
       labels:
-        {{- include "be-llm.labels" . | nindent 8 }}
+        {{- include "plate-llm.labels" . | nindent 8 }}
     spec:
-      serviceAccountName: {{ include "be-llm.fullname" . }}
+      serviceAccountName: {{ include "plate-llm.name" . }}
       {{- with .Values.imagePullSecrets }}
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}

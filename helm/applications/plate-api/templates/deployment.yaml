@@ -1,35 +1,34 @@
-# Backend Server 애플리케이션을 위한 Kubernetes Deployment 템플릿
-# 이 파일은 Helm 차트를 통해 서버 애플리케이션을 Kubernetes 클러스터에 배포하기 위한 설정을 정의합니다.
+# Plate API Backend Deployment 템플릿
+# 백엔드 애플리케이션(port 3006)을 Kubernetes 클러스터에 배포
 
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "be-server.fullname" . }}             # <release>-<chart>
+  name: {{ include "plate-api.name" . }}             # <release>-<chart>
   labels:
-    {{- include "be-server.labels" . | nindent 4 }}      # 공통 라벨 (선택/추적용)
+    {{- include "plate-api.labels" . | nindent 4 }}      # 공통 라벨 (선택/추적용)
 spec:
   replicas: {{ .Values.replicaCount }}                   # 원하는 스케일 크기
   selector:
     matchLabels:
-      {{- include "be-server.selectorLabels" . | nindent 6 }}
+      {{- include "plate-api.selectorLabels" . | nindent 6 }}
   template:
     metadata:
       labels:
-        {{- include "be-server.labels" . | nindent 8 }}
-      annotations:
-        checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}  # 설정 변경 감지
+        {{- include "plate-api.labels" . | nindent 8 }}
+      annotations: {}
     spec:
+      {{- with .Values.imagePullSecrets }}
       imagePullSecrets:
-        {{- with .Values.imagePullSecrets }}
         {{- toYaml . | nindent 8 }}
-        {{- end }}
+      {{- end }}
       containers:
-        - name: server-backend
-          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
-          imagePullPolicy: {{ .Values.image.pullPolicy }}
+        - name: {{ include "plate-api.name" . }}
+          image: "{{ .Values.backend.image.repository }}:{{ .Values.backend.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.backend.image.pullPolicy }}
           ports:
             - name: http
-              containerPort: {{ .Values.service.targetPort }}
+              containerPort: {{ .Values.backend.port }}
               protocol: TCP
           {{- if .Values.appSecrets.enabled }}
           env:
@@ -41,20 +40,5 @@ spec:
                   key: {{ .secretKey }}
             {{- end }}
           {{- end }}
-          # (헬스체크 비활성화: 초기 개발 중 문제 진단 목적)
-          # livenessProbe:
-          #   httpGet:
-          #     path: /
-          #     port: backend
-          #   initialDelaySeconds: 30
-          #   periodSeconds: 30
-          #   timeoutSeconds: 5
-          # readinessProbe:
-          #   httpGet:
-          #     path: /
-          #     port: backend
-          #   initialDelaySeconds: 15
-          #   periodSeconds: 10
-          #   timeoutSeconds: 5
           resources:
-            {{- toYaml .Values.resources | nindent 12 }}
+            {{- toYaml .Values.backend.resources | nindent 12 }}

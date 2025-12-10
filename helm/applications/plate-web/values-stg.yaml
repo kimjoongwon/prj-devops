@@ -9,20 +9,6 @@ image:
   pullPolicy: Always # Always pull for staging to get latest builds
   tag: "latest"
 
-# busybox 백엔드 (staging) - Using Docker Hub
-backend:
-  image:
-    repository: busybox
-    tag: "1.36"
-    pullPolicy: IfNotPresent
-  port: 8080
-  resources:
-    limits:
-      cpu: 100m
-      memory: 128Mi
-    requests:
-      cpu: 50m
-      memory: 64Mi
 # Ingress는 최상위 통합 템플릿에서 관리됨
 ingress:
   enabled: false

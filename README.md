@@ -1,6 +1,6 @@
-# DevOps 프로젝트 - 프로덕션 레디 Helm 차트
+# DevOps 프로젝트 - Kubernetes 배포 자동화
 
-이 프로젝트는 Helm 차트를 사용한 프로덕션 준비된 Kubernetes 배포 구조를 제공하며, 다중 환경 배포를 위해 체계적으로 구성되어 있습니다.
+GitOps 기반의 Kubernetes 배포 인프라로, Helm과 ArgoCD를 활용한 선언적 배포를 지원합니다.
 
 ## 🌟 프로젝트 개요
 
@@ -11,49 +11,37 @@
 - **계층화된 아키텍처**: 클러스터 서비스, 개발 도구, 애플리케이션의 3계층 구조
 - **멀티 환경 지원**: 스테이징과 프로덕션 환경의 완전한 분리
 - **GitOps 통합**: ArgoCD를 통한 자동화된 배포 파이프라인
-- **보안 강화**: 프로덕션급 보안 설정과 인증서 관리
-- **자동화된 배포**: 원클릭 배포 스크립트와 롤백 지원
+- **보안 강화**: OpenBao 시크릿 관리 및 Harbor 프라이빗 레지스트리
+- **표준화된 구조**: 통일된 Helm 차트 패턴 및 명명 규칙
 
 ## 📁 프로젝트 구조
 
 ```
 prj-devops/
-├── helm/                           # 배포 계층별로 구성된 모든 Helm 차트
+├── helm/                           # 모든 Helm 차트
 │   ├── cluster-services/          # 계층 1: 클러스터 레벨 인프라
 │   │   ├── cert-manager/          # SSL/TLS 인증서 관리
-│   │   │   ├── Chart.yaml
-│   │   │   ├── values.yaml
-│   │   │   └── templates/
 │   │   ├── metallb/               # 로드 밸런서
 │   │   └── nfs-provisioner/       # 스토리지 프로비저너
-│   │       ├── Chart.yaml
-│   │       ├── values.yaml
-│   │       └── templates/
 │   ├── development-tools/         # 계층 2: 개발 및 운영 도구
 │   │   ├── argocd/                # GitOps 도구
-│   │   │   ├── Chart.yaml
-│   │   │   ├── values.yaml
-│   │   │   └── templates/
 │   │   ├── harbor/                # 컨테이너 레지스트리
 │   │   ├── grafana/               # 모니터링 대시보드
 │   │   ├── prometheus/            # 메트릭 수집
-│   │   ├── jenkins/               # CI/CD
+│   │   ├── promtail/              # 로그 수집 에이전트
 │   │   ├── fluentd/               # 로그 수집
+│   │   ├── jenkins/               # CI/CD
 │   │   ├── openbao/               # 시크릿 관리
+│   │   ├── openebs/               # 스토리지 오케스트레이션
 │   │   └── kubernetes-dashboard/  # 클러스터 관리 UI
-│   ├── applications/              # 계층 3: Plate 서비스 애플리케이션
-│   │   ├── plate-web/             # Plate 웹 서비스
+│   ├── applications/              # 계층 3: Plate 애플리케이션
+│   │   ├── plate-api/             # Plate API 백엔드
 │   │   │   ├── Chart.yaml
-│   │   │   ├── values.yaml
-│   │   │   ├── values-stg.yaml
-│   │   │   ├── values-prod.yaml
+│   │   │   ├── values.yaml        # 기본 설정
+│   │   │   ├── values-stg.yaml    # 스테이징 오버라이드
+│   │   │   ├── values-prod.yaml   # 프로덕션 오버라이드
 │   │   │   └── templates/
-│   │   │       ├── deployment.yaml
-│   │   │       ├── service.yaml
-│   │   │       ├── configmap.yaml
-│   │   │       ├── serviceaccount.yaml
-│   │   │       └── _helpers.tpl
-│   │   ├── plate-api/             # Plate API 서버
+│   │   ├── plate-web/             # Plate 웹 프론트엔드
 │   │   │   ├── Chart.yaml
 │   │   │   ├── values.yaml
 │   │   │   ├── values-stg.yaml
@@ -64,58 +52,96 @@ prj-devops/
 │   │   │   ├── values.yaml
 │   │   │   ├── values-stg.yaml
 │   │   │   └── templates/
-│   │   └── plate-cache/           # Plate 컨테이너 캐시 스토리지
+│   │   └── plate-cache/           # 컨테이너 빌드 캐시 PVC
 │   │       ├── Chart.yaml
-│   │       ├── values.yaml
-│   │       ├── values-stg.yaml
-│   │       ├── values-prod.yaml
+│   │       ├── values.yaml        # 통합 설정 (환경 공통)
 │   │       └── templates/
 │   ├── ingress/                   # 통합 Ingress 설정
 │   │   ├── Chart.yaml
-│   │   ├── values.yaml
 │   │   ├── values-stg.yaml
+│   │   ├── values-prod.yaml
 │   │   └── templates/
-│   └── shared-configs/            # 공유 설정
-│       └── openbao-secrets-manager/  # OpenBao 시크릿 매니저 통합
+│   └── shared-configs/
+│       └── openbao-secrets-manager/  # OpenBao 시크릿 동기화
 │           ├── Chart.yaml
-│           ├── values.yaml
 │           ├── values-staging.yaml
 │           ├── values-production.yaml
 │           └── templates/
-├── environments/                   # ArgoCD 정의 및 환경 디렉토리
-│   ├── argocd/                    # ArgoCD 관련 설정
-│   │   ├── app-of-apps.yaml       # App of Apps 패턴 메인 파일
-│   │   └── apps/                  # 개별 ArgoCD Application 정의
-│   │       ├── plate-web-stg.yaml
-│   │       ├── plate-web-prod.yaml
-│   │       ├── plate-api-stg.yaml
-│   │       ├── plate-api-prod.yaml
-│   │       ├── plate-llm-stg.yaml
-│   │       ├── plate-cache-stg.yaml
-│   │       ├── plate-cache-prod.yaml
-│   │       ├── ingress-stg.yaml
-│   │       ├── ingress-prod.yaml
-│   │       ├── openbao-secrets-manager-stg.yaml
-│   │       └── openbao-secrets-manager-prod.yaml
-│   ├── staging/
-│   └── production/
+├── environments/                   # ArgoCD 설정
+│   └── argocd/
+│       ├── app-of-apps.yaml       # App of Apps 패턴 메인
+│       └── apps/                  # 개별 ArgoCD Application 정의
+│           ├── plate-api-stg.yaml
+│           ├── plate-api-prod.yaml
+│           ├── plate-web-stg.yaml
+│           ├── plate-web-prod.yaml
+│           ├── plate-llm-stg.yaml
+│           ├── plate-cache.yaml   # 환경 통합 (단일 PVC)
+│           ├── ingress-stg.yaml
+│           ├── ingress-prod.yaml
+│           ├── openbao-secrets-manager-stg.yaml
+│           └── openbao-secrets-manager-prod.yaml
 └── scripts/                       # 배포 자동화 스크립트
     ├── deploy-all.sh             # 메인 배포 오케스트레이터
     ├── deploy-libraries.sh       # 클러스터 서비스 및 도구 배포
     ├── deploy-stg.sh             # 스테이징 배포
-    ├── deploy-prod.sh            # 프로덕션 배포 (안전 검사 포함)
+    ├── deploy-prod.sh            # 프로덕션 배포
     ├── deploy-harbor-auth.sh     # Harbor 인증 설정
     ├── verify-harbor-auth.sh     # Harbor 인증 검증
-    └── migrate-images-to-harbor.sh  # Harbor 이미지 마이그레이션
+    ├── migrate-images-to-harbor.sh  # Harbor 이미지 마이그레이션
+    └── openbao/                  # OpenBao 관리 스크립트
+        ├── install-vault-cli.sh  # Vault CLI 설치
+        ├── setup-esc.sh          # ESC(External Secrets) 설정
+        ├── create-policy.sh      # 정책 생성
+        ├── create-token.sh       # 토큰 생성
+        ├── create-secrets.sh     # 시크릿 생성
+        └── revoke-non-root-tokens.sh  # 토큰 폐기
 ```
+
+## 🏗️ 아키텍처 설계 원칙
+
+### Helm 차트 명명 및 구조 표준
+
+**애플리케이션 차트** (`helm/applications/`):
+
+- 차트명 = 디렉토리명 = 릴리스명 = 컨테이너명
+  - 예: `plate-api`, `plate-web`, `plate-llm`
+- 헬퍼 템플릿 단순화: `.Release.Name` 직접 사용
+- imagePullSecrets: Harbor 인증을 위한 `harbor-docker-secret` 포함
+- Ingress: 별도 차트에서 중앙 관리 (`helm/ingress`)
+
+**환경 구성**:
+
+- `values.yaml`: 기본 설정 및 공통 값
+- `values-stg.yaml`: 스테이징 환경 오버라이드
+- `values-prod.yaml`: 프로덕션 환경 오버라이드
+- 예외: `plate-cache`는 단일 `values.yaml` 사용 (환경 간 공유 리소스)
+
+### ArgoCD GitOps 전략
+
+**App of Apps 패턴**:
+
+- `environments/argocd/app-of-apps.yaml`: 최상위 Application
+- `environments/argocd/apps/`: 각 서비스별 Application 정의
+- 자동 동기화: `prune: true`, `selfHeal: true`
+- Sync Wave: 의존성 순서 보장
+
+**배포 흐름**:
+
+1. Git 저장소에 values 파일 수정 및 커밋
+2. ArgoCD가 변경 감지 (3분 폴링 또는 webhook)
+3. Helm 템플릿 렌더링 및 매니페스트 생성
+4. Kubernetes 리소스 자동 적용
+5. 상태 동기화 및 헬스 체크
 
 ## 🚀 빠른 시작
 
 ### 사전 준비사항
 
-- Kubernetes 클러스터 접근 권한
-- Helm 3.x 설치
+- Kubernetes 클러스터 (v1.25+)
+- Helm 3.x
 - kubectl 설정 완료
+- Git 접근 권한
 
 ### 1. 인프라 및 도구 배포
 
@@ -124,10 +150,10 @@ prj-devops/
 ./scripts/deploy-libraries.sh
 ```
 
-다음 순서로 배포됩니다:
+배포 순서:
 
-1. **클러스터 서비스** (계층 1): cert-manager, MetalLB, NFS 프로비저너
-2. **개발 도구** (계층 2): ArgoCD, Harbor, Kubernetes 대시보드
+1. **Cluster Services**: cert-manager, MetalLB, NFS 프로비저너
+2. **Development Tools**: ArgoCD, Harbor, OpenBao, Prometheus, Grafana 등
 
 ### 2. 애플리케이션 배포
 
@@ -139,49 +165,46 @@ prj-devops/
 
 # 또는 메인 스크립트 사용
 ./scripts/deploy-all.sh staging
-# 또는 간단하게 (기본값이 스테이징)
-./scripts/deploy-all.sh
 ```
 
 #### 프로덕션 환경
 
 ```bash
-# 먼저 드라이런 실행 (권장)
+# 드라이런 실행 (권장)
 ./scripts/deploy-all.sh production --dry-run
 
 # 프로덕션 배포
 ./scripts/deploy-all.sh production
 ```
 
-## 🔧 Environment Configuration
+## 🔧 환경 설정
 
-### Staging (Development/Testing)
+### Staging (개발/테스트)
 
-- **Domain**: `cocdev.co.kr`, `stg.cocdev.co.kr`
+- **Domain**: `stg.cocdev.co.kr`
+- **Namespace**: 서비스별 분리
 - **Certificate**: Let's Encrypt Staging
-- **Replicas**: 2
-- **Auto-scaling**: Enabled
-- **Resources**: Development-friendly
-- **SSL**: Optional (HTTP allowed)
+- **Auto-scaling**: 활성화
+- **Resources**: 개발 친화적 설정
 
 ### Production
 
 - **Domain**: `cocdev.co.kr`, `www.cocdev.co.kr`
+- **Namespace**: 서비스별 분리
 - **Certificate**: Let's Encrypt Production
-- **Replicas**: 3+
-- **Auto-scaling**: Enabled
-- **Security**: Hardened
-- **SSL**: Enforced
+- **Auto-scaling**: 활성화
+- **Security**: 강화된 보안 정책
+- **SSL**: HTTPS 강제
 
-## 📊 Deployment Scripts
+## 🛡️ 보안 및 시크릿 관리
 
-### deploy-all.sh
+### OpenBao 통합
 
-환경(스테이징/프로덕션) 관리와 선택적 배포 옵션을 제공하는 메인 오케스트레이션 스크립트:
+OpenBao를 통한 중앙화된 시크릿 관리:
 
 ```bash
-# (기본값) 스테이징 전체 배포
-./scripts/deploy-all.sh
+# Vault CLI 설치
+./scripts/openbao/install-vault-cli.sh
 
 # 라이브러리(인프라 + 도구)만 배포
 ./scripts/deploy-all.sh staging --libraries-only
@@ -266,16 +289,22 @@ prj-devops/
 - Staging 환경: 시험용 인증서 사용
 - Production 환경: 실서명 인증서 적용
 
-## 🔍 Monitoring & Operations
+## 📊 운영 및 모니터링
 
 ### 배포 상태 확인
 
 ```bash
-# Check staging status
+# 스테이징 상태 확인
 ./scripts/deploy-stg.sh status
 
-# Check production status
+# 프로덕션 상태 확인
 ./scripts/deploy-prod.sh status
+
+# ArgoCD를 통한 확인
+kubectl get applications -n argocd
+
+# Pod 상태 확인
+kubectl get pods -A
 ```
 
 ### 애플리케이션 접속
@@ -347,10 +376,20 @@ prj-devops/
 ### 추가 진단 명령 예시
 
 ```bash
-# Show deployment logs
-kubectl logs -n <namespace> -l app.kubernetes.io/name=plate-web
+# Certificate 리소스 확인
+kubectl get certificates -A
 
-# Check ingress status
+# cert-manager 로그 확인
+kubectl logs -n cert-manager -l app=cert-manager
+
+# Challenge 상태 확인
+kubectl get challenges -A
+```
+
+**3. Ingress 문제**
+
+```bash
+# Ingress 상태 확인
 kubectl get ingress -A
 
 # Verify certificates

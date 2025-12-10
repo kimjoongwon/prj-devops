@@ -6,27 +6,24 @@
 appName: plate
 
 # Service names (actual service names in the cluster)
-services:               # 실제 Kubernetes Service 이름과 포트 매핑 (ArgoCD Release 명 기준)
+services: # 실제 Kubernetes Service 이름과 포트 매핑 (ArgoCD Release 명 기준)
   frontend:
-    name: "plate-fe-web-prod"  # 프론트엔드 서비스 (nginx reverse proxy)
+    name: "plate-web-prod" # 프론트엔드 서비스
     port: 80
   backend:
-    name: "plate-be-server-prod"  # 백엔드 API 서비스
+    name: "plate-api-prod"
     port: 80
 
 ingress:
   enabled: true
-  name: "cocdev-ingress"       # 생성될 Ingress 객체명
-  className: "nginx"            # IngressClass (컨트롤러 식별)
-  annotations:                  # 보안/성능/SSL 관련 어노테이션
-    cert-manager.io/cluster-issuer: "letsencrypt-prod"   # 프로덕션 실서명 인증서
-    ingress.kubernetes.io/ssl-redirect: "true"           # HTTP -> HTTPS 리다이렉트
-    nginx.ingress.kubernetes.io/force-ssl-redirect: "true" # 일부 컨트롤러 구현 호환
-    nginx.ingress.kubernetes.io/rate-limit: "100"        # Rate Limit (예시)
-    nginx.ingress.kubernetes.io/rate-limit-window: "1m"  # 윈도우 기간
-  
+  name: "cocdev-ingress" # 생성될 Ingress 객체명
+  className: "nginx" # IngressClass (컨트롤러 식별)
+  annotations: # 보안/성능/SSL 관련 어노테이션
+    cert-manager.io/cluster-issuer: "letsencrypt-prod" # 프로덕션 실서명 인증서
+    ingress.kubernetes.io/ssl-redirect: "false" # HTTP -> HTTPS 리다이렉트
+    acme.cert-manager.io/http01-edit-in-place: "true"
   hosts:
-    - host: cocdev.co.kr       # 메인 도메인 (A 레코드 -> Ingress Controller LB)
+    - host: cocdev.co.kr # 메인 도메인 (A 레코드 -> Ingress Controller LB)
       paths:
         # 프런트엔드 전체 경로
         - path: /
@@ -44,8 +41,8 @@ ingress:
               name: backend
               port:
                 number: 80
-  
+
   tls:
-    - secretName: web-prod-tls   # cert-manager 가 관리하는 프로덕션 TLS 시크릿
+    - secretName: web-prod-tls # cert-manager 가 관리하는 프로덕션 TLS 시크릿
       hosts:
-        - cocdev.co.kr           # SAN / CN 매칭 호스트 목록
+        - cocdev.co.kr # SAN / CN 매칭 호스트 목록

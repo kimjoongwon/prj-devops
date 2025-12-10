@@ -1,28 +1,29 @@
-# Frontend Web 애플리케이션을 위한 Kubernetes Deployment 템플릿
-# 이 파일은 Helm 차트를 통해 웹 애플리케이션을 Kubernetes 클러스터에 배포하기 위한 설정을 정의합니다.
-
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   # 리소스 이름: <release>-<chart>
-  name: {{ include "fe-web.fullname" . }}
+  name: {{ include "plate-web.name" . }}
   # 공통 라벨 (선택/추적/ArgoCD UI 식별)
   labels:
-    {{- include "fe-web.labels" . | nindent 4 }}
+    {{- include "plate-web.labels" . | nindent 4 }}
 spec:
   replicas: {{ .Values.replicaCount }}   # 스케일 아웃은 HPA 추가 시 별도 구성
   selector:
     matchLabels:
-      {{- include "fe-web.selectorLabels" . | nindent 6 }}
+      {{- include "plate-web.selectorLabels" . | nindent 6 }}
   template:                              # Pod 스펙 (이미지, 볼륨, 프로브 등)
     metadata:
       labels:
-        {{- include "fe-web.labels" . | nindent 8 }}
+        {{- include "plate-web.labels" . | nindent 8 }}
       annotations:
-        # ConfigMap 변경을 감지하여 Pod 재배포 트리거 (롤링업데이트)
-        checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
+        # 배포 추적용 어노테이션
+        app.kubernetes.io/component: web
     spec:
-      # 멀티 컨테이너 패턴: (1) nginx 프록시 (2) busybox httpd (교육/테스트용)
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      # nginx reverse proxy 컨테이너만 사용
       containers:
         # --- nginx reverse proxy ---
         - name: nginx-proxy
@@ -33,95 +34,19 @@ spec:
           # 서비스가 노출할 포트 (http 이름 -> 프로브/Service 참조)
           ports:
             - name: http
-              containerPort: {{ .Values.service.targetPort }}
+              containerPort: {{ .Values.service.targetPort | default 80 }}
               protocol: TCP
-          {{- if .Values.appSecrets.enabled }}
-          env:
-            {{- range .Values.appSecrets.envVars }}
-            - name: {{ .name }}
-              valueFrom:
-                secretKeyRef:
-                  name: {{ $.Values.appSecrets.secretName }}
-                  key: {{ .secretKey }}
-            {{- end }}
-          {{- end }}
           # Liveness: 프로세스 hang 탐지 -> 재시작
           livenessProbe:
             httpGet:
-              path: /health
+              path: /
               port: http
             initialDelaySeconds: 10
             periodSeconds: 30
           # Readiness: 트래픽 라우팅 전 준비 확인
           readinessProbe:
             httpGet:
-              path: /health
+              path: /
               port: http
             initialDelaySeconds: 5
             periodSeconds: 10
-          # nginx 메인 설정 (ConfigMap -> 단일 파일 subPath)
-          volumeMounts:
-            - name: nginx-config
-              mountPath: /etc/nginx/nginx.conf
-              subPath: nginx.conf
-          # 자원 제한/요청 (스케줄링 + QoS Class 결정)
-          {{/*
-          resources:
-            {{- toYaml .Values.resources | nindent 12 }}
-          */}}
-        
-        # --- busybox backend (static httpd) ---
-        - name: busybox-backend
-          image: "{{ .Values.backend.image.repository }}:{{ .Values.backend.image.tag }}"
-          imagePullPolicy: {{ .Values.backend.image.pullPolicy }}
-          # 단순 정적 페이지 서빙 (학습/구조 테스트 목적)
-          command: ["/bin/sh"]
-          args:
-            - -c
-            - |
-              mkdir -p /www
-              echo "<h1>Backend Server</h1><p>Simple busybox httpd backend</p>" > /www/index.html
-              echo "Starting httpd on port {{ .Values.backend.port }}"
-              cd /www
-              httpd -f -p {{ .Values.backend.port }} -v
-          ports:
-            - name: backend
-              containerPort: {{ .Values.backend.port }}
-              protocol: TCP
-          {{- if .Values.appSecrets.enabled }}
-          env:
-            {{- range .Values.appSecrets.envVars }}
-            - name: {{ .name }}
-              valueFrom:
-                secretKeyRef:
-                  name: {{ $.Values.appSecrets.secretName }}
-                  key: {{ .secretKey }}
-            {{- end }}
-          {{- end }}
-          # Liveness/Readiness: 단순 루트 경로 확인
-          livenessProbe:
-            httpGet:
-              path: /
-              port: backend
-            initialDelaySeconds: 5
-            periodSeconds: 30
-          readinessProbe:
-            httpGet:
-              path: /
-              port: backend
-            initialDelaySeconds: 2
-            periodSeconds: 10
-          # 자원 제한/요청
-          {{/*
-          resources:
-            {{- toYaml .Values.backend.resources | nindent 12 }}
-          */}}
-      
-      # 공용 볼륨 정의 (ConfigMap -> 각각 파일 분리)
-      volumes:
-        - name: nginx-config
-          configMap:
-            name: {{ include "fe-web.fullname" . }}-config
-            items:
-              - key: nginx.conf
-                path: nginx.conf

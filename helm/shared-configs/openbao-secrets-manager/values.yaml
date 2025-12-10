@@ -28,7 +28,7 @@ openbao:
     # Whether to create the token secret
     create: true
     # Token value (will be base64 encoded)
-    value: ""
+    value: "cy5nOHVDVmZISHBiMDhvZDR2d1NydWNISk4="
     # Additional annotations for token secret
     annotations: {}
 

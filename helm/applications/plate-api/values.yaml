@@ -1,34 +1,37 @@
-# be-server Chart 기본 값 파일
-# 서버 레이어 (nginx 프록시 + 실제 애플리케이션 컨테이너) 배포 설정.
-# 환경별 오버라이드: environments/<env>/be-server-values.yaml
+# Plate API Backend Chart 기본 값 파일
+# Kubernetes에 배포할 백엔드 서버 설정
+# 환경별 오버라이드: values-prod.yaml, values-stg.yaml
 
-replicaCount: 2 # 기본 복제본 수
+replicaCount: 1
 
-# nginx 리버스 프록시 컨테이너 설정
-image: # 프록시 nginx 이미지
-  repository: nginx
-  pullPolicy: IfNotPresent
-  tag: "latest" # 고정 버전 태그 권장
-
-# server 백엔드 컨테이너 설정
-backend: # 실제 비즈니스 로직 서비스 컨테이너
+# Backend 애플리케이션 설정
+backend:
   image:
-    repository: kimjoongwon/server # 사용자 정의 이미지 (CI 파이프라인 아티팩트)
-    tag: "latest" # 버전 태그 (증분 배포 시 교체)
+    repository: harbor.cocdev.co.kr/stg-server/server
+    tag: "latest"
     pullPolicy: IfNotPresent
-  port: 3005 # 내부 애플리케이션 리스닝 포트
-  resources: # 비교적 무거운 로직 가정한 리소스 요청/제한
+  port: 3006
+  resources:
     limits:
-      cpu: 200m
-      memory: 256Mi
+      cpu: 500m
+      memory: 1Gi
     requests:
-      cpu: 100m
-      memory: 128Mi
+      cpu: 250m
+      memory: 512Mi
+
+# Harbor registry authentication
+imagePullSecrets:
+  - name: harbor-docker-secret
+
+service:
+  type: LoadBalancer
+  port: 80
+  targetPort: 3006
 
 # 애플리케이션 환경변수 Secret 설정
 appSecrets:
   enabled: true # Secret 환경변수 주입 활성화
-  secretName: app-env-secrets # 참조할 Secret 리소스명
+  secretName: app-env-secrets # Kubernetes Secret 이름
   envVars: # 주입할 환경변수 목록
     - name: APP_PORT
       secretKey: APP_PORT
@@ -80,36 +83,3 @@ appSecrets:
       secretKey: DATABASE_URL
     - name: DIRECT_URL
       secretKey: DIRECT_URL
-
-nameOverride: ""
-fullnameOverride: ""
-
-service: # 외부/Ingress 앞단 Service (nginx target)
-  type: ClusterIP
-  port: 80
-  targetPort: 8080 # nginx 프록시 컨테이너 포트 (backend:3005 로 프록시됨)
-
-ingress: # /api 경로만 노출 (FE Ingress 통합 시 disable 가능)
-  enabled: true
-  className: "nginx"
-  annotations:
-    cert-manager.io/cluster-issuer: "letsencrypt-prod"
-    ingress.kubernetes.io/ssl-redirect: "false" # prod 환경에서는 true 권장
-    acme.cert-manager.io/http01-edit-in-place: "true"
-  hosts:
-    - host: cocdev.co.kr
-      paths:
-        - path: /api
-          pathType: Prefix
-  tls:
-    - secretName: server-tls
-      hosts:
-        - cocdev.co.kr
-
-resources: # nginx 프록시 컨테이너 리소스
-  limits:
-    cpu: 100m
-    memory: 128Mi
-  requests:
-    cpu: 50m
-    memory: 64Mi

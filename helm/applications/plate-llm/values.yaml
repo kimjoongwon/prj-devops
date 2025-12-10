@@ -33,30 +33,14 @@ port: 8000 # LangChain 서버 리스닝 포트
 #     - name: LLM_MAX_TOKENS
 #       secretKey: LLM_MAX_TOKENS
 
-nameOverride: ""
-fullnameOverride: ""
+# Harbor registry authentication
+imagePullSecrets:
+  - name: harbor-docker-secret
 
 service: # Kubernetes Service 설정
   type: ClusterIP
   port: 80
   targetPort: 8000 # 컨테이너 포트
-
-ingress: # 외부 접근 설정 (llm.cocdev.co.kr)
-  enabled: true
-  className: "nginx"
-  annotations:
-    cert-manager.io/cluster-issuer: "letsencrypt-prod"
-    ingress.kubernetes.io/ssl-redirect: "false" # prod 환경에서는 true 권장
-    acme.cert-manager.io/http01-edit-in-place: "true"
-  hosts:
-    - host: llm.cocdev.co.kr
-      paths:
-        - path: /
-          pathType: Prefix
-  tls:
-    - secretName: llm-tls
-      hosts:
-        - llm.cocdev.co.kr
 
 resources: # 리소스 제한 및 요청
   limits:
