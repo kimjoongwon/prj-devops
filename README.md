@@ -4,9 +4,10 @@
 
 ## 🌟 프로젝트 개요
 
-본 DevOps 프로젝트는 현대적인 클라우드 네이티브 애플리케이션 배포를 위한 완전한 Infrastructure as Code (IaC) 솔루션입니다. 
+본 DevOps 프로젝트는 현대적인 클라우드 네이티브 애플리케이션 배포를 위한 완전한 Infrastructure as Code (IaC) 솔루션입니다.
 
 ### 주요 특징
+
 - **계층화된 아키텍처**: 클러스터 서비스, 개발 도구, 애플리케이션의 3계층 구조
 - **멀티 환경 지원**: 스테이징과 프로덕션 환경의 완전한 분리
 - **GitOps 통합**: ArgoCD를 통한 자동화된 배포 파이프라인
@@ -200,8 +201,10 @@ prj-devops/
 - **2계층 (Development Tools)**: ArgoCD, Harbor, Kubernetes Dashboard
 
 관리 원칙:
+
 - 설정값은 각 차트 디렉토리의 `values.yaml`로 형상 관리 (예: `helm/cluster-services/*/values.yaml`, `helm/development-tools/*/values.yaml`)
 - 배포는 `./scripts/deploy-libraries.sh` 또는 Helm CLI(`helm upgrade --install`)로 수행
+
 ### Cluster Services & Development Tools 운영 원칙
 
 - 차트 값 관리: 각 차트 디렉토리의 `values.yaml`에 저장하고 Git에 커밋하여 형상 관리합니다
@@ -220,7 +223,7 @@ prj-devops/
 - 변경 절차:
   - 스테이징: `values-stg.yaml` 수정 → PR/리뷰 → ArgoCD 동기화로 적용 → 검증
   - 프로덕션: 검증 완료 후 `values-prod.yaml` 반영 → ArgoCD 동기화로 적용
-  - 템플릿(templates/*.yaml) 변경 시 반드시 린트/렌더 확인 수행
+  - 템플릿(templates/\*.yaml) 변경 시 반드시 린트/렌더 확인 수행
 - 권장 검사:
   - 린트: `helm lint helm/applications/<서비스>`
   - 렌더 확인(스테이징): `helm template helm/applications/<서비스> -f helm/applications/<서비스>/values-stg.yaml`
@@ -296,6 +299,7 @@ prj-devops/
   - 스테이징: `helm/applications/<서비스>/values-stg.yaml` (예: `plate-web/values-stg.yaml`, `plate-api/values-stg.yaml`)
   - 프로덕션: `helm/applications/<서비스>/values-prod.yaml` (예: `plate-web/values-prod.yaml`, `plate-api/values-prod.yaml`)
 - 인프라/도구(클러스터 서비스, 개발 도구): 각 차트 디렉토리의 `values.yaml`로 형상 관리합니다. 예: `helm/cluster-services/cert-manager/values.yaml`, `helm/development-tools/harbor/values.yaml`
+
 ## 🚨 Safety & Best Practices
 
 ### 프로덕션 배포 모범 절차
@@ -387,6 +391,7 @@ spec:
 ```
 
 참고: Cluster Services(예: cert-manager, MetalLB)와 Development Tools(예: Harbor, Grafana)는 Helm 차트의 `values.yaml`로 형상 관리하며, 스크립트 또는 Helm CLI로 배포합니다.
+
 ### 장점 요약
 
 - **명확한 계층 분리**: 인프라(cluster-services) / 도구(development-tools) / 앱(applications)의 책임 경계 명확
