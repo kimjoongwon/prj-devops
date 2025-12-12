@@ -458,3 +458,14 @@ spec:
 3. 백업/복구 전략 구현 (예: Velero, 스냅샷)
 4. 통합 테스트/부하 테스트 파이프라인 추가
 5. 운영 Runbook 및 장애 대응 절차 문서화
+
+---
+
+## 📝 변경 이력
+
+### 2025-12-12
+
+- **OpenBao 정책 보안 수정**: `esc-policy.hcl`에 `secret/data/server/cluster` 경로 읽기 권한 추가
+  - 문제: ClusterExternalSecret이 `server/cluster` 경로 접근 시 403 Permission Denied 오류 발생
+  - 원인: ESC 정책에 해당 경로에 대한 권한이 누락되어 있었음
+  - 해결: `scripts/openbao/policies/esc-policy.hcl`에 cluster 경로 권한 추가 후 정책 업데이트
