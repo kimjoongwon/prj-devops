@@ -33,6 +33,15 @@ path "secret/metadata/server/default" {
   capabilities = ["read"]
 }
 
+# Cluster 레벨 시크릿 읽기 (GITHUB 인증 등 전역 시크릿)
+path "secret/data/server/cluster" {
+  capabilities = ["read"]
+}
+
+path "secret/metadata/server/cluster" {
+  capabilities = ["read"]
+}
+
 # 서버 시크릿 리스트 조회 (트러블슈팅용)
 path "secret/metadata/server" {
   capabilities = ["list"]
