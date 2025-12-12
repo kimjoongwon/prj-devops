@@ -41,8 +41,21 @@ ingress:
               name: backend
               port:
                 number: 80
+    - host: llm.cocdev.co.kr
+      paths:
+        # LLM 서비스 전체 경로
+        - path: /
+          pathType: Prefix
+          backend:
+            service:
+              name: plate-llm-stg
+              port:
+                number: 80
   
   tls:
     - secretName: web-stg-tls   # cert-manager가 채우는 스테이징용 TLS 시크릿 (또는 동일 실서명)
       hosts:
         - stg.cocdev.co.kr
+    - secretName: llm-stg-tls   # LLM 서비스용 TLS 시크릿
+      hosts:
+        - llm.cocdev.co.kr
