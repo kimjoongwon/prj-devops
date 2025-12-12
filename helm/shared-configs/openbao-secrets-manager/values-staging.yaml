@@ -161,3 +161,26 @@ openbao:
     value: "cy5nOHVDVmZISHBiMDhvZDR2d1NydWNISk4="
     annotations:
       description: "OpenBao token for staging environment"
+
+# ClusterSecretStore 설정 (Staging)
+clusterSecretStore:
+  enabled: true
+  name: "openbao-cluster-store"
+  tokenNamespace: "plate-stg"  # 토큰이 저장된 네임스페이스
+
+# 클러스터 레벨 시크릿 (Staging)
+# secret/server/cluster 경로의 시크릿을 모든 네임스페이스에 생성
+clusterSecrets:
+  enabled: true
+  name: "cluster-secrets"
+  targetSecretName: "cluster-env-secrets"
+  refreshInterval: "30m"  # Staging은 더 자주 갱신
+  remoteRef:
+    key: "server/cluster"
+  targetNamespaces:
+    - plate-stg
+  data:
+    - secretKey: "GITHUB_CLIENT_ID"
+      property: "GITHUB_CLIENT_ID"
+    - secretKey: "GITHUB_CLIENT_SECRET"
+      property: "GITHUB_CLIENT_SECRET"

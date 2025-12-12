@@ -9,6 +9,8 @@ metadata:
     app.kubernetes.io/name: plate-llm
     app.kubernetes.io/instance: staging
     environment: staging
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"  # openbao-secrets-manager(wave:1) 이후 배포
 spec:
   # ArgoCD 프로젝트 지정 (default는 모든 클러스터/네임스페이스 접근 가능)
   project: default
