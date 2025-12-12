@@ -160,6 +160,136 @@ if [[ "$CONFIRM" =~ ^[Nn]$ ]]; then
 fi
 
 echo
+
+# 기존 토큰 무효화 옵션
+echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+echo -e "${BLUE}기존 토큰 관리${NC}"
+echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+echo
+
+echo -e "${YELLOW}기존 토큰을 검색하고 무효화하시겠습니까? (y/N)${NC}"
+echo -e "${CYAN}(토큰이 많으면 시간이 오래 걸릴 수 있습니다)${NC}"
+read -r CHECK_EXISTING
+
+if [[ "$CHECK_EXISTING" =~ ^[Yy]$ ]]; then
+    # 동일한 정책을 사용하는 기존 토큰 조회
+    echo -e "${YELLOW}🔍 정책 '$POLICY_NAME'을 사용하는 기존 토큰 검색 중...${NC}"
+    
+    # 토큰 accessor 목록 조회 (권한이 없으면 건너뛰)
+    EXISTING_TOKENS=$(vault list -format=json auth/token/accessors 2>/dev/null)
+    
+    if [ $? -ne 0 ] || [ -z "$EXISTING_TOKENS" ] || [ "$EXISTING_TOKENS" == "null" ]; then
+        echo -e "${YELLOW}⚠️  토큰 목록 조회 권한이 없거나 토큰이 없습니다${NC}"
+        echo -e "${BLUE}→ 새 토큰 생성을 계속합니다${NC}"
+        echo
+    else
+        # jq로 배열 파싱
+        ACCESSOR_LIST=$(echo "$EXISTING_TOKENS" | jq -r '.[]' 2>/dev/null)
+        
+        if [ -z "$ACCESSOR_LIST" ]; then
+            echo -e "${GREEN}✓${NC} 기존 토큰이 없습니다"
+            echo
+        else
+            MATCHING_ACCESSORS=()
+            MATCHING_INFO=()
+            
+            # 현재 토큰 accessor 미리 조회
+            CURRENT_ACCESSOR=$(vault token lookup -format=json 2>/dev/null | jq -r '.data.accessor' 2>/dev/null)
+            
+            # 최대 20개만 검색 (성능 문제 방지)
+            COUNT=0
+            MAX_CHECK=20
+            
+            for ACCESSOR in $ACCESSOR_LIST; do
+                # 현재 토큰은 건너뛰
+                if [ "$ACCESSOR" == "$CURRENT_ACCESSOR" ]; then
+                    continue
+                fi
+                
+                COUNT=$((COUNT + 1))
+                if [ $COUNT -gt $MAX_CHECK ]; then
+                    echo -e "${YELLOW}⚠️  토큰이 많아 처음 $MAX_CHECK개만 검색합니다${NC}"
+                    break
+                fi
+                
+                TOKEN_INFO=$(vault token lookup -accessor "$ACCESSOR" -format=json 2>/dev/null)
+                if [ $? -eq 0 ] && [ -n "$TOKEN_INFO" ]; then
+                    TOKEN_POLICIES=$(echo "$TOKEN_INFO" | jq -r '.data.policies | join(",")' 2>/dev/null)
+                    if echo "$TOKEN_POLICIES" | grep -q "$POLICY_NAME"; then
+                        TOKEN_DISPLAY=$(echo "$TOKEN_INFO" | jq -r '.data.display_name // "unknown"' 2>/dev/null)
+                        TOKEN_TTL_LEFT=$(echo "$TOKEN_INFO" | jq -r '.data.ttl' 2>/dev/null)
+                        
+                        MATCHING_ACCESSORS+=("$ACCESSOR")
+                        MATCHING_INFO+=("$TOKEN_DISPLAY (TTL: ${TOKEN_TTL_LEFT}s)")
+                    fi
+                fi
+            done
+            
+            if [ ${#MATCHING_ACCESSORS[@]} -gt 0 ]; then
+                echo -e "${CYAN}정책 '$POLICY_NAME'을 사용하는 기존 토큰 ${#MATCHING_ACCESSORS[@]}개 발견:${NC}"
+                echo
+                for i in "${!MATCHING_INFO[@]}"; do
+                    echo "  $((i+1)). ${MATCHING_INFO[$i]}"
+                    echo "     Accessor: ${MATCHING_ACCESSORS[$i]:0:20}..."
+                done
+                echo
+                
+                echo -e "${YELLOW}기존 토큰을 무효화(revoke)하시겠습니까?${NC}"
+                echo "  1) 모든 기존 토큰 무효화"
+                echo "  2) 선택적으로 무효화"
+                echo "  3) 무효화하지 않음 (기본값)"
+                echo
+                read -r -p "선택 (1-3): " REVOKE_CHOICE
+                
+                case $REVOKE_CHOICE in
+                    1)
+                        echo
+                        echo -e "${YELLOW}🚨 모든 기존 토큰을 무효화합니다...${NC}"
+                        for ACCESSOR in "${MATCHING_ACCESSORS[@]}"; do
+                            if vault token revoke -accessor "$ACCESSOR" 2>/dev/null; then
+                                echo -e "${GREEN}✓${NC} 토큰 무효화됨"
+                            else
+                                echo -e "${RED}✗${NC} 토큰 무효화 실패"
+                            fi
+                        done
+                        echo
+                        ;;
+                    2)
+                        echo
+                        echo -e "${CYAN}무효화할 토큰 번호를 입력하세요 (콤마로 구분, 예: 1,3):${NC}"
+                        read -r REVOKE_NUMS
+                        IFS=',' read -ra NUMS <<< "$REVOKE_NUMS"
+                        echo
+                        for NUM in "${NUMS[@]}"; do
+                            NUM=$(echo "$NUM" | xargs)  # trim
+                            IDX=$((NUM - 1))
+                            if [ $IDX -ge 0 ] && [ $IDX -lt ${#MATCHING_ACCESSORS[@]} ]; then
+                                ACCESSOR="${MATCHING_ACCESSORS[$IDX]}"
+                                if vault token revoke -accessor "$ACCESSOR" 2>/dev/null; then
+                                    echo -e "${GREEN}✓${NC} 토큰 무효화됨: ${MATCHING_INFO[$IDX]}"
+                                else
+                                    echo -e "${RED}✗${NC} 토큰 무효화 실패: ${MATCHING_INFO[$IDX]}"
+                                fi
+                            fi
+                        done
+                        echo
+                        ;;
+                    *)
+                        echo -e "${BLUE}기존 토큰을 유지합니다${NC}"
+                        echo
+                        ;;
+                esac
+            else
+                echo -e "${GREEN}✓${NC} 정책 '$POLICY_NAME'을 사용하는 기존 토큰이 없습니다"
+                echo
+            fi
+        fi
+    fi
+else
+    echo -e "${BLUE}→ 기존 토큰 검색을 건너뛰니다${NC}"
+    echo
+fi
+
 echo -e "${YELLOW}🚀 토큰 생성 중...${NC}"
 echo
 
