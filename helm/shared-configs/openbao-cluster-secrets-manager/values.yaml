@@ -11,10 +11,12 @@ openbao:
       name: "openbao-token"
       key: "token"
   token:
-    # 토큰 시크릿 생성 여부 (false: 기존 시크릿 사용)
-    create: false
-    # 토큰 시크릿이 있는 네임스페이스
-    namespace: "plate-stg"
+    # 토큰 시크릿 생성
+    create: true
+    # 토큰 값 (base64 인코딩)
+    value: "cy5nOHVDVmZISHBiMDhvZDR2d1NydWNISk4="
+    # 토큰 시크릿이 생성될 네임스페이스
+    namespace: "external-secrets"
 
 # ClusterSecretStore 설정
 clusterSecretStore:
