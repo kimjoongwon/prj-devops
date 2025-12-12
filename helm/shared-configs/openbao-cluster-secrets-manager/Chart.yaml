@@ -1,0 +1,23 @@
+# OpenBao Cluster Secrets Manager
+# 클러스터 레벨의 전역 시크릿을 관리하는 Helm 차트
+# ClusterSecretStore와 ClusterExternalSecret을 사용하여 모든 네임스페이스에서 접근 가능한 시크릿 생성
+
+apiVersion: v2
+name: openbao-cluster-secrets-manager
+description: OpenBao 기반 클러스터 레벨 시크릿 관리 차트
+type: application
+version: 1.0.0
+appVersion: "1.0.0"
+
+keywords:
+  - openbao
+  - vault
+  - secrets
+  - external-secrets
+  - cluster-wide
+
+home: https://github.com/kimjoongwon/prj-devops
+
+maintainers:
+  - name: DevOps Team
+    email: devops@cocdev.co.kr

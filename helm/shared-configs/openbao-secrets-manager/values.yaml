@@ -229,42 +229,5 @@ harbor:
     remoteRef:
       key: "harbor/development"
 
-# ClusterSecretStore 설정
-# 클러스터 전역에서 사용 가능한 SecretStore
-clusterSecretStore:
-  # ClusterSecretStore 활성화 여부
-  enabled: false
-  # ClusterSecretStore 이름
-  name: "openbao-cluster-store"
-  # OpenBao 토큰이 저장된 네임스페이스
-  tokenNamespace: "external-secrets"
-  # 추가 어노테이션
-  annotations: {}
-
-# 클러스터 레벨 시크릿 설정
-# 지정된 모든 네임스페이스에 동일한 Secret 생성
-clusterSecrets:
-  # 클러스터 시크릿 활성화 여부
-  enabled: false
-  # ClusterExternalSecret 이름
-  name: "cluster-secrets"
-  # 생성될 Secret 이름
-  targetSecretName: "cluster-env-secrets"
-  # 갱신 주기
-  refreshInterval: "1h"
-  # OpenBao 경로 (secret/server/cluster)
-  remoteRef:
-    key: "server/cluster"
-  # 시크릿이 생성될 네임스페이스 목록
-  targetNamespaces:
-    - plate-stg
-    - plate-prod
-  # 또는 레이블로 네임스페이스 선택 (targetNamespaces 대신 사용)
-  namespaceSelector:
-    matchLabels: {}
-  # 시크릿 데이터 매핑
-  data:
-    - secretKey: "GITHUB_CLIENT_ID"
-      property: "GITHUB_CLIENT_ID"
-    - secretKey: "GITHUB_CLIENT_SECRET"
-      property: "GITHUB_CLIENT_SECRET"
+# NOTE: 클러스터 레벨 시크릿 관리는 openbao-cluster-secrets-manager로 분리됨
+# ClusterSecretStore, ClusterExternalSecret 설정은 해당 차트 참조
