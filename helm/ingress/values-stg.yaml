@@ -53,9 +53,7 @@ ingress:
                 number: 80
   
   tls:
-    - secretName: web-stg-tls   # cert-manager가 채우는 스테이징용 TLS 시크릿 (또는 동일 실서명)
+    - secretName: plate-stg-tls   # SAN 인증서: 모든 스테이징 도메인 포함
       hosts:
         - stg.cocdev.co.kr
-    - secretName: llm-stg-tls   # LLM 서비스용 TLS 시크릿
-      hosts:
         - llm.cocdev.co.kr
