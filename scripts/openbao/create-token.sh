@@ -283,76 +283,122 @@ EOF
         echo
     fi
 
-    # Helm values 파일 업데이트 옵션
+    # Kubernetes Secret 생성 옵션
     echo
-    echo -e "${YELLOW}Helm values 파일에 토큰을 업데이트하시겠습니까? (y/N)${NC}"
-    read -r UPDATE_HELM_VALUES
-    if [[ "$UPDATE_HELM_VALUES" =~ ^[Yy]$ ]]; then
-        # Helm values 파일 경로
-        HELM_DIR="helm/shared-configs/openbao-secrets-manager"
-        VALUES_FILES=(
-            "$HELM_DIR/values.yaml"
-            "$HELM_DIR/values-staging.yaml"
-            "$HELM_DIR/values-production.yaml"
-        )
-
+    echo -e "${YELLOW}Kubernetes에 openbao-token Secret을 생성하시겠습니까? (Y/n)${NC}"
+    read -r CREATE_K8S_SECRET
+    if [[ ! "$CREATE_K8S_SECRET" =~ ^[Nn]$ ]]; then
         echo
-        echo -e "${YELLOW}🔄 Helm values 파일 업데이트 중...${NC}"
+        echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+        echo -e "${BLUE}Kubernetes Secret 생성${NC}"
+        echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
         echo
 
-        for VALUES_FILE in "${VALUES_FILES[@]}"; do
-            if [ -f "$VALUES_FILE" ]; then
-                # yq를 사용하여 토큰 값 업데이트 (yq가 있는 경우)
-                if command -v yq &> /dev/null; then
-                    if yq eval ".openbao.token.value = \"$TOKEN_BASE64\"" -i "$VALUES_FILE" 2>/dev/null; then
-                        echo -e "${GREEN}✓${NC} 업데이트됨: $VALUES_FILE"
+        # kubectl 설치 확인
+        if ! command -v kubectl &> /dev/null; then
+            echo -e "${RED}❌ kubectl이 설치되지 않았습니다${NC}"
+            echo "수동으로 Secret을 생성하세요:"
+            echo "  kubectl create secret generic openbao-token --from-literal=token=\"$TOKEN\" -n <namespace>"
+        else
+            # 네임스페이스 선택
+            echo -e "${CYAN}Secret을 생성할 네임스페이스를 선택하세요:${NC}"
+            echo "  1) external-secrets (클러스터 레벨 시크릿용)"
+            echo "  2) plate-stg (Staging 환경용)"
+            echo "  3) plate-prod (Production 환경용)"
+            echo "  4) 모두 생성 (권장)"
+            echo "  5) 직접 입력"
+            echo
+            read -r -p "선택 (1-5, 기본값: 4): " NS_CHOICE
+            NS_CHOICE=${NS_CHOICE:-4}
+
+            case $NS_CHOICE in
+                1) NAMESPACES=("external-secrets") ;;
+                2) NAMESPACES=("plate-stg") ;;
+                3) NAMESPACES=("plate-prod") ;;
+                4) NAMESPACES=("external-secrets" "plate-stg" "plate-prod") ;;
+                5)
+                    echo -e "${CYAN}네임스페이스를 입력하세요 (콤마로 구분):${NC}"
+                    read -r CUSTOM_NS
+                    IFS=',' read -ra NAMESPACES <<< "$CUSTOM_NS"
+                    ;;
+                *) NAMESPACES=("external-secrets" "plate-stg" "plate-prod") ;;
+            esac
+
+            echo
+            echo -e "${YELLOW}🚀 Kubernetes Secret 생성 중...${NC}"
+            echo
+
+            for NS in "${NAMESPACES[@]}"; do
+                NS=$(echo "$NS" | xargs)  # trim whitespace
+                
+                # 네임스페이스 존재 확인
+                if ! kubectl get namespace "$NS" &> /dev/null; then
+                    echo -e "${YELLOW}⚠️  네임스페이스 '$NS'가 없습니다. 생성하시겠습니까? (y/N)${NC}"
+                    read -r CREATE_NS
+                    if [[ "$CREATE_NS" =~ ^[Yy]$ ]]; then
+                        kubectl create namespace "$NS"
+                        echo -e "${GREEN}✓${NC} 네임스페이스 '$NS' 생성됨"
                     else
-                        echo -e "${RED}✗${NC} 업데이트 실패: $VALUES_FILE"
-                    fi
-                else
-                    # yq가 없는 경우 sed 사용 (openbao.token.value 경로만 찾기)
-                    # openbao 섹션 내의 token.value를 찾기 위한 패턴
-                    if awk '
-                        /^openbao:/ { in_openbao=1 }
-                        in_openbao && /^[^ ]/ && !/^openbao:/ { in_openbao=0 }
-                        in_openbao && /^  token:/ { in_token=1 }
-                        in_token && /^  [^ ]/ && !/^  token:/ { in_token=0 }
-                        in_token && /^    value:/ {
-                            sub(/value: ".*"/, "value: \"'"$TOKEN_BASE64"'\"")
-                        }
-                        { print }
-                    ' "$VALUES_FILE" > "$VALUES_FILE.tmp" && mv "$VALUES_FILE.tmp" "$VALUES_FILE"; then
-                        echo -e "${GREEN}✓${NC} 업데이트됨: $VALUES_FILE"
-                    else
-                        echo -e "${RED}✗${NC} 업데이트 실패: $VALUES_FILE"
-                        rm -f "$VALUES_FILE.tmp"
+                        echo -e "${RED}✗${NC} 네임스페이스 '$NS' 건너뛰"
+                        continue
                     fi
                 fi
-            else
-                echo -e "${RED}✗${NC} 파일을 찾을 수 없음: $VALUES_FILE"
-            fi
-        done
 
-        echo
-        echo -e "${GREEN}========================================${NC}"
-        echo -e "${GREEN}✅ Helm values 파일 업데이트 완료!${NC}"
-        echo -e "${GREEN}========================================${NC}"
-        echo
-        echo -e "${CYAN}업데이트된 파일:${NC}"
-        for VALUES_FILE in "${VALUES_FILES[@]}"; do
-            if [ -f "$VALUES_FILE" ]; then
-                echo "  - $VALUES_FILE"
-            fi
-        done
-        echo
-        echo -e "${BLUE}💡 다음 단계:${NC}"
-        echo "  1. 변경사항 확인:"
-        echo "     git diff $HELM_DIR"
-        echo
-        echo "  2. Helm 차트 배포:"
-        echo "     helm upgrade --install openbao-secrets-manager $HELM_DIR -f $HELM_DIR/values-staging.yaml"
-        echo "     helm upgrade --install openbao-secrets-manager $HELM_DIR -f $HELM_DIR/values-production.yaml"
-        echo
+                # 기존 Secret 확인
+                if kubectl get secret openbao-token -n "$NS" &> /dev/null; then
+                    echo -e "${YELLOW}⚠️  Secret 'openbao-token'이 '$NS'에 이미 존재합니다. 덮어쓰시겠습니까? (y/N)${NC}"
+                    read -r OVERWRITE
+                    if [[ ! "$OVERWRITE" =~ ^[Yy]$ ]]; then
+                        echo -e "${BLUE}→${NC} '$NS' 건너뛰"
+                        continue
+                    fi
+                    # 기존 Secret 삭제
+                    kubectl delete secret openbao-token -n "$NS" &> /dev/null
+                fi
+
+                # Secret 생성
+                if kubectl create secret generic openbao-token \
+                    --from-literal=token="$TOKEN" \
+                    -n "$NS" \
+                    --dry-run=client -o yaml | \
+                    kubectl label -f - --local -o yaml \
+                    app.kubernetes.io/managed-by=create-token-script \
+                    app.kubernetes.io/component=openbao-token | \
+                    kubectl apply -f - &> /dev/null; then
+                    echo -e "${GREEN}✓${NC} Secret 'openbao-token' 생성됨: $NS"
+                else
+                    # 단순 생성 시도
+                    if kubectl create secret generic openbao-token \
+                        --from-literal=token="$TOKEN" \
+                        -n "$NS" 2>/dev/null; then
+                        echo -e "${GREEN}✓${NC} Secret 'openbao-token' 생성됨: $NS"
+                    else
+                        echo -e "${RED}✗${NC} Secret 생성 실패: $NS"
+                    fi
+                fi
+            done
+
+            echo
+            echo -e "${GREEN}========================================${NC}"
+            echo -e "${GREEN}✅ Kubernetes Secret 생성 완료!${NC}"
+            echo -e "${GREEN}========================================${NC}"
+            echo
+            echo -e "${CYAN}생성된 Secret 확인:${NC}"
+            for NS in "${NAMESPACES[@]}"; do
+                NS=$(echo "$NS" | xargs)
+                if kubectl get secret openbao-token -n "$NS" &> /dev/null; then
+                    echo "  kubectl get secret openbao-token -n $NS"
+                fi
+            done
+            echo
+            echo -e "${BLUE}💡 다음 단계:${NC}"
+            echo "  1. ArgoCD에서 openbao-secrets-manager sync"
+            echo "  2. ArgoCD에서 openbao-cluster-secrets-manager sync"
+            echo "  3. SecretStore/ClusterSecretStore 상태 확인:"
+            echo "     kubectl get secretstore -A"
+            echo "     kubectl get clustersecretstore"
+            echo
+        fi
     fi
 
 else

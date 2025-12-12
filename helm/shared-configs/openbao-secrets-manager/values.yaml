@@ -25,10 +25,9 @@ openbao:
       key: "token"
   # OpenBao token management
   token:
-    # Whether to create the token secret
-    create: true
-    # Token value (will be base64 encoded)
-    value: "cy5nOHVDVmZISHBiMDhvZDR2d1NydWNISk4="
+    # Whether to create the token secret (false: created by script)
+    # Use ./scripts/openbao/create-token.sh to create Kubernetes Secret
+    create: false
     # Additional annotations for token secret
     annotations: {}
 

@@ -186,10 +186,10 @@ harbor:
       key: "harbor/production"
 
 # OpenBao token configuration
+# 토큰은 ./scripts/openbao/create-token.sh 스크립트로 Kubernetes Secret 생성
 openbao:
   token:
-    create: true
-    value: "cy5nOHVDVmZISHBiMDhvZDR2d1NydWNISk4="
+    create: false
     annotations:
       description: "OpenBao token for production environment"
       monitoring: "enabled"
