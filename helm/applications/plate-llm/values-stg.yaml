@@ -65,3 +65,5 @@ appSecrets:
       secretKey: LLM_ENVIRONMENT
     - name: LLM_BASE_URL
       secretKey: LLM_BASE_URL
+    - name: ENCRYPTION_KEY
+      secretKey: ENCRYPTION_KEY

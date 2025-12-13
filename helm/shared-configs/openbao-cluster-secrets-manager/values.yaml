@@ -58,3 +58,5 @@ clusterSecrets:
       property: "LLM_ENVIRONMENT"
     - secretKey: "LLM_BASE_URL"
       property: "LLM_BASE_URL"
+    - secretKey: "ENCRYPTION_KEY"
+      property: "ENCRYPTION_KEY"
