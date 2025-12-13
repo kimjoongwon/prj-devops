@@ -51,6 +51,14 @@ appSecrets:
       secretKey: GITHUB_CLIENT_ID
     - name: GITHUB_CLIENT_SECRET
       secretKey: GITHUB_CLIENT_SECRET
+    - name: NOTION_CLIENT_ID
+      secretKey: NOTION_CLIENT_ID
+    - name: NOTION_CLIENT_SECRET
+      secretKey: NOTION_CLIENT_SECRET
+    - name: SLACK_CLIENT_ID
+      secretKey: SLACK_CLIENT_ID
+    - name: SLACK_CLIENT_SECRET
+      secretKey: SLACK_CLIENT_SECRET
     - name: OPENAI_API_KEY
       secretKey: OPENAI_API_KEY
     - name: LLM_ENVIRONMENT
