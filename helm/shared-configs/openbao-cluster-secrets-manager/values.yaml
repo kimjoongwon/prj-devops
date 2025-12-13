@@ -46,3 +46,7 @@ clusterSecrets:
       property: "GITHUB_CLIENT_SECRET"
     - secretKey: "OPENAI_API_KEY"
       property: "OPENAI_API_KEY"
+    - secretKey: "LLM_ENVIRONMENT"
+      property: "LLM_ENVIRONMENT"
+    - secretKey: "LLM_BASE_URL"
+      property: "LLM_BASE_URL"

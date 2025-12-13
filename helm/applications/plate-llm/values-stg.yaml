@@ -53,3 +53,7 @@ appSecrets:
       secretKey: GITHUB_CLIENT_SECRET
     - name: OPENAI_API_KEY
       secretKey: OPENAI_API_KEY
+    - name: LLM_ENVIRONMENT
+      secretKey: LLM_ENVIRONMENT
+    - name: LLM_BASE_URL
+      secretKey: LLM_BASE_URL
