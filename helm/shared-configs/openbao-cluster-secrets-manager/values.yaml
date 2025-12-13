@@ -44,3 +44,5 @@ clusterSecrets:
       property: "GITHUB_CLIENT_ID"
     - secretKey: "GITHUB_CLIENT_SECRET"
       property: "GITHUB_CLIENT_SECRET"
+    - secretKey: "OPENAI_API_KEY"
+      property: "OPENAI_API_KEY"

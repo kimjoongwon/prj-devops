@@ -51,3 +51,5 @@ appSecrets:
       secretKey: GITHUB_CLIENT_ID
     - name: GITHUB_CLIENT_SECRET
       secretKey: GITHUB_CLIENT_SECRET
+    - name: OPENAI_API_KEY
+      secretKey: OPENAI_API_KEY
