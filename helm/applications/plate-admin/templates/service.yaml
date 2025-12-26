@@ -1,0 +1,16 @@
+# Plate Admin Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "plate-admin.name" . }}
+  labels:
+    {{- include "plate-admin.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+    - port: {{ .Values.service.port }}
+      targetPort: {{ .Values.service.targetPort }}
+      protocol: TCP
+      name: http
+  selector:
+    {{- include "plate-admin.selectorLabels" . | nindent 4 }}

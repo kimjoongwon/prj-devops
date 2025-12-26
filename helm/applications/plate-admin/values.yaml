@@ -1,0 +1,38 @@
+# Plate Admin Chart 기본 값 파일
+# Kubernetes에 배포할 Next.js Admin 애플리케이션 설정
+# 환경별 오버라이드: values-prod.yaml, values-stg.yaml
+
+replicaCount: 1
+
+# Admin 애플리케이션 설정
+admin:
+  image:
+    repository: harbor.cocdev.co.kr/stg/admin
+    tag: "latest"
+    pullPolicy: IfNotPresent
+  # Next.js 기본 포트
+  port: 3000
+  resources:
+    limits:
+      cpu: 500m
+      memory: 512Mi
+    requests:
+      cpu: 100m
+      memory: 256Mi
+
+# Harbor registry authentication
+imagePullSecrets:
+  - name: harbor-docker-secret
+
+service:
+  type: ClusterIP
+  port: 80
+  targetPort: 3000
+
+# 애플리케이션 환경변수 Secret 설정
+# OpenBao KV 경로: admin/staging, admin/production
+appSecrets:
+  enabled: true
+  secretName: admin-env-secrets
+  # envFrom으로 전체 Secret을 환경변수로 주입
+  # 새 환경변수 추가 시 OpenBao KV에만 추가하면 자동 동기화됨

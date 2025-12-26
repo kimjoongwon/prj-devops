@@ -1,0 +1,32 @@
+# Production environment specific values for Admin secrets
+
+global:
+  namespaces:
+    - plate-prod
+
+environments:
+  production:
+    namespace: "plate-prod"
+    remoteRef:
+      key: "admin/production"
+
+externalSecrets:
+  secretStore:
+    name: "openbao-admin-env-production"
+    labels:
+      environment: production
+      tier: production
+    annotations:
+      description: "OpenBao SecretStore for admin production environment"
+
+  externalSecret:
+    name: "admin-env-secrets-production"
+    refreshInterval: "1h"
+    target:
+      name: "admin-env-secrets"
+      template:
+        metadata:
+          labels:
+            environment: production
+            tier: production
+            backup: "enabled"

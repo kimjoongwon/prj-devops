@@ -1,0 +1,54 @@
+# Plate Admin - Production 환경 ArgoCD Application
+
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: plate-admin-prod
+  namespace: argocd
+  labels:
+    app.kubernetes.io/name: plate-admin
+    app.kubernetes.io/instance: production
+    environment: production
+spec:
+  project: default
+
+  # Git 소스 설정
+  source:
+    repoURL: https://github.com/kimjoongwon/prj-devops.git
+    path: helm/applications/plate-admin
+    targetRevision: main
+    helm:
+      valueFiles:
+        - values-prod.yaml
+
+  # 배포 대상 클러스터 및 네임스페이스
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: plate-prod
+
+  # 동기화 정책
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+
+    syncOptions:
+      - CreateNamespace=true
+      - ApplyOutOfSyncOnly=true
+
+    retry:
+      limit: 3
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m
+
+  revisionHistoryLimit: 10
+
+  info:
+    - name: "Environment"
+      value: "Production"
+    - name: "Domain"
+      value: "admin.cocdev.co.kr"
+    - name: "Description"
+      value: "Plate Admin - Production Environment (Next.js)"

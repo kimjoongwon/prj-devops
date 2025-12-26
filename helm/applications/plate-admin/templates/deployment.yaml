@@ -1,0 +1,41 @@
+# Plate Admin Deployment 템플릿
+# Next.js 애플리케이션(port 3000)을 Kubernetes 클러스터에 배포
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "plate-admin.name" . }}
+  labels:
+    {{- include "plate-admin.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "plate-admin.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "plate-admin.labels" . | nindent 8 }}
+      annotations: {}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: {{ include "plate-admin.name" . }}
+          image: "{{ .Values.admin.image.repository }}:{{ .Values.admin.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.admin.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.admin.port }}
+              protocol: TCP
+          {{- if .Values.appSecrets.enabled }}
+          # envFrom으로 전체 Secret을 환경변수로 주입
+          # OpenBao KV(admin/staging 또는 admin/production)에서 자동 동기화
+          envFrom:
+            - secretRef:
+                name: {{ .Values.appSecrets.secretName }}
+          {{- end }}
+          resources:
+            {{- toYaml .Values.admin.resources | nindent 12 }}

@@ -1,0 +1,31 @@
+# Staging environment specific values for Admin secrets
+
+global:
+  namespaces:
+    - plate-stg
+
+environments:
+  staging:
+    namespace: "plate-stg"
+    remoteRef:
+      key: "admin/staging"
+
+externalSecrets:
+  secretStore:
+    name: "openbao-admin-env-staging"
+    labels:
+      environment: staging
+      tier: non-production
+    annotations:
+      description: "OpenBao SecretStore for admin staging environment"
+
+  externalSecret:
+    name: "admin-env-secrets-staging"
+    refreshInterval: "30m"
+    target:
+      name: "admin-env-secrets"
+      template:
+        metadata:
+          labels:
+            environment: staging
+            tier: non-production

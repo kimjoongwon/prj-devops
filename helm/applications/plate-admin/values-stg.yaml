@@ -1,0 +1,20 @@
+# Staging environment values for Plate Admin
+# Override from values.yaml for staging environment
+
+replicaCount: 1
+
+# Staging 이미지 저장소 (Harbor registry)
+# 이미지 규칙: harbor.cocdev.co.kr/{환경}/{앱이름}
+admin:
+  image:
+    repository: harbor.cocdev.co.kr/stg/admin
+    tag: "latest"
+    pullPolicy: Always  # Staging은 항상 최신 이미지 가져옴
+  port: 3000
+  resources:
+    limits:
+      cpu: 500m
+      memory: 512Mi
+    requests:
+      cpu: 100m
+      memory: 256Mi

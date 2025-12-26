@@ -1,0 +1,20 @@
+# Production environment values for Plate Admin
+# Override from values.yaml for production environment
+
+replicaCount: 1
+
+# Production 이미지 저장소 (Harbor registry)
+# 이미지 규칙: harbor.cocdev.co.kr/{환경}/{앱이름}
+admin:
+  image:
+    repository: harbor.cocdev.co.kr/prod/admin
+    tag: "latest"
+    pullPolicy: IfNotPresent  # Production은 캐시된 이미지 사용
+  port: 3000
+  resources:
+    limits:
+      cpu: 500m
+      memory: 512Mi
+    requests:
+      cpu: 200m
+      memory: 256Mi
