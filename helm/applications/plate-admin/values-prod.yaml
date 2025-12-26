@@ -5,9 +5,9 @@ replicaCount: 1
 
 # Production 이미지 저장소 (Harbor registry)
 # 이미지 규칙: harbor.cocdev.co.kr/{환경}/{앱이름}
-admin:
+plate-admin:
   image:
-    repository: harbor.cocdev.co.kr/prod/admin
+    repository: harbor.cocdev.co.kr/prod/plate-admin
     tag: "latest"
     pullPolicy: IfNotPresent  # Production은 캐시된 이미지 사용
   port: 3000

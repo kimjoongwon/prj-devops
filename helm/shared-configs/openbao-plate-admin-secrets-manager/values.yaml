@@ -1,5 +1,5 @@
-# Default values for openbao-admin-secrets-manager
-# Admin 애플리케이션 전용 시크릿 관리
+# Default values for openbao-plate-admin-secrets-manager
+# plate-admin 애플리케이션 전용 시크릿 관리
 
 # Global configuration
 global:
@@ -21,32 +21,32 @@ openbao:
 externalSecrets:
   # SecretStore configuration
   secretStore:
-    name: "openbao-admin-env"
+    name: "openbao-plate-admin-env"
     labels: {}
     annotations: {}
 
   # ExternalSecret configuration
   externalSecret:
-    name: "admin-env-secrets"
+    name: "plate-admin-env-secrets"
     refreshInterval: "1h"
     target:
-      name: "admin-env-secrets"
+      name: "plate-admin-env-secrets"
       creationPolicy: "Owner"
       template:
         type: "Opaque"
         metadata:
           labels:
-            app.kubernetes.io/component: "admin-env-secrets"
+            app.kubernetes.io/component: "plate-admin-env-secrets"
         data: {}
 
 # Environment-specific overrides
-# OpenBao KV 경로: admin/staging, admin/production
+# OpenBao KV 경로: plate-admin/staging, plate-admin/production
 environments:
   staging:
     namespace: "plate-stg"
     remoteRef:
-      key: "admin/staging"
+      key: "plate-admin/staging"
   production:
     namespace: "plate-prod"
     remoteRef:
-      key: "admin/production"
+      key: "plate-admin/production"

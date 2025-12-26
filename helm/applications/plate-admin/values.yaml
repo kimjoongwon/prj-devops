@@ -4,10 +4,10 @@
 
 replicaCount: 1
 
-# Admin 애플리케이션 설정
-admin:
+# plate-admin 애플리케이션 설정
+plate-admin:
   image:
-    repository: harbor.cocdev.co.kr/stg/admin
+    repository: harbor.cocdev.co.kr/stg/plate-admin
     tag: "latest"
     pullPolicy: IfNotPresent
   # Next.js 기본 포트
@@ -30,9 +30,9 @@ service:
   targetPort: 3000
 
 # 애플리케이션 환경변수 Secret 설정
-# OpenBao KV 경로: admin/staging, admin/production
+# OpenBao KV 경로: plate-admin/staging, plate-admin/production
 appSecrets:
   enabled: true
-  secretName: admin-env-secrets
+  secretName: plate-admin-env-secrets
   # envFrom으로 전체 Secret을 환경변수로 주입
   # 새 환경변수 추가 시 OpenBao KV에만 추가하면 자동 동기화됨

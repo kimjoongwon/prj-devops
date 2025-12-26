@@ -24,18 +24,18 @@ spec:
       {{- end }}
       containers:
         - name: {{ include "plate-admin.name" . }}
-          image: "{{ .Values.admin.image.repository }}:{{ .Values.admin.image.tag | default .Chart.AppVersion }}"
-          imagePullPolicy: {{ .Values.admin.image.pullPolicy }}
+          image: "{{ index .Values "plate-admin" "image" "repository" }}:{{ index .Values "plate-admin" "image" "tag" | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ index .Values "plate-admin" "image" "pullPolicy" }}
           ports:
             - name: http
-              containerPort: {{ .Values.admin.port }}
+              containerPort: {{ index .Values "plate-admin" "port" }}
               protocol: TCP
           {{- if .Values.appSecrets.enabled }}
           # envFrom으로 전체 Secret을 환경변수로 주입
-          # OpenBao KV(admin/staging 또는 admin/production)에서 자동 동기화
+          # OpenBao KV(plate-admin/staging 또는 plate-admin/production)에서 자동 동기화
           envFrom:
             - secretRef:
                 name: {{ .Values.appSecrets.secretName }}
           {{- end }}
           resources:
-            {{- toYaml .Values.admin.resources | nindent 12 }}
+            {{- toYaml (index .Values "plate-admin" "resources") | nindent 12 }}
