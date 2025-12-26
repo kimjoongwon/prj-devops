@@ -38,25 +38,6 @@ clusterSecrets:
     - plate-prod
   namespaceSelector:
     matchLabels: {}
-  # 시크릿 데이터 매핑
-  data:
-    - secretKey: "GITHUB_CLIENT_ID"
-      property: "GITHUB_CLIENT_ID"
-    - secretKey: "GITHUB_CLIENT_SECRET"
-      property: "GITHUB_CLIENT_SECRET"
-    - secretKey: "NOTION_CLIENT_ID"
-      property: "NOTION_CLIENT_ID"
-    - secretKey: "NOTION_CLIENT_SECRET"
-      property: "NOTION_CLIENT_SECRET"
-    - secretKey: "SLACK_CLIENT_ID"
-      property: "SLACK_CLIENT_ID"
-    - secretKey: "SLACK_CLIENT_SECRET"
-      property: "SLACK_CLIENT_SECRET"
-    - secretKey: "OPENAI_API_KEY"
-      property: "OPENAI_API_KEY"
-    - secretKey: "LLM_ENVIRONMENT"
-      property: "LLM_ENVIRONMENT"
-    - secretKey: "LLM_BASE_URL"
-      property: "LLM_BASE_URL"
-    - secretKey: "ENCRYPTION_KEY"
-      property: "ENCRYPTION_KEY"
+  # dataFrom을 사용하여 OpenBao KV(server/cluster)의 모든 키-값을 자동으로 가져옴
+  # 새 환경변수 추가 시 OpenBao KV에만 추가하면 자동 동기화됨
+  # 개별 data 매핑이 더 이상 필요하지 않음
