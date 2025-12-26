@@ -31,14 +31,11 @@ spec:
               containerPort: {{ .Values.backend.port }}
               protocol: TCP
           {{- if .Values.appSecrets.enabled }}
-          env:
-            {{- range .Values.appSecrets.envVars }}
-            - name: {{ .name }}
-              valueFrom:
-                secretKeyRef:
-                  name: {{ $.Values.appSecrets.secretName }}
-                  key: {{ .secretKey }}
-            {{- end }}
+          # envFrom으로 전체 Secret을 환경변수로 주입
+          # 새 환경변수 추가 시 OpenBao KV에만 추가하면 자동 동기화
+          envFrom:
+            - secretRef:
+                name: {{ .Values.appSecrets.secretName }}
           {{- end }}
           resources:
             {{- toYaml .Values.backend.resources | nindent 12 }}
