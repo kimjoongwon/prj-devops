@@ -1,124 +1,26 @@
 # ESC (External Secrets Controller) Policy
-# External Secrets Operator가 OpenBao의 시크릿을 읽을 수 있는 최소 권한 정책
-# 현재 Helm 차트 구성에 맞춰 작성됨
+# External Secrets Operator가 OpenBao의 시크릿을 읽을 수 있는 정책
+# secret/data/* 하위 모든 경로에 읽기 권한 부여
 
 # ============================================
-# 서버 환경 변수 시크릿 (KV v2)
+# 모든 시크릿 읽기 권한 (KV v2)
 # ============================================
 
-# Staging 서버 시크릿 읽기
-path "secret/data/server/staging" {
+# 모든 시크릿 데이터 읽기
+# 예: secret/data/server/staging, secret/data/plate-admin/staging 등
+path "secret/data/*" {
   capabilities = ["read"]
 }
 
-path "secret/metadata/server/staging" {
-  capabilities = ["read"]
+# 모든 시크릿 메타데이터 읽기
+path "secret/metadata/*" {
+  capabilities = ["read", "list"]
 }
 
-# Production 서버 시크릿 읽기
-path "secret/data/server/production" {
-  capabilities = ["read"]
-}
-
-path "secret/metadata/server/production" {
-  capabilities = ["read"]
-}
-
-# Default 서버 시크릿 읽기 (필요시)
-path "secret/data/server/default" {
-  capabilities = ["read"]
-}
-
-path "secret/metadata/server/default" {
-  capabilities = ["read"]
-}
-
-# Cluster 레벨 시크릿 읽기 (GITHUB 인증 등 전역 시크릿)
-path "secret/data/server/cluster" {
-  capabilities = ["read"]
-}
-
-path "secret/metadata/server/cluster" {
-  capabilities = ["read"]
-}
-
-# 서버 시크릿 리스트 조회 (트러블슈팅용)
-path "secret/metadata/server" {
+# 루트 메타데이터 리스트 조회
+path "secret/metadata" {
   capabilities = ["list"]
 }
-
-# ============================================
-# Harbor Registry 인증 시크릿 (KV v2)
-# ============================================
-
-# Staging Harbor 시크릿 읽기
-path "secret/data/harbor/staging" {
-  capabilities = ["read"]
-}
-
-path "secret/metadata/harbor/staging" {
-  capabilities = ["read"]
-}
-
-# Production Harbor 시크릿 읽기
-path "secret/data/harbor/production" {
-  capabilities = ["read"]
-}
-
-path "secret/metadata/harbor/production" {
-  capabilities = ["read"]
-}
-
-# Development Harbor 시크릿 읽기 (필요시)
-path "secret/data/harbor/development" {
-  capabilities = ["read"]
-}
-
-path "secret/metadata/harbor/development" {
-  capabilities = ["read"]
-}
-
-# Harbor 시크릿 리스트 조회
-path "secret/metadata/harbor" {
-  capabilities = ["list"]
-}
-
-# ============================================
-# 향후 확장 가능 경로 (주석 처리)
-# ============================================
-
-# 애플리케이션별 시크릿이 필요한 경우 아래 주석 해제
-# path "secret/data/plate-api/*" {
-#   capabilities = ["read", "list"]
-# }
-#
-# path "secret/metadata/plate-api/*" {
-#   capabilities = ["read", "list"]
-# }
-#
-# path "secret/data/plate-web/*" {
-#   capabilities = ["read", "list"]
-# }
-#
-# path "secret/metadata/plate-web/*" {
-#   capabilities = ["read", "list"]
-# }
-#
-# path "secret/data/plate-cache/*" {
-#   capabilities = ["read", "list"]
-# }
-#
-# path "secret/metadata/plate-cache/*" {
-#   capabilities = ["read", "list"]
-# }
-#
-# path "secret/data/plate-llm/*" {
-#   capabilities = ["read", "list"]
-# }
-#
-# path "secret/metadata/plate-llm/*" {
-#   capabilities = ["read", "list"]
-# }
 
 # ============================================
 # 토큰 자체 관리 권한

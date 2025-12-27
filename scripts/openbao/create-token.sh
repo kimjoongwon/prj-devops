@@ -114,30 +114,54 @@ echo -e "${CYAN}토큰 표시 이름을 입력하세요 (기본값: team-token):
 read -r TOKEN_DISPLAY_NAME
 TOKEN_DISPLAY_NAME=${TOKEN_DISPLAY_NAME:-team-token}
 
-# TTL (Time To Live)
+# 토큰 타입 선택
 echo
-echo -e "${CYAN}토큰 유효 기간을 입력하세요${NC}"
-echo "  예: 720h (30일), 168h (7일), 24h (1일)"
-echo "  기본값: 720h (30일)"
-read -r TOKEN_TTL
-TOKEN_TTL=${TOKEN_TTL:-720h}
+echo -e "${CYAN}토큰 타입을 선택하세요:${NC}"
+echo "  1) 주기적 토큰 (Periodic) - 무한 갱신 가능 (권장)"
+echo "  2) 일반 토큰 - TTL 기반, max_ttl 제한 적용"
+echo
+read -r -p "선택 (1-2, 기본값: 1): " TOKEN_TYPE
+TOKEN_TYPE=${TOKEN_TYPE:-1}
 
-# Period (자동 갱신 주기)
-echo
-echo -e "${CYAN}토큰 자동 갱신 주기를 입력하세요${NC}"
-echo "  예: 24h (매일), 168h (매주)"
-echo "  기본값: 24h (매일 자동 갱신)"
-read -r TOKEN_PERIOD
-TOKEN_PERIOD=${TOKEN_PERIOD:-24h}
-
-# Renewable
-echo
-echo -e "${CYAN}토큰 갱신 가능 여부 (Y/n):${NC}"
-read -r TOKEN_RENEWABLE
-if [[ "$TOKEN_RENEWABLE" =~ ^[Nn]$ ]]; then
+if [ "$TOKEN_TYPE" == "1" ]; then
+    # 주기적 토큰: period만 사용 (TTL 없음)
+    echo
+    echo -e "${CYAN}갱신 주기를 입력하세요 (토큰 수명 = 갱신 주기)${NC}"
+    echo "  예: 720h (30일), 168h (7일), 24h (1일)"
+    echo "  기본값: 720h (30일)"
+    echo -e "${YELLOW}  💡 갱신할 때마다 이 기간으로 TTL이 리셋됩니다${NC}"
+    read -r TOKEN_PERIOD
+    TOKEN_PERIOD=${TOKEN_PERIOD:-720h}
+    TOKEN_TTL=""
     RENEWABLE_FLAG=""
+
+    echo
+    echo -e "${GREEN}✓ 주기적 토큰: ${TOKEN_PERIOD}마다 갱신하면 무한 사용 가능${NC}"
 else
+    # 일반 토큰: ttl만 사용
+    echo
+    echo -e "${CYAN}토큰 유효 기간(TTL)을 입력하세요${NC}"
+    echo "  예: 720h (30일), 168h (7일), 24h (1일)"
+    echo "  기본값: 720h (30일)"
+    echo -e "${YELLOW}  ⚠️  갱신해도 max_ttl(기본 768h)을 초과할 수 없습니다${NC}"
+    read -r TOKEN_TTL
+    TOKEN_TTL=${TOKEN_TTL:-720h}
+    TOKEN_PERIOD=""
     RENEWABLE_FLAG="-renewable=true"
+
+    echo
+    echo -e "${GREEN}✓ 일반 토큰: 갱신 가능하지만 max_ttl 제한 있음${NC}"
+fi
+
+# Orphan 토큰 옵션
+echo
+echo -e "${CYAN}Orphan 토큰으로 생성하시겠습니까? (y/N)${NC}"
+echo -e "${YELLOW}  💡 부모 토큰과 독립적으로 동작 (부모 만료 시에도 유효)${NC}"
+read -r ORPHAN_CHOICE
+if [[ "$ORPHAN_CHOICE" =~ ^[Yy]$ ]]; then
+    ORPHAN_FLAG="-orphan"
+else
+    ORPHAN_FLAG=""
 fi
 
 echo
@@ -146,9 +170,16 @@ echo -e "${BLUE}토큰 설정 요약${NC}"
 echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
 echo "  정책: $POLICY_NAME"
 echo "  표시 이름: $TOKEN_DISPLAY_NAME"
-echo "  유효 기간: $TOKEN_TTL"
-echo "  자동 갱신: $TOKEN_PERIOD"
-echo "  갱신 가능: ${RENEWABLE_FLAG:-false}"
+if [ "$TOKEN_TYPE" == "1" ]; then
+    echo "  토큰 타입: 주기적 토큰 (Periodic)"
+    echo "  갱신 주기: $TOKEN_PERIOD"
+    echo "  갱신 제한: 없음 (무한 갱신 가능)"
+else
+    echo "  토큰 타입: 일반 토큰"
+    echo "  유효 기간: $TOKEN_TTL"
+    echo "  갱신 제한: max_ttl 제한 적용"
+fi
+echo "  Orphan: ${ORPHAN_FLAG:-아니오}"
 echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
 echo
 
@@ -293,14 +324,34 @@ fi
 echo -e "${YELLOW}🚀 토큰 생성 중...${NC}"
 echo
 
+# 토큰 생성 명령어 구성
+TOKEN_CREATE_CMD="vault token create -policy=\"$POLICY_NAME\" -display-name=\"$TOKEN_DISPLAY_NAME\""
+
+if [ -n "$TOKEN_PERIOD" ]; then
+    # 주기적 토큰: period만 사용
+    TOKEN_CREATE_CMD="$TOKEN_CREATE_CMD -period=\"$TOKEN_PERIOD\""
+fi
+
+if [ -n "$TOKEN_TTL" ]; then
+    # 일반 토큰: ttl만 사용
+    TOKEN_CREATE_CMD="$TOKEN_CREATE_CMD -ttl=\"$TOKEN_TTL\""
+fi
+
+if [ -n "$RENEWABLE_FLAG" ]; then
+    TOKEN_CREATE_CMD="$TOKEN_CREATE_CMD $RENEWABLE_FLAG"
+fi
+
+if [ -n "$ORPHAN_FLAG" ]; then
+    TOKEN_CREATE_CMD="$TOKEN_CREATE_CMD $ORPHAN_FLAG"
+fi
+
+TOKEN_CREATE_CMD="$TOKEN_CREATE_CMD -format=json"
+
+echo -e "${CYAN}실행 명령어: $TOKEN_CREATE_CMD${NC}"
+echo
+
 # 토큰 생성
-TOKEN_OUTPUT=$(vault token create \
-    -policy="$POLICY_NAME" \
-    -ttl="$TOKEN_TTL" \
-    -period="$TOKEN_PERIOD" \
-    -display-name="$TOKEN_DISPLAY_NAME" \
-    $RENEWABLE_FLAG \
-    -format=json 2>&1)
+TOKEN_OUTPUT=$(eval "$TOKEN_CREATE_CMD" 2>&1)
 
 if [ $? -eq 0 ]; then
     # 토큰 추출
@@ -344,11 +395,19 @@ if [ $? -eq 0 ]; then
     echo -e "${CYAN}표시 이름:${NC}"
     echo "$TOKEN_DISPLAY_NAME"
     echo
-    echo -e "${CYAN}유효 기간 (TTL):${NC}"
-    echo "$TOKEN_TTL"
-    echo
-    echo -e "${CYAN}자동 갱신 주기:${NC}"
-    echo "$TOKEN_PERIOD"
+    if [ "$TOKEN_TYPE" == "1" ]; then
+        echo -e "${CYAN}토큰 타입:${NC}"
+        echo "주기적 토큰 (Periodic) - 무한 갱신 가능"
+        echo
+        echo -e "${CYAN}갱신 주기:${NC}"
+        echo "$TOKEN_PERIOD"
+    else
+        echo -e "${CYAN}토큰 타입:${NC}"
+        echo "일반 토큰"
+        echo
+        echo -e "${CYAN}유효 기간 (TTL):${NC}"
+        echo "$TOKEN_TTL"
+    fi
     echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
     echo
 
@@ -390,7 +449,8 @@ if [ $? -eq 0 ]; then
     read -r SAVE_TOKEN
     if [[ "$SAVE_TOKEN" =~ ^[Yy]$ ]]; then
         TOKEN_FILE="token-${TOKEN_DISPLAY_NAME}-$(date +%Y%m%d-%H%M%S).txt"
-        cat > "$TOKEN_FILE" << EOF
+        if [ "$TOKEN_TYPE" == "1" ]; then
+            cat > "$TOKEN_FILE" << EOF
 # OpenBao Token Information
 # Generated: $(date)
 # WARNING: Keep this file secure and never commit to git!
@@ -400,13 +460,35 @@ Token (Base64): $TOKEN_BASE64
 Accessor: $TOKEN_ACCESSOR
 Policy: $POLICY_NAME
 Display Name: $TOKEN_DISPLAY_NAME
-TTL: $TOKEN_TTL
+Type: Periodic Token (무한 갱신 가능)
 Period: $TOKEN_PERIOD
 
 # Usage:
 # export VAULT_TOKEN=$TOKEN
 # vault kv get secret/server/staging
+#
+# Renew token (갱신):
+# vault token renew $TOKEN
 EOF
+        else
+            cat > "$TOKEN_FILE" << EOF
+# OpenBao Token Information
+# Generated: $(date)
+# WARNING: Keep this file secure and never commit to git!
+
+Token: $TOKEN
+Token (Base64): $TOKEN_BASE64
+Accessor: $TOKEN_ACCESSOR
+Policy: $POLICY_NAME
+Display Name: $TOKEN_DISPLAY_NAME
+Type: Standard Token
+TTL: $TOKEN_TTL
+
+# Usage:
+# export VAULT_TOKEN=$TOKEN
+# vault kv get secret/server/staging
+EOF
+        fi
         echo
         echo -e "${GREEN}✓${NC} 토큰이 다음 파일에 저장되었습니다: $TOKEN_FILE"
         echo -e "${RED}⚠️  이 파일을 안전하게 보관하고 사용 후 삭제하세요!${NC}"
