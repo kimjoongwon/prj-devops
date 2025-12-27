@@ -28,9 +28,8 @@
 | ArgoCD Application 파일 | `{앱이름}-{환경}.yaml` | `plate-admin-stg.yaml` |
 | ArgoCD Application name | `{앱이름}-{환경}` | `plate-admin-stg` |
 | 이미지 레포지토리 | `harbor.cocdev.co.kr/{환경}/{앱이름}` | `harbor.cocdev.co.kr/stg/plate-admin` |
-| Secrets Manager 폴더 | `openbao-{앱이름}-secrets-manager/` | `openbao-plate-admin-secrets-manager/` |
 | K8s Secret 이름 | `app-env-secrets-{환경}` | `app-env-secrets-staging` |
-| OpenBao KV 경로 | `{앱이름}/{환경}` | `plate-admin/staging` |
+| OpenBao KV 경로 | `server/{환경}` | `server/staging` |
 
 ## 이미지 레포지토리 규칙
 
@@ -49,19 +48,18 @@ harbor.cocdev.co.kr/{환경}/{앱이름}
 
 ## OpenBao KV 경로 규칙
 
-**KV 경로 구조:**
+**KV 경로 구조 (환경별 공유):**
 
 ```
-secret/{앱이름}/{환경}
+secret/server/{환경}
 ```
 
-| 앱이름 | Staging KV 경로 | Production KV 경로 |
-|--------|-----------------|-------------------|
-| plate-admin | `secret/plate-admin/staging` | `secret/plate-admin/production` |
-| plate-server | `secret/plate-server/staging` | `secret/plate-server/production` |
-| plate-web | `secret/plate-web/staging` | `secret/plate-web/production` |
+| 환경 | KV 경로 | Secret 이름 |
+|------|---------|-------------|
+| Staging | `secret/server/staging` | `app-env-secrets-staging` |
+| Production | `secret/server/production` | `app-env-secrets-production` |
 
-**참고:** 기존 `server/staging`, `server/production` 경로는 레거시로 유지
+**참고:** 모든 앱이 환경별로 동일한 시크릿을 공유합니다. 앱별 시크릿이 아닌 환경별 시크릿 구조입니다.
 
 ## 애플리케이션 배포 구성 요소
 
