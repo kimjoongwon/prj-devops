@@ -13,7 +13,7 @@
 | 프로젝트명 | 하위분류 | 앱이름 |
 |-----------|---------|--------|
 | plate | admin | `plate-admin` |
-| plate | api | `plate-api` |
+| plate | server | `plate-server` |
 | plate | web | `plate-web` |
 | plate | llm | `plate-llm` |
 
@@ -44,7 +44,7 @@ harbor.cocdev.co.kr/{환경}/{앱이름}
 |------|--------|----------|
 | Staging | plate-admin | `harbor.cocdev.co.kr/stg/plate-admin` |
 | Production | plate-admin | `harbor.cocdev.co.kr/prod/plate-admin` |
-| Staging | plate-api | `harbor.cocdev.co.kr/stg/plate-api` |
+| Staging | plate-server | `harbor.cocdev.co.kr/stg/plate-server` |
 | Production | plate-web | `harbor.cocdev.co.kr/prod/plate-web` |
 
 ## OpenBao KV 경로 규칙
@@ -58,7 +58,7 @@ secret/{앱이름}/{환경}
 | 앱이름 | Staging KV 경로 | Production KV 경로 |
 |--------|-----------------|-------------------|
 | plate-admin | `secret/plate-admin/staging` | `secret/plate-admin/production` |
-| plate-api | `secret/plate-api/staging` | `secret/plate-api/production` |
+| plate-server | `secret/plate-server/staging` | `secret/plate-server/production` |
 | plate-web | `secret/plate-web/staging` | `secret/plate-web/production` |
 
 **참고:** 기존 `server/staging`, `server/production` 경로는 레거시로 유지
@@ -144,14 +144,14 @@ appSecrets:
   secretName: plate-admin-env-secrets  # {앱이름}-env-secrets
 ```
 
-### NestJS 애플리케이션 (plate-api 예시)
+### NestJS 애플리케이션 (plate-server 예시)
 
 ```yaml
 replicaCount: 1
 
-plate-api:  # 앱이름을 키로 사용
+plate-server:  # 앱이름을 키로 사용
   image:
-    repository: harbor.cocdev.co.kr/stg/plate-api
+    repository: harbor.cocdev.co.kr/stg/plate-server
     tag: "latest"
     pullPolicy: IfNotPresent
   port: 3006
@@ -173,7 +173,7 @@ service:
 
 appSecrets:
   enabled: true
-  secretName: plate-api-env-secrets  # {앱이름}-env-secrets
+  secretName: plate-server-env-secrets  # {앱이름}-env-secrets
 ```
 
 ## 네임스페이스 규칙

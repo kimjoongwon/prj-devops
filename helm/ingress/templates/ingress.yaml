@@ -47,6 +47,10 @@ spec:
                 name: {{ $.Values.services.backend.name }}
                 port:
                   number: {{ $.Values.services.backend.port }}
+                {{- else if eq .backend.service.name "admin" }}
+                name: {{ $.Values.services.admin.name }}
+                port:
+                  number: {{ $.Values.services.admin.port }}
                 {{- else }}
                 name: {{ .backend.service.name }}
                 port:

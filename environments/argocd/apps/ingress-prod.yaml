@@ -1,5 +1,5 @@
 # Ingress - Production 환경 ArgoCD Application
-# Ingress 컨트롤러를 배포하여 plate-web 및 plate-api 라우팅 처리
+# Ingress 컨트롤러를 배포하여 plate-web, plate-server, plate-admin 라우팅 처리
 
 apiVersion: argoproj.io/v1alpha1
 kind: Application
@@ -78,4 +78,4 @@ spec:
     - name: "Domain"
       value: "cocdev.co.kr"
     - name: "Description"
-      value: "프로덕션 환경 인그레스 - plate-web 및 plate-api 라우팅 처리"
+      value: "프로덕션 환경 인그레스 - plate-web, plate-server, plate-admin 라우팅 처리"

@@ -49,7 +49,7 @@ ingress:
           pathType: Prefix
           backend:
             service:
-              name: plate-admin-stg
+              name: admin
               port:
                 number: 80
     - host: llm.cocdev.co.kr

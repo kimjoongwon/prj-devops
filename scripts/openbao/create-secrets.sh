@@ -61,7 +61,7 @@ echo ""
 echo "🔧 서버 시크릿 생성 중..."
 vault kv put "secret/server/$ENV" \
   APP_PORT=3000 \
-  APP_NAME=plate-api \
+  APP_NAME=plate-server \
   APP_ADMIN_EMAIL="admin@cocdev.co.kr" \
   API_PREFIX=/api \
   APP_FALLBACK_LANGUAGE=ko \
