@@ -17,3 +17,8 @@ plate-server:
     requests:
       cpu: 200m
       memory: 512Mi
+
+# Staging 환경 시크릿
+appSecrets:
+  enabled: true
+  secretName: app-env-secrets-staging

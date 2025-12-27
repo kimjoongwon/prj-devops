@@ -29,7 +29,7 @@
 | ArgoCD Application name | `{앱이름}-{환경}` | `plate-admin-stg` |
 | 이미지 레포지토리 | `harbor.cocdev.co.kr/{환경}/{앱이름}` | `harbor.cocdev.co.kr/stg/plate-admin` |
 | Secrets Manager 폴더 | `openbao-{앱이름}-secrets-manager/` | `openbao-plate-admin-secrets-manager/` |
-| K8s Secret 이름 | `{앱이름}-env-secrets` | `plate-admin-env-secrets` |
+| K8s Secret 이름 | `app-env-secrets-{환경}` | `app-env-secrets-staging` |
 | OpenBao KV 경로 | `{앱이름}/{환경}` | `plate-admin/staging` |
 
 ## 이미지 레포지토리 규칙
@@ -100,7 +100,7 @@ helm/shared-configs/openbao-{앱이름}-secrets-manager/
 └── templates/
     ├── _helpers.tpl
     ├── secret-store.yaml
-    └── external-secret.yaml   # target: {앱이름}-env-secrets
+    └── external-secret.yaml   # target: app-env-secrets-{환경}
 ```
 
 ArgoCD 앱:
@@ -141,7 +141,7 @@ service:
 
 appSecrets:
   enabled: true
-  secretName: plate-admin-env-secrets  # {앱이름}-env-secrets
+  secretName: app-env-secrets-staging  # app-env-secrets-{환경}
 ```
 
 ### NestJS 애플리케이션 (plate-server 예시)
@@ -173,7 +173,7 @@ service:
 
 appSecrets:
   enabled: true
-  secretName: plate-server-env-secrets  # {앱이름}-env-secrets
+  secretName: app-env-secrets-staging  # app-env-secrets-{환경}
 ```
 
 ## 네임스페이스 규칙

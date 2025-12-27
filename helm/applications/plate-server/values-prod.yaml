@@ -17,3 +17,8 @@ plate-server:
     requests:
       cpu: 250m
       memory: 512Mi
+
+# Production 환경 시크릿
+appSecrets:
+  enabled: true
+  secretName: app-env-secrets-production
