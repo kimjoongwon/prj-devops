@@ -11,7 +11,10 @@ services: # 실제 Kubernetes Service 이름과 포트 매핑 (ArgoCD Release �
     name: "plate-web-prod" # 프론트엔드 서비스
     port: 80
   backend:
-    name: "plate-api-prod"
+    name: "plate-server-prod"
+    port: 80
+  admin:
+    name: "plate-admin-prod"
     port: 80
 
 ingress:
@@ -39,6 +42,14 @@ ingress:
           backend:
             service:
               name: backend
+              port:
+                number: 80
+        # /admin prefix -> 관리자 페이지
+        - path: /admin
+          pathType: Prefix
+          backend:
+            service:
+              name: plate-admin-prod
               port:
                 number: 80
 

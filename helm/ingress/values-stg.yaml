@@ -11,7 +11,10 @@ services:                 # ArgoCD 릴리스명 기준 Service 오브젝트 이�
     name: "plate-web-stg"
     port: 80
   backend:
-    name: "plate-api-stg"
+    name: "plate-server-stg"
+    port: 80
+  admin:
+    name: "plate-admin-stg"
     port: 80
 
 ingress:
@@ -39,6 +42,14 @@ ingress:
           backend:
             service:
               name: backend
+              port:
+                number: 80
+        # /admin prefix -> 관리자 페이지
+        - path: /admin
+          pathType: Prefix
+          backend:
+            service:
+              name: plate-admin-stg
               port:
                 number: 80
     - host: llm.cocdev.co.kr
