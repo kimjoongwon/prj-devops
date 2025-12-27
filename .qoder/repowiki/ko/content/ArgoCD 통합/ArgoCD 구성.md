@@ -14,8 +14,8 @@
 - [helm/development-tools/argocd/values.yaml](file://helm/development-tools/argocd/values.yaml)
 - [helm/applications/plate-web/values-prod.yaml](file://helm/applications/plate-web/values-prod.yaml)
 - [helm/applications/plate-web/values-stg.yaml](file://helm/applications/plate-web/values-stg.yaml)
-- [helm/applications/plate-api/values-prod.yaml](file://helm/applications/plate-api/values-prod.yaml)
-- [helm/applications/plate-api/values-stg.yaml](file://helm/applications/plate-api/values-stg.yaml)
+- [helm/applications/plate-server/values-prod.yaml](file://helm/applications/plate-server/values-prod.yaml)
+- [helm/applications/plate-server/values-stg.yaml](file://helm/applications/plate-server/values-stg.yaml)
 - [helm/ingress/values.yaml](file://helm/ingress/values.yaml)
 - [helm/ingress/values-stg.yaml](file://helm/ingress/values-stg.yaml)
 </cite>
@@ -70,7 +70,7 @@ A --> O[helm/development-tools/argocd/]
 - [environments/argocd/apps/plate-web-prod.yaml](file://environments/argocd/apps/plate-web-prod.yaml)
 - [environments/argocd/apps/plate-web-stg.yaml](file://environments/argocd/apps/plate-web-stg.yaml)
 - [helm/applications/plate-web/Chart.yaml](file://helm/applications/plate-web/Chart.yaml)
-- [helm/applications/plate-api/Chart.yaml](file://helm/applications/plate-api/Chart.yaml)
+- [helm/applications/plate-server/Chart.yaml](file://helm/applications/plate-server/Chart.yaml)
 - [helm/ingress/Chart.yaml](file://helm/ingress/Chart.yaml)
 - [helm/development-tools/argocd/Chart.yaml](file://helm/development-tools/argocd/Chart.yaml)
 
@@ -202,8 +202,8 @@ G --> J
 - [environments/argocd/apps/ingress-stg.yaml](file://environments/argocd/apps/ingress-stg.yaml)
 - [helm/applications/plate-web/values-prod.yaml](file://helm/applications/plate-web/values-prod.yaml)
 - [helm/applications/plate-web/values-stg.yaml](file://helm/applications/plate-web/values-stg.yaml)
-- [helm/applications/plate-api/values-prod.yaml](file://helm/applications/plate-api/values-prod.yaml)
-- [helm/applications/plate-api/values-stg.yaml](file://helm/applications/plate-api/values-stg.yaml)
+- [helm/applications/plate-server/values-prod.yaml](file://helm/applications/plate-server/values-prod.yaml)
+- [helm/applications/plate-server/values-stg.yaml](file://helm/applications/plate-server/values-stg.yaml)
 - [helm/ingress/values.yaml](file://helm/ingress/values.yaml)
 - [helm/ingress/values-stg.yaml](file://helm/ingress/values-stg.yaml)
 

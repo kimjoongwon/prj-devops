@@ -9,9 +9,9 @@
 - [plate-cache-prod.yaml](file://environments/argocd/apps/plate-cache-prod.yaml)
 - [plate-llm-stg.yaml](file://environments/argocd/apps/plate-llm-stg.yaml)
 - [openbao-secrets-manager-prod.yaml](file://environments/argocd/apps/openbao-secrets-manager-prod.yaml)
-- [values-prod.yaml](file://helm/applications/plate-api/values-prod.yaml)
+- [values-prod.yaml](file://helm/applications/plate-server/values-prod.yaml)
 - [values-production.yaml](file://helm/shared-configs/openbao-secrets-manager/values-production.yaml)
-- [Chart.yaml](file://helm/applications/plate-api/Chart.yaml)
+- [Chart.yaml](file://helm/applications/plate-server/Chart.yaml)
 - [README.md](file://environments/argocd/README.md)
 </cite>
 
@@ -105,12 +105,12 @@ Cache --> |저장소 제공| PlateAPI
 ### 핵심 애플리케이션 분석
 
 #### plate-api-prod 분석
-`plate-api-prod` 애플리케이션은 백엔드 API 서버를 관리합니다. 이는 `helm/applications/plate-api` 경로의 Helm 차트를 기반으로 하며, `values-prod.yaml` 파일을 통해 프로덕션 환경의 구체적인 설정을 적용합니다.
+`plate-api-prod` 애플리케이션은 백엔드 API 서버를 관리합니다. 이는 `helm/applications/plate-server` 경로의 Helm 차트를 기반으로 하며, `values-prod.yaml` 파일을 통해 프로덕션 환경의 구체적인 설정을 적용합니다.
 
 ```yaml
 spec:
   source:
-    path: helm/applications/plate-api
+    path: helm/applications/plate-server
     helm:
       valueFiles:
         - values-prod.yaml
@@ -120,7 +120,7 @@ spec:
 
 **Section sources**
 - [plate-api-prod.yaml](file://environments/argocd/apps/plate-api-prod.yaml#L1-L62)
-- [values-prod.yaml](file://helm/applications/plate-api/values-prod.yaml#L1-L31)
+- [values-prod.yaml](file://helm/applications/plate-server/values-prod.yaml#L1-L31)
 
 #### plate-web-prod 분석
 `plate-web-prod` 애플리케이션은 프론트엔드 웹 서비스를 관리합니다. `plate-api-prod`과 유사하게 Helm 차트 기반으로 배포되며, nginx 컨테이너를 사용하여 정적 자산을 제공합니다.

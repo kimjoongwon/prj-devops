@@ -10,7 +10,7 @@
 - [openbao-secrets-manager-stg.yaml](file://environments/argocd/apps/openbao-secrets-manager-stg.yaml)
 - [app-of-apps.yaml](file://environments/argocd/app-of-apps.yaml)
 - [values-stg.yaml (plate-web)](file://helm/applications/plate-web/values-stg.yaml)
-- [values-stg.yaml (plate-api)](file://helm/applications/plate-api/values-stg.yaml)
+- [values-stg.yaml (plate-api)](file://helm/applications/plate-server/values-stg.yaml)
 - [values-stg.yaml (plate-llm)](file://helm/applications/plate-llm/values-stg.yaml)
 - [values-stg.yaml (ingress)](file://helm/ingress/values-stg.yaml)
 - [values-staging.yaml (openbao-secrets-manager)](file://helm/shared-configs/openbao-secrets-manager/values-staging.yaml)
@@ -79,7 +79,7 @@ DEPLOY --> AOA
 - [ingress-stg.yaml](file://environments/argocd/apps/ingress-stg.yaml#L1-L70)
 - [openbao-secrets-manager-stg.yaml](file://environments/argocd/apps/openbao-secrets-manager-stg.yaml#L1-L78)
 - [values-stg.yaml (plate-web)](file://helm/applications/plate-web/values-stg.yaml#L1-L23)
-- [values-stg.yaml (plate-api)](file://helm/applications/plate-api/values-stg.yaml#L1-L19)
+- [values-stg.yaml (plate-api)](file://helm/applications/plate-server/values-stg.yaml#L1-L19)
 - [values-stg.yaml (plate-llm)](file://helm/applications/plate-llm/values-stg.yaml#L1-L54)
 - [values-stg.yaml (ingress)](file://helm/ingress/values-stg.yaml#L1-L59)
 - [values-staging.yaml (openbao-secrets-manager)](file://helm/shared-configs/openbao-secrets-manager/values-staging.yaml#L1-L167)
@@ -101,7 +101,7 @@ DEPLOY --> AOA
 - [ingress-stg.yaml](file://environments/argocd/apps/ingress-stg.yaml#L1-L70)
 - [openbao-secrets-manager-stg.yaml](file://environments/argocd/apps/openbao-secrets-manager-stg.yaml#L1-L78)
 - [values-stg.yaml (plate-web)](file://helm/applications/plate-web/values-stg.yaml#L1-L23)
-- [values-stg.yaml (plate-api)](file://helm/applications/plate-api/values-stg.yaml#L1-L19)
+- [values-stg.yaml (plate-api)](file://helm/applications/plate-server/values-stg.yaml#L1-L19)
 - [values-stg.yaml (plate-llm)](file://helm/applications/plate-llm/values-stg.yaml#L1-L54)
 - [values-stg.yaml (ingress)](file://helm/ingress/values-stg.yaml#L1-L59)
 - [values-staging.yaml (openbao-secrets-manager)](file://helm/shared-configs/openbao-secrets-manager/values-staging.yaml#L1-L167)
@@ -139,7 +139,7 @@ Argo-->>Dev : "배포 상태 및 접근 정보"
 - [plate-llm-stg.yaml](file://environments/argocd/apps/plate-llm-stg.yaml#L1-L64)
 - [ingress-stg.yaml](file://environments/argocd/apps/ingress-stg.yaml#L1-L70)
 - [values-stg.yaml (plate-web)](file://helm/applications/plate-web/values-stg.yaml#L1-L23)
-- [values-stg.yaml (plate-api)](file://helm/applications/plate-api/values-stg.yaml#L1-L19)
+- [values-stg.yaml (plate-api)](file://helm/applications/plate-server/values-stg.yaml#L1-L19)
 - [values-stg.yaml (plate-llm)](file://helm/applications/plate-llm/values-stg.yaml#L1-L54)
 - [values-stg.yaml (ingress)](file://helm/ingress/values-stg.yaml#L1-L59)
 
@@ -188,7 +188,7 @@ Retry --> Install
 - [plate-web-stg.yaml](file://environments/argocd/apps/plate-web-stg.yaml#L1-L62)
 
 ### plate-api-stg.yaml (ArgoCD Application)
-- Git 소스: helm/applications/plate-api
+- Git 소스: helm/applications/plate-server
 - 목적지: plate-stg 네임스페이스
 - 자동 동기화: prune, selfHeal, CreateNamespace=true, ApplyOutOfSyncOnly=true
 - 재시도: 최대 5회, 지수 백오프
@@ -264,7 +264,7 @@ Retry --> Install
 
 **섹션 출처**
 - [values-stg.yaml (plate-web)](file://helm/applications/plate-web/values-stg.yaml#L1-L23)
-- [values-stg.yaml (plate-api)](file://helm/applications/plate-api/values-stg.yaml#L1-L19)
+- [values-stg.yaml (plate-api)](file://helm/applications/plate-server/values-stg.yaml#L1-L19)
 - [values-stg.yaml (plate-llm)](file://helm/applications/plate-llm/values-stg.yaml#L1-L54)
 
 ## 의존성 분석
@@ -345,7 +345,7 @@ deploy-stg.sh 스크립트는 스테이징 환경에 애플리케이션을 효�
   - 삭제: scripts/deploy-stg.sh delete
 - 주요 values 파일 위치:
   - plate-web: helm/applications/plate-web/values-stg.yaml
-  - plate-api: helm/applications/plate-api/values-stg.yaml
+  - plate-api: helm/applications/plate-server/values-stg.yaml
   - plate-llm: helm/applications/plate-llm/values-stg.yaml
   - ingress: helm/ingress/values-stg.yaml
   - openbao-secrets-manager: helm/shared-configs/openbao-secrets-manager/values-staging.yaml

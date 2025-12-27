@@ -2,8 +2,8 @@
 
 <cite>
 **이 문서에서 참조한 파일**  
-- [plate-api/values.yaml](file://helm/applications/plate-api/values.yaml)
-- [plate-api/Chart.yaml](file://helm/applications/plate-api/Chart.yaml)
+- [plate-api/values.yaml](file://helm/applications/plate-server/values.yaml)
+- [plate-api/Chart.yaml](file://helm/applications/plate-server/Chart.yaml)
 - [deploy-harbor-auth.sh](file://scripts/deploy-harbor-auth.sh)
 - [verify-harbor-auth.sh](file://scripts/verify-harbor-auth.sh)
 - [migrate-images-to-harbor.sh](file://scripts/migrate-images-to-harbor.sh)

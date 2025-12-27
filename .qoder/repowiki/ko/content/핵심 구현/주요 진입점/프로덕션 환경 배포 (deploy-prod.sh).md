@@ -5,7 +5,7 @@
 - [deploy-prod.sh](file://scripts/deploy-prod.sh)
 - [plate-api-prod.yaml](file://environments/argocd/apps/plate-api-prod.yaml)
 - [plate-web-prod.yaml](file://environments/argocd/apps/plate-web-prod.yaml)
-- [values-prod.yaml](file://helm/applications/plate-api/values-prod.yaml)
+- [values-prod.yaml](file://helm/applications/plate-server/values-prod.yaml)
 - [values-prod.yaml](file://helm/applications/plate-web/values-prod.yaml)
 </cite>
 
@@ -58,7 +58,7 @@ J --> K["액세스 정보 표시"]
 ```mermaid
 graph TB
 subgraph "Git Repository"
-A["helm/applications/plate-api"]
+A["helm/applications/plate-server"]
 B["helm/applications/plate-web"]
 C["environments/argocd/apps/plate-api-prod.yaml"]
 D["environments/argocd/apps/plate-web-prod.yaml"]
@@ -89,7 +89,7 @@ G --> I
 ## 상세 구성 요소 분석
 
 ### plate-api-prod.yaml 분석
-`plate-api-prod.yaml`은 ArgoCD를 통해 `plate-api` 서비스를 프로덕션 환경에 배포하기 위한 설정 파일입니다. 이 파일은 Git 저장소의 `helm/applications/plate-api` 경로를 소스로 지정하고, `values-prod.yaml` 파일을 사용하여 프로덕션 전용 설정을 적용합니다.
+`plate-api-prod.yaml`은 ArgoCD를 통해 `plate-api` 서비스를 프로덕션 환경에 배포하기 위한 설정 파일입니다. 이 파일은 Git 저장소의 `helm/applications/plate-server` 경로를 소스로 지정하고, `values-prod.yaml` 파일을 사용하여 프로덕션 전용 설정을 적용합니다.
 
 #### ArgoCD 동기화 정책
 ```mermaid
@@ -167,7 +167,7 @@ resources:
 ```
 
 **Section sources**
-- [values-prod.yaml](file://helm/applications/plate-api/values-prod.yaml#L1-L22)
+- [values-prod.yaml](file://helm/applications/plate-server/values-prod.yaml#L1-L22)
 - [values-prod.yaml](file://helm/applications/plate-web/values-prod.yaml#L1-L39)
 
 ## 의존성 분석

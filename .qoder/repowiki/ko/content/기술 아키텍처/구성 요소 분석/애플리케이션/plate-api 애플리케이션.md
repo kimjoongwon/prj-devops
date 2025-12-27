@@ -2,12 +2,12 @@
 
 <cite>
 **이 문서에서 참조한 파일**
-- [Chart.yaml](file://helm/applications/plate-api/Chart.yaml)
-- [values.yaml](file://helm/applications/plate-api/values.yaml)
-- [values-stg.yaml](file://helm/applications/plate-api/values-stg.yaml)
-- [values-prod.yaml](file://helm/applications/plate-api/values-prod.yaml)
-- [deployment.yaml](file://helm/applications/plate-api/templates/deployment.yaml)
-- [service.yaml](file://helm/applications/plate-api/templates/service.yaml)
+- [Chart.yaml](file://helm/applications/plate-server/Chart.yaml)
+- [values.yaml](file://helm/applications/plate-server/values.yaml)
+- [values-stg.yaml](file://helm/applications/plate-server/values-stg.yaml)
+- [values-prod.yaml](file://helm/applications/plate-server/values-prod.yaml)
+- [deployment.yaml](file://helm/applications/plate-server/templates/deployment.yaml)
+- [service.yaml](file://helm/applications/plate-server/templates/service.yaml)
 - [plate-api-stg.yaml](file://environments/argocd/apps/plate-api-stg.yaml)
 - [plate-api-prod.yaml](file://environments/argocd/apps/plate-api-prod.yaml)
 - [create-secrets.sh](file://scripts/openbao/create-secrets.sh)
@@ -35,7 +35,7 @@ plate-api는 Plate 플랫폼의 백엔드 API 서비스로서, 프론트엔드 �
 plate-api는 Helm 기반으로 구성된 Kubernetes 애플리케이션으로, 다음과 같은 주요 디렉터리 구조를 가집니다:
 
 ```
-helm/applications/plate-api/
+helm/applications/plate-server/
 ├── templates/
 │   ├── deployment.yaml
 │   ├── service.yaml
@@ -61,12 +61,12 @@ D --> I[values-prod.yaml]
 ```
 
 **Diagram sources**
-- [Chart.yaml](file://helm/applications/plate-api/Chart.yaml)
-- [values.yaml](file://helm/applications/plate-api/values.yaml)
+- [Chart.yaml](file://helm/applications/plate-server/Chart.yaml)
+- [values.yaml](file://helm/applications/plate-server/values.yaml)
 
 **Section sources**
-- [Chart.yaml](file://helm/applications/plate-api/Chart.yaml)
-- [values.yaml](file://helm/applications/plate-api/values.yaml)
+- [Chart.yaml](file://helm/applications/plate-server/Chart.yaml)
+- [values.yaml](file://helm/applications/plate-server/values.yaml)
 
 ## 핵심 구성 요소
 plate-api의 핵심 구성 요소는 다음과 같습니다:
@@ -79,8 +79,8 @@ plate-api의 핵심 구성 요소는 다음과 같습니다:
 이러한 구성 요소들은 Helm 차트를 통해 일관된 방식으로 관리됩니다.
 
 **Section sources**
-- [deployment.yaml](file://helm/applications/plate-api/templates/deployment.yaml)
-- [service.yaml](file://helm/applications/plate-api/templates/service.yaml)
+- [deployment.yaml](file://helm/applications/plate-server/templates/deployment.yaml)
+- [service.yaml](file://helm/applications/plate-server/templates/service.yaml)
 
 ## 아키텍처 개요
 plate-api는 Kubernetes 클러스터 내에서 실행되는 마이크로서비스 아키텍처의 일환으로, 다음과 같은 구성 요소들과 상호작용합니다:
@@ -149,12 +149,12 @@ EnvVarSource --> ObjectReference : "points to"
 ```
 
 **Diagram sources**
-- [deployment.yaml](file://helm/applications/plate-api/templates/deployment.yaml)
-- [values.yaml](file://helm/applications/plate-api/values.yaml)
+- [deployment.yaml](file://helm/applications/plate-server/templates/deployment.yaml)
+- [values.yaml](file://helm/applications/plate-server/values.yaml)
 
 **Section sources**
-- [deployment.yaml](file://helm/applications/plate-api/templates/deployment.yaml)
-- [values.yaml](file://helm/applications/plate-api/values.yaml)
+- [deployment.yaml](file://helm/applications/plate-server/templates/deployment.yaml)
+- [values.yaml](file://helm/applications/plate-server/values.yaml)
 
 ### Service 구성
 plate-api의 Service 구성은 내부 네트워크를 통한 서비스 노출 방식을 정의합니다. 주요 특징은 다음과 같습니다:
@@ -179,12 +179,12 @@ LB-->>External : 응답 반환
 ```
 
 **Diagram sources**
-- [service.yaml](file://helm/applications/plate-api/templates/service.yaml)
-- [values.yaml](file://helm/applications/plate-api/values.yaml)
+- [service.yaml](file://helm/applications/plate-server/templates/service.yaml)
+- [values.yaml](file://helm/applications/plate-server/values.yaml)
 
 **Section sources**
-- [service.yaml](file://helm/applications/plate-api/templates/service.yaml)
-- [values.yaml](file://helm/applications/plate-api/values.yaml)
+- [service.yaml](file://helm/applications/plate-server/templates/service.yaml)
+- [values.yaml](file://helm/applications/plate-server/values.yaml)
 
 ## 환경별 구성 관리
 plate-api는 values.yaml 파일을 기반으로 환경별로 다양한 설정을 관리합니다. 주요 환경별 차이는 다음과 같습니다:
@@ -214,14 +214,14 @@ G --> K[안정적인 리소스 요청]
 ```
 
 **Diagram sources**
-- [values-stg.yaml](file://helm/applications/plate-api/values-stg.yaml)
-- [values-prod.yaml](file://helm/applications/plate-api/values-prod.yaml)
-- [values.yaml](file://helm/applications/plate-api/values.yaml)
+- [values-stg.yaml](file://helm/applications/plate-server/values-stg.yaml)
+- [values-prod.yaml](file://helm/applications/plate-server/values-prod.yaml)
+- [values.yaml](file://helm/applications/plate-server/values.yaml)
 
 **Section sources**
-- [values-stg.yaml](file://helm/applications/plate-api/values-stg.yaml)
-- [values-prod.yaml](file://helm/applications/plate-api/values-prod.yaml)
-- [values.yaml](file://helm/applications/plate-api/values.yaml)
+- [values-stg.yaml](file://helm/applications/plate-server/values-stg.yaml)
+- [values-prod.yaml](file://helm/applications/plate-server/values-prod.yaml)
+- [values.yaml](file://helm/applications/plate-server/values.yaml)
 
 ## 배포 전략
 plate-api는 ArgoCD를 통한 GitOps 기반 배포 전략을 사용합니다. 주요 배포 특징은 다음과 같습니다:
@@ -279,11 +279,11 @@ C --> G[AWS S3]
 
 **Diagram sources**
 - [ingress/values-stg.yaml](file://helm/ingress/values-stg.yaml)
-- [service.yaml](file://helm/applications/plate-api/templates/service.yaml)
+- [service.yaml](file://helm/applications/plate-server/templates/service.yaml)
 
 **Section sources**
 - [ingress/values-stg.yaml](file://helm/ingress/values-stg.yaml)
-- [service.yaml](file://helm/applications/plate-api/templates/service.yaml)
+- [service.yaml](file://helm/applications/plate-server/templates/service.yaml)
 
 ## 외부 상호작용 및 연동
 plate-api는 다양한 외부 서비스와 연동하여 기능을 확장합니다. 주요 연동 서비스는 다음과 같습니다:
@@ -313,11 +313,11 @@ E --> |시크릿 제공| A
 ```
 
 **Diagram sources**
-- [values.yaml](file://helm/applications/plate-api/values.yaml)
+- [values.yaml](file://helm/applications/plate-server/values.yaml)
 - [create-secrets.sh](file://scripts/openbao/create-secrets.sh)
 
 **Section sources**
-- [values.yaml](file://helm/applications/plate-api/values.yaml)
+- [values.yaml](file://helm/applications/plate-server/values.yaml)
 - [create-secrets.sh](file://scripts/openbao/create-secrets.sh)
 
 ## 보안 및 인증
@@ -354,12 +354,12 @@ API-->>Client : 요청 처리 결과
 ```
 
 **Diagram sources**
-- [values.yaml](file://helm/applications/plate-api/values.yaml)
+- [values.yaml](file://helm/applications/plate-server/values.yaml)
 - [create-secrets.sh](file://scripts/openbao/create-secrets.sh)
 - [esc-policy.hcl](file://scripts/openbao/policies/esc-policy.hcl)
 
 **Section sources**
-- [values.yaml](file://helm/applications/plate-api/values.yaml)
+- [values.yaml](file://helm/applications/plate-server/values.yaml)
 - [create-secrets.sh](file://scripts/openbao/create-secrets.sh)
 - [esc-policy.hcl](file://scripts/openbao/policies/esc-policy.hcl)
 

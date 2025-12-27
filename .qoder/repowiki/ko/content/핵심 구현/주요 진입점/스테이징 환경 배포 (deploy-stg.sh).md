@@ -8,7 +8,7 @@
 - [plate-llm-stg.yaml](file://environments/argocd/apps/plate-llm-stg.yaml)
 - [ingress-stg.yaml](file://environments/argocd/apps/ingress-stg.yaml)
 - [values-stg.yaml](file://helm/applications/plate-web/values-stg.yaml)
-- [values-stg.yaml](file://helm/applications/plate-api/values-stg.yaml)
+- [values-stg.yaml](file://helm/applications/plate-server/values-stg.yaml)
 - [values-stg.yaml](file://helm/applications/plate-llm/values-stg.yaml)
 - [values-stg.yaml](file://helm/ingress/values-stg.yaml)
 </cite>
@@ -62,7 +62,7 @@ F --> G
 
 ```mermaid
 flowchart TD
-A["plate-api-stg.yaml (ArgoCD Application)"] --> B["Helm Chart: helm/applications/plate-api"]
+A["plate-api-stg.yaml (ArgoCD Application)"] --> B["Helm Chart: helm/applications/plate-server"]
 B --> C["values-stg.yaml 적용"]
 C --> D["replicaCount: 1"]
 C --> E["image.pullPolicy: Always"]
@@ -74,7 +74,7 @@ F --> G
 
 **Diagram sources**
 - [plate-api-stg.yaml](file://environments/argocd/apps/plate-api-stg.yaml#L1-L62)
-- [values-stg.yaml](file://helm/applications/plate-api/values-stg.yaml#L1-L19)
+- [values-stg.yaml](file://helm/applications/plate-server/values-stg.yaml#L1-L19)
 
 ### plate-llm (LLM 서비스)
 
@@ -142,7 +142,7 @@ Kubernetes --> |Running| PlateLLM[plate-llm-stg]
 
 **Section sources**
 - [values-stg.yaml](file://helm/applications/plate-web/values-stg.yaml#L1-L23)
-- [values-stg.yaml](file://helm/applications/plate-api/values-stg.yaml#L1-L19)
+- [values-stg.yaml](file://helm/applications/plate-server/values-stg.yaml#L1-L19)
 - [values-stg.yaml](file://helm/applications/plate-llm/values-stg.yaml#L1-L54)
 - [values-stg.yaml](file://helm/ingress/values-stg.yaml#L1-L59)
 
@@ -158,7 +158,7 @@ Kubernetes --> |Running| PlateLLM[plate-llm-stg]
 
 **Section sources**
 - [values-stg.yaml](file://helm/applications/plate-web/values-stg.yaml#L16-L21)
-- [values-stg.yaml](file://helm/applications/plate-api/values-stg.yaml#L13-L19)
+- [values-stg.yaml](file://helm/applications/plate-server/values-stg.yaml#L13-L19)
 - [values-stg.yaml](file://helm/applications/plate-llm/values-stg.yaml#L36-L42)
 
 ## 로깅 및 모니터링

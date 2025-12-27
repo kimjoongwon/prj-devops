@@ -6,7 +6,7 @@
 - [plate-web-stg.yaml](file://environments/argocd/apps/plate-web-stg.yaml)
 - [plate-web-prod.yaml](file://environments/argocd/apps/plate-web-prod.yaml)
 - [argocd/Chart.yaml](file://helm/development-tools/argocd/Chart.yaml)
-- [plate-api/Chart.yaml](file://helm/applications/plate-api/Chart.yaml)
+- [plate-api/Chart.yaml](file://helm/applications/plate-server/Chart.yaml)
 - [plate-web/Chart.yaml](file://helm/applications/plate-web/Chart.yaml)
 - [deploy-all.sh](file://scripts/deploy-all.sh)
 - [deploy-stg.sh](file://scripts/deploy-stg.sh)

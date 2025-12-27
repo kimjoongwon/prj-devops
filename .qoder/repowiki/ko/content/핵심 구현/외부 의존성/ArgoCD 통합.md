@@ -115,7 +115,7 @@ spec:
   project: default
   source:
     repoURL: https://github.com/kimjoongwon/prj-devops.git
-    path: helm/applications/plate-api
+    path: helm/applications/plate-server
     targetRevision: main
     helm:
       valueFiles:

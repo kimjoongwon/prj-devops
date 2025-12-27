@@ -2,13 +2,13 @@
 
 <cite>
 **이 문서에서 참조한 파일**
-- [plate-api/Chart.yaml](file://helm/applications/plate-api/Chart.yaml)
-- [plate-api/values.yaml](file://helm/applications/plate-api/values.yaml)
-- [plate-api/values-prod.yaml](file://helm/applications/plate-api/values-prod.yaml)
-- [plate-api/values-stg.yaml](file://helm/applications/plate-api/values-stg.yaml)
-- [plate-api/templates/deployment.yaml](file://helm/applications/plate-api/templates/deployment.yaml)
-- [plate-api/templates/service.yaml](file://helm/applications/plate-api/templates/service.yaml)
-- [plate-api/templates/_helpers.tpl](file://helm/applications/plate-api/templates/_helpers.tpl)
+- [plate-api/Chart.yaml](file://helm/applications/plate-server/Chart.yaml)
+- [plate-api/values.yaml](file://helm/applications/plate-server/values.yaml)
+- [plate-api/values-prod.yaml](file://helm/applications/plate-server/values-prod.yaml)
+- [plate-api/values-stg.yaml](file://helm/applications/plate-server/values-stg.yaml)
+- [plate-api/templates/deployment.yaml](file://helm/applications/plate-server/templates/deployment.yaml)
+- [plate-api/templates/service.yaml](file://helm/applications/plate-server/templates/service.yaml)
+- [plate-api/templates/_helpers.tpl](file://helm/applications/plate-server/templates/_helpers.tpl)
 - [environments/argocd/apps/plate-api-prod.yaml](file://environments/argocd/apps/plate-api-prod.yaml)
 - [environments/argocd/apps/plate-api-stg.yaml](file://environments/argocd/apps/plate-api-stg.yaml)
 </cite>
@@ -29,10 +29,10 @@ plate-api는 Kubernetes 환경에서 Helm 차트를 통해 배포되는 백엔�
 
 ## 프로젝트 구조
 
-plate-api Helm 차트는 `helm/applications/plate-api/` 디렉터리에 위치하며, 다음과 같은 주요 구성 요소로 이루어져 있습니다:
+plate-api Helm 차트는 `helm/applications/plate-server/` 디렉터리에 위치하며, 다음과 같은 주요 구성 요소로 이루어져 있습니다:
 
 ```
-helm/applications/plate-api/
+helm/applications/plate-server/
 ├── Chart.yaml
 ├── values.yaml
 ├── values-prod.yaml
@@ -61,14 +61,14 @@ F --> I[_helpers.tpl]
 ```
 
 **Diagram sources**
-- [plate-api/Chart.yaml](file://helm/applications/plate-api/Chart.yaml)
-- [plate-api/values.yaml](file://helm/applications/plate-api/values.yaml)
-- [plate-api/templates/deployment.yaml](file://helm/applications/plate-api/templates/deployment.yaml)
-- [plate-api/templates/service.yaml](file://helm/applications/plate-api/templates/service.yaml)
+- [plate-api/Chart.yaml](file://helm/applications/plate-server/Chart.yaml)
+- [plate-api/values.yaml](file://helm/applications/plate-server/values.yaml)
+- [plate-api/templates/deployment.yaml](file://helm/applications/plate-server/templates/deployment.yaml)
+- [plate-api/templates/service.yaml](file://helm/applications/plate-server/templates/service.yaml)
 
 **Section sources**
-- [plate-api/Chart.yaml](file://helm/applications/plate-api/Chart.yaml)
-- [plate-api/values.yaml](file://helm/applications/plate-api/values.yaml)
+- [plate-api/Chart.yaml](file://helm/applications/plate-server/Chart.yaml)
+- [plate-api/values.yaml](file://helm/applications/plate-server/values.yaml)
 
 ## 핵심 구성 요소
 
@@ -82,8 +82,8 @@ plate-api는 다음과 같은 핵심 구성 요소로 구성됩니다:
 이 구성 요소들은 Helm 템플릿과 ArgoCD 설정을 통해 선언적으로 관리됩니다.
 
 **Section sources**
-- [plate-api/templates/deployment.yaml](file://helm/applications/plate-api/templates/deployment.yaml)
-- [plate-api/templates/service.yaml](file://helm/applications/plate-api/templates/service.yaml)
+- [plate-api/templates/deployment.yaml](file://helm/applications/plate-server/templates/deployment.yaml)
+- [plate-api/templates/service.yaml](file://helm/applications/plate-server/templates/service.yaml)
 - [environments/argocd/apps/plate-api-prod.yaml](file://environments/argocd/apps/plate-api-prod.yaml)
 
 ## 아키텍처 개요
@@ -104,7 +104,7 @@ PlateAPI --> SMTP[(SMTP 서버)]
 plate-api는 `LoadBalancer` 유형의 Service를 통해 외부와 통신하며, 모든 민감 정보는 Kubernetes Secret을 통해 주입됩니다. 배포는 ArgoCD를 통해 Git 저장소의 상태를 기준으로 자동 동기화됩니다.
 
 **Diagram sources**
-- [plate-api/templates/service.yaml](file://helm/applications/plate-api/templates/service.yaml)
+- [plate-api/templates/service.yaml](file://helm/applications/plate-server/templates/service.yaml)
 - [environments/argocd/apps/plate-api-prod.yaml](file://environments/argocd/apps/plate-api-prod.yaml)
 
 ## 상세 구성 요소 분석
@@ -127,9 +127,9 @@ Stg --> |스테이징 배포| PlateAPIStg[plate-api-stg]
 ```
 
 **Diagram sources**
-- [plate-api/values.yaml](file://helm/applications/plate-api/values.yaml)
-- [plate-api/values-prod.yaml](file://helm/applications/plate-api/values-prod.yaml)
-- [plate-api/values-stg.yaml](file://helm/applications/plate-api/values-stg.yaml)
+- [plate-api/values.yaml](file://helm/applications/plate-server/values.yaml)
+- [plate-api/values-prod.yaml](file://helm/applications/plate-server/values-prod.yaml)
+- [plate-api/values-stg.yaml](file://helm/applications/plate-server/values-stg.yaml)
 
 #### 디플로이먼트 구성
 
@@ -149,7 +149,7 @@ Ports --> End([Deployment 완료])
 ```
 
 **Diagram sources**
-- [plate-api/templates/deployment.yaml](file://helm/applications/plate-api/templates/deployment.yaml)
+- [plate-api/templates/deployment.yaml](file://helm/applications/plate-server/templates/deployment.yaml)
 
 #### 서비스 노출 방식
 
@@ -165,7 +165,7 @@ class Service {
 ```
 
 **Diagram sources**
-- [plate-api/templates/service.yaml](file://helm/applications/plate-api/templates/service.yaml)
+- [plate-api/templates/service.yaml](file://helm/applications/plate-server/templates/service.yaml)
 
 ### ArgoCD 기반 배포 전략
 
@@ -203,7 +203,7 @@ PlateAPI --> Secrets[OpenBao Secrets Manager]
 - **보안 의존성**: OpenBao를 통한 Secret 관리
 
 **Diagram sources**
-- [plate-api/values.yaml](file://helm/applications/plate-api/values.yaml)
+- [plate-api/values.yaml](file://helm/applications/plate-server/values.yaml)
 - [environments/argocd/apps/plate-api-prod.yaml](file://environments/argocd/apps/plate-api-prod.yaml)
 
 ## 성능 고려 사항
@@ -237,8 +237,8 @@ plate-api는 다음과 같은 성능 관련 설정을 포함합니다:
    - 관련 파일: `plate-api-prod.yaml`, `plate-api-stg.yaml`
 
 **Section sources**
-- [plate-api/values.yaml](file://helm/applications/plate-api/values.yaml)
-- [plate-api/templates/deployment.yaml](file://helm/applications/plate-api/templates/deployment.yaml)
+- [plate-api/values.yaml](file://helm/applications/plate-server/values.yaml)
+- [plate-api/templates/deployment.yaml](file://helm/applications/plate-server/templates/deployment.yaml)
 - [environments/argocd/apps/plate-api-prod.yaml](file://environments/argocd/apps/plate-api-prod.yaml)
 
 ## 결론

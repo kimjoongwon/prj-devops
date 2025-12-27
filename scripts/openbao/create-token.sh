@@ -207,9 +207,10 @@ if [[ "$CHECK_EXISTING" =~ ^[Yy]$ ]]; then
     echo -e "${YELLOW}🔍 정책 '$POLICY_NAME'을 사용하는 기존 토큰 검색 중...${NC}"
     
     # 토큰 accessor 목록 조회 (권한이 없으면 건너뛰)
-    EXISTING_TOKENS=$(vault list -format=json auth/token/accessors 2>/dev/null)
-    
-    if [ $? -ne 0 ] || [ -z "$EXISTING_TOKENS" ] || [ "$EXISTING_TOKENS" == "null" ]; then
+    # set -e 환경에서도 실패 시 스크립트가 종료되지 않도록 || true 추가
+    EXISTING_TOKENS=$(vault list -format=json auth/token/accessors 2>/dev/null) || true
+
+    if [ -z "$EXISTING_TOKENS" ] || [ "$EXISTING_TOKENS" == "null" ]; then
         echo -e "${YELLOW}⚠️  토큰 목록 조회 권한이 없거나 토큰이 없습니다${NC}"
         echo -e "${BLUE}→ 새 토큰 생성을 계속합니다${NC}"
         echo

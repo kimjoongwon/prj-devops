@@ -5,11 +5,11 @@
 - [Chart.yaml](file://helm/applications/plate-cache/Chart.yaml)
 - [values.yaml](file://helm/applications/plate-cache/values.yaml)
 - [templates/pvc.yaml](file://helm/applications/plate-cache/templates/pvc.yaml)
-- [plate-api/Chart.yaml](file://helm/applications/plate-api/Chart.yaml)
-- [plate-api/values.yaml](file://helm/applications/plate-api/values.yaml)
-- [plate-api/values-stg.yaml](file://helm/applications/plate-api/values-stg.yaml)
-- [plate-api/values-prod.yaml](file://helm/applications/plate-api/values-prod.yaml)
-- [plate-api/templates/deployment.yaml](file://helm/applications/plate-api/templates/deployment.yaml)
+- [plate-api/Chart.yaml](file://helm/applications/plate-server/Chart.yaml)
+- [plate-api/values.yaml](file://helm/applications/plate-server/values.yaml)
+- [plate-api/values-stg.yaml](file://helm/applications/plate-server/values-stg.yaml)
+- [plate-api/values-prod.yaml](file://helm/applications/plate-server/values-prod.yaml)
+- [plate-api/templates/deployment.yaml](file://helm/applications/plate-server/templates/deployment.yaml)
 - [environments/argocd/apps/plate-api-prod.yaml](file://environments/argocd/apps/plate-api-prod.yaml)
 - [environments/argocd/apps/plate-api-stg.yaml](file://environments/argocd/apps/plate-api-stg.yaml)
 </cite>
@@ -135,11 +135,11 @@ plateAPI->>plateCache : /var/lib/docker 경로에 캐시 데이터 저장
 ```
 
 **Diagram sources**
-- [plate-api/templates/deployment.yaml](file://helm/applications/plate-api/templates/deployment.yaml#L1-L45)
+- [plate-api/templates/deployment.yaml](file://helm/applications/plate-server/templates/deployment.yaml#L1-L45)
 - [values.yaml](file://helm/applications/plate-cache/values.yaml#L13)
 
 **Section sources**
-- [plate-api/templates/deployment.yaml](file://helm/applications/plate-api/templates/deployment.yaml#L1-L45)
+- [plate-api/templates/deployment.yaml](file://helm/applications/plate-server/templates/deployment.yaml#L1-L45)
 - [values.yaml](file://helm/applications/plate-cache/values.yaml#L13)
 
 ## 의존성 분석

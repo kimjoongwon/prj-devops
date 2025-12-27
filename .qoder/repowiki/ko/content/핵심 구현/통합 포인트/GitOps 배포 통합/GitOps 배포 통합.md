@@ -12,9 +12,9 @@
 - [values-prod.yaml](file://helm/applications/plate-web/values-prod.yaml)
 - [values-stg.yaml](file://helm/applications/plate-web/values-stg.yaml)
 - [values.yaml](file://helm/applications/plate-web/values.yaml)
-- [values-prod.yaml](file://helm/applications/plate-api/values-prod.yaml)
-- [values-stg.yaml](file://helm/applications/plate-api/values-stg.yaml)
-- [values.yaml](file://helm/applications/plate-api/values.yaml)
+- [values-prod.yaml](file://helm/applications/plate-server/values-prod.yaml)
+- [values-stg.yaml](file://helm/applications/plate-server/values-stg.yaml)
+- [values.yaml](file://helm/applications/plate-server/values.yaml)
 - [values.yaml](file://helm/ingress/values.yaml)
 - [values-stg.yaml](file://helm/ingress/values-stg.yaml)
 </cite>
@@ -57,7 +57,7 @@ C --> G[plate-web-stg]
 C --> H[plate-api-stg]
 C --> I[plate-ingress-stg]
 D --> J[helm/applications/plate-web]
-E --> K[helm/applications/plate-api]
+E --> K[helm/applications/plate-server]
 F --> L[helm/ingress]
 G --> J
 H --> K
@@ -70,7 +70,7 @@ I --> L
 - [plate-api-prod.yaml](file://environments/argocd/apps/plate-api-prod.yaml)
 - [ingress-prod.yaml](file://environments/argocd/apps/ingress-prod.yaml)
 - [helm/applications/plate-web](file://helm/applications/plate-web/Chart.yaml)
-- [helm/applications/plate-api](file://helm/applications/plate-api/Chart.yaml)
+- [helm/applications/plate-server](file://helm/applications/plate-server/Chart.yaml)
 - [helm/ingress](file://helm/ingress/Chart.yaml)
 
 **섹션 출처**
@@ -277,7 +277,7 @@ A --> E[plate-web-stg]
 A --> F[plate-api-stg]
 A --> G[plate-ingress-stg]
 B --> H[helm/applications/plate-web]
-C --> I[helm/applications/plate-api]
+C --> I[helm/applications/plate-server]
 D --> J[helm/ingress]
 E --> H
 F --> I

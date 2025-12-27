@@ -9,9 +9,9 @@
 - [plate-web-stg.yaml](file://environments/argocd/apps/plate-web-stg.yaml)
 - [argocd/Chart.yaml](file://helm/development-tools/argocd/Chart.yaml)
 - [argocd/values.yaml](file://helm/development-tools/argocd/values.yaml)
-- [plate-api/Chart.yaml](file://helm/applications/plate-api/Chart.yaml)
-- [plate-api/values-prod.yaml](file://helm/applications/plate-api/values-prod.yaml)
-- [plate-api/values-stg.yaml](file://helm/applications/plate-api/values-stg.yaml)
+- [plate-api/Chart.yaml](file://helm/applications/plate-server/Chart.yaml)
+- [plate-api/values-prod.yaml](file://helm/applications/plate-server/values-prod.yaml)
+- [plate-api/values-stg.yaml](file://helm/applications/plate-server/values-stg.yaml)
 - [plate-web/Chart.yaml](file://helm/applications/plate-web/Chart.yaml)
 - [plate-web/values-prod.yaml](file://helm/applications/plate-web/values-prod.yaml)
 - [plate-web/values-stg.yaml](file://helm/applications/plate-web/values-stg.yaml)
@@ -59,14 +59,14 @@ K --> Q[openbao-secrets-manager]
 **다이어그램 출처**  
 - [app-of-apps.yaml](file://environments/argocd/app-of-apps.yaml)
 - [argocd/Chart.yaml](file://helm/development-tools/argocd/Chart.yaml)
-- [plate-api/Chart.yaml](file://helm/applications/plate-api/Chart.yaml)
+- [plate-api/Chart.yaml](file://helm/applications/plate-server/Chart.yaml)
 - [plate-web/Chart.yaml](file://helm/applications/plate-web/Chart.yaml)
 - [openbao-secrets-manager/Chart.yaml](file://helm/shared-configs/openbao-secrets-manager/Chart.yaml)
 
 **섹션 출처**  
 - [app-of-apps.yaml](file://environments/argocd/app-of-apps.yaml)
 - [argocd/Chart.yaml](file://helm/development-tools/argocd/Chart.yaml)
-- [plate-api/Chart.yaml](file://helm/applications/plate-api/Chart.yaml)
+- [plate-api/Chart.yaml](file://helm/applications/plate-server/Chart.yaml)
 - [plate-web/Chart.yaml](file://helm/applications/plate-web/Chart.yaml)
 - [openbao-secrets-manager/Chart.yaml](file://helm/shared-configs/openbao-secrets-manager/Chart.yaml)
 

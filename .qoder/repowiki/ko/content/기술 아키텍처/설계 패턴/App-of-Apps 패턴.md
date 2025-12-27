@@ -6,11 +6,11 @@
 - [environments/argocd/apps/plate-web-stg.yaml](file://environments/argocd/apps/plate-web-stg.yaml)
 - [environments/argocd/apps/plate-api-prod.yaml](file://environments/argocd/apps/plate-api-prod.yaml)
 - [helm/applications/plate-web/Chart.yaml](file://helm/applications/plate-web/Chart.yaml)
-- [helm/applications/plate-api/Chart.yaml](file://helm/applications/plate-api/Chart.yaml)
+- [helm/applications/plate-server/Chart.yaml](file://helm/applications/plate-server/Chart.yaml)
 - [helm/applications/plate-web/values-stg.yaml](file://helm/applications/plate-web/values-stg.yaml)
-- [helm/applications/plate-api/values-prod.yaml](file://helm/applications/plate-api/values-prod.yaml)
+- [helm/applications/plate-server/values-prod.yaml](file://helm/applications/plate-server/values-prod.yaml)
 - [helm/applications/plate-web/templates/deployment.yaml](file://helm/applications/plate-web/templates/deployment.yaml)
-- [helm/applications/plate-api/templates/deployment.yaml](file://helm/applications/plate-api/templates/deployment.yaml)
+- [helm/applications/plate-server/templates/deployment.yaml](file://helm/applications/plate-server/templates/deployment.yaml)
 - [README.md](file://README.md)
 </cite>
 
@@ -40,10 +40,10 @@ A["App-of-Apps<br/>environments/argocd/app-of-apps.yaml"] --> B["plate-web-stg<b
 A --> C["plate-api-prod<br/>environments/argocd/apps/plate-api-prod.yaml"]
 B --> D["plate-web Chart<br/>helm/applications/plate-web/Chart.yaml"]
 B --> E["values-stg.yaml<br/>helm/applications/plate-web/values-stg.yaml"]
-C --> F["plate-api Chart<br/>helm/applications/plate-api/Chart.yaml"]
-C --> G["values-prod.yaml<br/>helm/applications/plate-api/values-prod.yaml"]
+C --> F["plate-api Chart<br/>helm/applications/plate-server/Chart.yaml"]
+C --> G["values-prod.yaml<br/>helm/applications/plate-server/values-prod.yaml"]
 D --> H["Deployment 템플릿<br/>helm/applications/plate-web/templates/deployment.yaml"]
-F --> I["Deployment 템플릿<br/>helm/applications/plate-api/templates/deployment.yaml"]
+F --> I["Deployment 템플릿<br/>helm/applications/plate-server/templates/deployment.yaml"]
 ```
 
 **다이어그램 출처**
@@ -51,22 +51,22 @@ F --> I["Deployment 템플릿<br/>helm/applications/plate-api/templates/deployme
 - [environments/argocd/apps/plate-web-stg.yaml](file://environments/argocd/apps/plate-web-stg.yaml#L1-L62)
 - [environments/argocd/apps/plate-api-prod.yaml](file://environments/argocd/apps/plate-api-prod.yaml#L1-L62)
 - [helm/applications/plate-web/Chart.yaml](file://helm/applications/plate-web/Chart.yaml#L1-L17)
-- [helm/applications/plate-api/Chart.yaml](file://helm/applications/plate-api/Chart.yaml#L1-L16)
+- [helm/applications/plate-server/Chart.yaml](file://helm/applications/plate-server/Chart.yaml#L1-L16)
 - [helm/applications/plate-web/values-stg.yaml](file://helm/applications/plate-web/values-stg.yaml#L1-L38)
-- [helm/applications/plate-api/values-prod.yaml](file://helm/applications/plate-api/values-prod.yaml#L1-L31)
+- [helm/applications/plate-server/values-prod.yaml](file://helm/applications/plate-server/values-prod.yaml#L1-L31)
 - [helm/applications/plate-web/templates/deployment.yaml](file://helm/applications/plate-web/templates/deployment.yaml#L1-L128)
-- [helm/applications/plate-api/templates/deployment.yaml](file://helm/applications/plate-api/templates/deployment.yaml#L1-L61)
+- [helm/applications/plate-server/templates/deployment.yaml](file://helm/applications/plate-server/templates/deployment.yaml#L1-L61)
 
 **섹션 출처**
 - [environments/argocd/app-of-apps.yaml](file://environments/argocd/app-of-apps.yaml#L1-L35)
 - [environments/argocd/apps/plate-web-stg.yaml](file://environments/argocd/apps/plate-web-stg.yaml#L1-L62)
 - [environments/argocd/apps/plate-api-prod.yaml](file://environments/argocd/apps/plate-api-prod.yaml#L1-L62)
 - [helm/applications/plate-web/Chart.yaml](file://helm/applications/plate-web/Chart.yaml#L1-L17)
-- [helm/applications/plate-api/Chart.yaml](file://helm/applications/plate-api/Chart.yaml#L1-L16)
+- [helm/applications/plate-server/Chart.yaml](file://helm/applications/plate-server/Chart.yaml#L1-L16)
 - [helm/applications/plate-web/values-stg.yaml](file://helm/applications/plate-web/values-stg.yaml#L1-L38)
-- [helm/applications/plate-api/values-prod.yaml](file://helm/applications/plate-api/values-prod.yaml#L1-L31)
+- [helm/applications/plate-server/values-prod.yaml](file://helm/applications/plate-server/values-prod.yaml#L1-L31)
 - [helm/applications/plate-web/templates/deployment.yaml](file://helm/applications/plate-web/templates/deployment.yaml#L1-L128)
-- [helm/applications/plate-api/templates/deployment.yaml](file://helm/applications/plate-api/templates/deployment.yaml#L1-L61)
+- [helm/applications/plate-server/templates/deployment.yaml](file://helm/applications/plate-server/templates/deployment.yaml#L1-L61)
 
 ## 핵심 컴포넌트
 - App-of-Apps Application (environments/argocd/app-of-apps.yaml)
@@ -181,7 +181,7 @@ App-->>AOAO : "상태 보고"
 - [helm/applications/plate-web/values-stg.yaml](file://helm/applications/plate-web/values-stg.yaml#L1-L38)
 
 ### plate-api-prod Application (environments/argocd/apps/plate-api-prod.yaml)
-- 역할: plate-api 서비스의 프로덕션 환경 배포를 담당하며, Helm 차트(helm/applications/plate-api)와 values-prod.yaml을 사용합니다.
+- 역할: plate-api 서비스의 프로덕션 환경 배포를 담당하며, Helm 차트(helm/applications/plate-server)와 values-prod.yaml을 사용합니다.
 - 동기화 정책:
   - automated.prune: true
   - automated.selfHeal: true
@@ -195,7 +195,7 @@ participant App as "plate-api-prod"
 participant Helm as "plate-api Chart"
 participant K8s as "Kubernetes"
 AOAO->>App : "Application 생성/업데이트"
-App->>Helm : "source.path : helm/applications/plate-api"
+App->>Helm : "source.path : helm/applications/plate-server"
 Helm->>Helm : "valueFiles : values-prod.yaml 적용"
 Helm->>K8s : "렌더링된 리소스 배포"
 K8s-->>App : "Git 상태와 동기화"
@@ -204,13 +204,13 @@ App-->>AOAO : "상태 보고"
 
 **다이어그램 출처**
 - [environments/argocd/apps/plate-api-prod.yaml](file://environments/argocd/apps/plate-api-prod.yaml#L1-L62)
-- [helm/applications/plate-api/Chart.yaml](file://helm/applications/plate-api/Chart.yaml#L1-L16)
-- [helm/applications/plate-api/values-prod.yaml](file://helm/applications/plate-api/values-prod.yaml#L1-L31)
+- [helm/applications/plate-server/Chart.yaml](file://helm/applications/plate-server/Chart.yaml#L1-L16)
+- [helm/applications/plate-server/values-prod.yaml](file://helm/applications/plate-server/values-prod.yaml#L1-L31)
 
 **섹션 출처**
 - [environments/argocd/apps/plate-api-prod.yaml](file://environments/argocd/apps/plate-api-prod.yaml#L1-L62)
-- [helm/applications/plate-api/Chart.yaml](file://helm/applications/plate-api/Chart.yaml#L1-L16)
-- [helm/applications/plate-api/values-prod.yaml](file://helm/applications/plate-api/values-prod.yaml#L1-L31)
+- [helm/applications/plate-server/Chart.yaml](file://helm/applications/plate-server/Chart.yaml#L1-L16)
+- [helm/applications/plate-server/values-prod.yaml](file://helm/applications/plate-server/values-prod.yaml#L1-L31)
 
 ### Helm 차트 통합 (plate-web, plate-api)
 - plate-web Chart
@@ -241,7 +241,7 @@ class PlateWebStg {
 +syncOptions.ApplyOutOfSyncOnly=true
 }
 class PlateApiProd {
-+source.path="helm/applications/plate-api"
++source.path="helm/applications/plate-server"
 +valueFiles=["values-prod.yaml"]
 +destination.namespace="plate-prod"
 +syncPolicy.automated.prune=true
@@ -269,19 +269,19 @@ PlateApiProd --> PlateApiChart : "차트 참조"
 - [environments/argocd/apps/plate-web-stg.yaml](file://environments/argocd/apps/plate-web-stg.yaml#L1-L62)
 - [environments/argocd/apps/plate-api-prod.yaml](file://environments/argocd/apps/plate-api-prod.yaml#L1-L62)
 - [helm/applications/plate-web/Chart.yaml](file://helm/applications/plate-web/Chart.yaml#L1-L17)
-- [helm/applications/plate-api/Chart.yaml](file://helm/applications/plate-api/Chart.yaml#L1-L16)
+- [helm/applications/plate-server/Chart.yaml](file://helm/applications/plate-server/Chart.yaml#L1-L16)
 - [helm/applications/plate-web/values-stg.yaml](file://helm/applications/plate-web/values-stg.yaml#L1-L38)
-- [helm/applications/plate-api/values-prod.yaml](file://helm/applications/plate-api/values-prod.yaml#L1-L31)
+- [helm/applications/plate-server/values-prod.yaml](file://helm/applications/plate-server/values-prod.yaml#L1-L31)
 - [helm/applications/plate-web/templates/deployment.yaml](file://helm/applications/plate-web/templates/deployment.yaml#L1-L128)
-- [helm/applications/plate-api/templates/deployment.yaml](file://helm/applications/plate-api/templates/deployment.yaml#L1-L61)
+- [helm/applications/plate-server/templates/deployment.yaml](file://helm/applications/plate-server/templates/deployment.yaml#L1-L61)
 
 **섹션 출처**
 - [helm/applications/plate-web/Chart.yaml](file://helm/applications/plate-web/Chart.yaml#L1-L17)
-- [helm/applications/plate-api/Chart.yaml](file://helm/applications/plate-api/Chart.yaml#L1-L16)
+- [helm/applications/plate-server/Chart.yaml](file://helm/applications/plate-server/Chart.yaml#L1-L16)
 - [helm/applications/plate-web/values-stg.yaml](file://helm/applications/plate-web/values-stg.yaml#L1-L38)
-- [helm/applications/plate-api/values-prod.yaml](file://helm/applications/plate-api/values-prod.yaml#L1-L31)
+- [helm/applications/plate-server/values-prod.yaml](file://helm/applications/plate-server/values-prod.yaml#L1-L31)
 - [helm/applications/plate-web/templates/deployment.yaml](file://helm/applications/plate-web/templates/deployment.yaml#L1-L128)
-- [helm/applications/plate-api/templates/deployment.yaml](file://helm/applications/plate-api/templates/deployment.yaml#L1-L61)
+- [helm/applications/plate-server/templates/deployment.yaml](file://helm/applications/plate-server/templates/deployment.yaml#L1-L61)
 
 ## 의존성 분석
 - App-of-Apps → 하위 Application: environments/argocd/app-of-apps.yaml이 environments/argocd/apps 디렉토리에 있는 Application 매니페스트를 관리합니다.
@@ -304,14 +304,14 @@ CHARTAPI --> TPLAPI["templates/deployment.yaml"]
 - [environments/argocd/apps/plate-web-stg.yaml](file://environments/argocd/apps/plate-web-stg.yaml#L1-L62)
 - [environments/argocd/apps/plate-api-prod.yaml](file://environments/argocd/apps/plate-api-prod.yaml#L1-L62)
 - [helm/applications/plate-web/templates/deployment.yaml](file://helm/applications/plate-web/templates/deployment.yaml#L1-L128)
-- [helm/applications/plate-api/templates/deployment.yaml](file://helm/applications/plate-api/templates/deployment.yaml#L1-L61)
+- [helm/applications/plate-server/templates/deployment.yaml](file://helm/applications/plate-server/templates/deployment.yaml#L1-L61)
 
 **섹션 출처**
 - [environments/argocd/app-of-apps.yaml](file://environments/argocd/app-of-apps.yaml#L1-L35)
 - [environments/argocd/apps/plate-web-stg.yaml](file://environments/argocd/apps/plate-web-stg.yaml#L1-L62)
 - [environments/argocd/apps/plate-api-prod.yaml](file://environments/argocd/apps/plate-api-prod.yaml#L1-L62)
 - [helm/applications/plate-web/templates/deployment.yaml](file://helm/applications/plate-web/templates/deployment.yaml#L1-L128)
-- [helm/applications/plate-api/templates/deployment.yaml](file://helm/applications/plate-api/templates/deployment.yaml#L1-L61)
+- [helm/applications/plate-server/templates/deployment.yaml](file://helm/applications/plate-server/templates/deployment.yaml#L1-L61)
 
 ## 성능 고려사항
 - syncOptions.ApplyOutOfSyncOnly=true: 변경된 리소스만 적용되도록 하여 배포 성능을 최적화합니다.

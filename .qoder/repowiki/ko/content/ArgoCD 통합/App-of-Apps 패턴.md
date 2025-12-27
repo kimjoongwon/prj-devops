@@ -3,9 +3,9 @@
 <cite>
 **이 문서에서 참조한 파일**  
 - [app-of-apps.yaml](file://environments/argocd/app-of-apps.yaml)
-- [plate-api/values.yaml](file://helm/applications/plate-api/values.yaml)
-- [plate-api/values-prod.yaml](file://helm/applications/plate-api/values-prod.yaml)
-- [plate-api/values-stg.yaml](file://helm/applications/plate-api/values-stg.yaml)
+- [plate-api/values.yaml](file://helm/applications/plate-server/values.yaml)
+- [plate-api/values-prod.yaml](file://helm/applications/plate-server/values-prod.yaml)
+- [plate-api/values-stg.yaml](file://helm/applications/plate-server/values-stg.yaml)
 - [plate-web/values.yaml](file://helm/applications/plate-web/values.yaml)
 - [plate-web/values-prod.yaml](file://helm/applications/plate-web/values-prod.yaml)
 - [plate-web/values-stg.yaml](file://helm/applications/plate-web/values-stg.yaml)
@@ -150,12 +150,12 @@ PlateCacheChart <|-- PlateCacheStg
 ```
 
 **다이어그램 출처**  
-- [plate-api/values.yaml](file://helm/applications/plate-api/values.yaml#L1-L116)
+- [plate-api/values.yaml](file://helm/applications/plate-server/values.yaml#L1-L116)
 - [plate-web/values.yaml](file://helm/applications/plate-web/values.yaml#L1-L73)
 - [plate-cache/values.yaml](file://helm/applications/plate-cache/values.yaml#L1-L14)
 
 **섹션 출처**  
-- [helm/applications/plate-api](file://helm/applications/plate-api)
+- [helm/applications/plate-server](file://helm/applications/plate-server)
 - [helm/applications/plate-web](file://helm/applications/plate-web)
 - [helm/applications/plate-cache](file://helm/applications/plate-cache)
 
@@ -183,8 +183,8 @@ spec:
 이러한 오버라이드는 Git에 저장되므로, 환경 간 일관성과 추적 가능성을 보장합니다.
 
 **섹션 출처**  
-- [plate-api/values-prod.yaml](file://helm/applications/plate-api/values-prod.yaml#L1-L31)
-- [plate-api/values-stg.yaml](file://helm/applications/plate-api/values-stg.yaml#L1-L30)
+- [plate-api/values-prod.yaml](file://helm/applications/plate-server/values-prod.yaml#L1-L31)
+- [plate-api/values-stg.yaml](file://helm/applications/plate-server/values-stg.yaml#L1-L30)
 - [plate-web/values-prod.yaml](file://helm/applications/plate-web/values-prod.yaml#L1-L39)
 - [plate-web/values-stg.yaml](file://helm/applications/plate-web/values-stg.yaml#L1-L38)
 - [plate-cache/values-prod.yaml](file://helm/applications/plate-cache/values-prod.yaml#L1-L12)

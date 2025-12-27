@@ -11,8 +11,8 @@
 - [templates/_helpers.tpl](file://helm/applications/plate-llm/templates/_helpers.tpl)
 - [environments/argocd/apps/plate-llm-stg.yaml](file://environments/argocd/apps/plate-llm-stg.yaml)
 - [helm/shared-configs/openbao-secrets-manager/values.yaml](file://helm/shared-configs/openbao-secrets-manager/values.yaml)
-- [helm/applications/plate-api/values.yaml](file://helm/applications/plate-api/values.yaml)
-- [helm/applications/plate-api/values-stg.yaml](file://helm/applications/plate-api/values-stg.yaml)
+- [helm/applications/plate-server/values.yaml](file://helm/applications/plate-server/values.yaml)
+- [helm/applications/plate-server/values-stg.yaml](file://helm/applications/plate-server/values-stg.yaml)
 </cite>
 
 ## 목차
@@ -388,8 +388,8 @@ style B fill:#69f,stroke:#333
 ```
 
 **섹션 출처**
-- [helm/applications/plate-api/values.yaml](file://helm/applications/plate-api/values.yaml)
-- [helm/applications/plate-api/values-stg.yaml](file://helm/applications/plate-api/values-stg.yaml)
+- [helm/applications/plate-server/values.yaml](file://helm/applications/plate-server/values.yaml)
+- [helm/applications/plate-server/values-stg.yaml](file://helm/applications/plate-server/values-stg.yaml)
 
 ### 외부 LLM 프로바이더 연동
 plate-llm 애플리케이션은 다양한 외부 LLM 프로바이더와 연동하여 AI 기능을 제공합니다.
