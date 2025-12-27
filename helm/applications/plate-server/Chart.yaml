@@ -1,12 +1,12 @@
 apiVersion: v2
-name: plate-api
-description: Plate API 서버용 Helm 차트
+name: plate-server
+description: Plate Server 백엔드용 Helm 차트
 type: application
 version: 0.1.0
 appVersion: "1.0.0"
 keywords:
   - plate
-  - api
+  - server
   - backend
 home: https://cocdev.co.kr
 sources:

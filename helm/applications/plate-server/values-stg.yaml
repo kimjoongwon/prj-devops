@@ -1,12 +1,12 @@
-# Staging environment values for Plate API
+# Staging environment values for Plate Server
 # Override from values.yaml for staging environment
 
 replicaCount: 1
 
 # Staging 이미지 저장소 (Harbor registry)
-backend:
+plate-server:
   image:
-    repository: harbor.cocdev.co.kr/stg-server/server
+    repository: harbor.cocdev.co.kr/stg/plate-server
     tag: "latest"
     pullPolicy: Always  # Always pull for latest builds in staging
   port: 3006

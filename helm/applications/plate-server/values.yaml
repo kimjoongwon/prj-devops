@@ -1,13 +1,13 @@
-# Plate API Backend Chart 기본 값 파일
+# Plate Server Chart 기본 값 파일
 # Kubernetes에 배포할 백엔드 서버 설정
 # 환경별 오버라이드: values-prod.yaml, values-stg.yaml
 
 replicaCount: 1
 
-# Backend 애플리케이션 설정
-backend:
+# plate-server 애플리케이션 설정
+plate-server:
   image:
-    repository: harbor.cocdev.co.kr/stg-server/server
+    repository: harbor.cocdev.co.kr/stg/plate-server
     tag: "latest"
     pullPolicy: IfNotPresent
   port: 3006
@@ -29,9 +29,9 @@ service:
   targetPort: 3006
 
 # 애플리케이션 환경변수 Secret 설정
+# OpenBao KV 경로: plate-server/staging, plate-server/production
 appSecrets:
-  enabled: true # Secret 환경변수 주입 활성화
-  secretName: app-env-secrets # Kubernetes Secret 이름
+  enabled: true
+  secretName: plate-server-env-secrets
   # envFrom으로 전체 Secret을 환경변수로 주입
   # 새 환경변수 추가 시 OpenBao KV에만 추가하면 자동 동기화됨
-  # 개별 envVars 매핑이 더 이상 필요하지 않음

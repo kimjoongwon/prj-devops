@@ -1,12 +1,12 @@
-# Production environment values for Plate API
+# Production environment values for Plate Server
 # Override from values.yaml for production environment
 
 replicaCount: 1
 
 # Production 이미지 저장소 (Harbor registry)
-backend:
+plate-server:
   image:
-    repository: harbor.cocdev.co.kr/stg-server/server
+    repository: harbor.cocdev.co.kr/prod/plate-server
     tag: "latest"
     pullPolicy: IfNotPresent
   port: 3006
@@ -17,5 +17,3 @@ backend:
     requests:
       cpu: 250m
       memory: 512Mi
-
-# Service configuration (LoadBalancer for production)

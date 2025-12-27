@@ -1,21 +1,21 @@
-# Plate API Backend Deployment 템플릿
+# Plate Server Backend Deployment 템플릿
 # 백엔드 애플리케이션(port 3006)을 Kubernetes 클러스터에 배포
 
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "plate-api.name" . }}             # <release>-<chart>
+  name: {{ include "plate-server.name" . }}
   labels:
-    {{- include "plate-api.labels" . | nindent 4 }}      # 공통 라벨 (선택/추적용)
+    {{- include "plate-server.labels" . | nindent 4 }}
 spec:
-  replicas: {{ .Values.replicaCount }}                   # 원하는 스케일 크기
+  replicas: {{ .Values.replicaCount }}
   selector:
     matchLabels:
-      {{- include "plate-api.selectorLabels" . | nindent 6 }}
+      {{- include "plate-server.selectorLabels" . | nindent 6 }}
   template:
     metadata:
       labels:
-        {{- include "plate-api.labels" . | nindent 8 }}
+        {{- include "plate-server.labels" . | nindent 8 }}
       annotations: {}
     spec:
       {{- with .Values.imagePullSecrets }}
@@ -23,12 +23,12 @@ spec:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       containers:
-        - name: {{ include "plate-api.name" . }}
-          image: "{{ .Values.backend.image.repository }}:{{ .Values.backend.image.tag | default .Chart.AppVersion }}"
-          imagePullPolicy: {{ .Values.backend.image.pullPolicy }}
+        - name: {{ include "plate-server.name" . }}
+          image: "{{ index .Values "plate-server" "image" "repository" }}:{{ index .Values "plate-server" "image" "tag" | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ index .Values "plate-server" "image" "pullPolicy" }}
           ports:
             - name: http
-              containerPort: {{ .Values.backend.port }}
+              containerPort: {{ index .Values "plate-server" "port" }}
               protocol: TCP
           {{- if .Values.appSecrets.enabled }}
           # envFrom으로 전체 Secret을 환경변수로 주입
@@ -38,4 +38,4 @@ spec:
                 name: {{ .Values.appSecrets.secretName }}
           {{- end }}
           resources:
-            {{- toYaml .Values.backend.resources | nindent 12 }}
+            {{- toYaml (index .Values "plate-server" "resources") | nindent 12 }}

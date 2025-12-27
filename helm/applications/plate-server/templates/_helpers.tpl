@@ -1,23 +1,23 @@
 {{/*
 Create app name (use Release Name for consistency)
 */}}
-{{- define "plate-api.name" -}}
+{{- define "plate-server.name" -}}
 {{- .Release.Name }}
 {{- end }}
 
 {{/*
 Create chart name and version as used by the chart label.
 */}}
-{{- define "plate-api.chart" -}}
+{{- define "plate-server.chart" -}}
 {{- printf "%s-%s" .Chart.Name .Chart.Version | replace "+" "_" | trunc 63 | trimSuffix "-" }}
 {{- end }}
 
 {{/*
 Common labels
 */}}
-{{- define "plate-api.labels" -}}
-helm.sh/chart: {{ include "plate-api.chart" . }}
-{{ include "plate-api.selectorLabels" . }}
+{{- define "plate-server.labels" -}}
+helm.sh/chart: {{ include "plate-server.chart" . }}
+{{ include "plate-server.selectorLabels" . }}
 {{- if .Chart.AppVersion }}
 app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
 {{- end }}
@@ -27,6 +27,6 @@ app.kubernetes.io/managed-by: {{ .Release.Service }}
 {{/*
 Selector labels
 */}}
-{{- define "plate-api.selectorLabels" -}}
-app.kubernetes.io/name: {{ include "plate-api.name" . }}
+{{- define "plate-server.selectorLabels" -}}
+app.kubernetes.io/name: {{ include "plate-server.name" . }}
 {{- end }}
