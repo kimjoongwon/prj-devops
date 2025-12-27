@@ -21,4 +21,4 @@ plate-server:
 # Staging 환경 시크릿
 appSecrets:
   enabled: true
-  secretName: app-env-secrets-staging
+  secretName: app-env-secrets

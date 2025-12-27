@@ -30,9 +30,10 @@ service:
   targetPort: 3000
 
 # 애플리케이션 환경변수 Secret 설정
-# OpenBao KV 경로: plate-admin/staging, plate-admin/production
+# OpenBao KV 경로: server/staging, server/production
+# 시크릿: app-env-secrets (환경별 공유)
 appSecrets:
   enabled: true
-  secretName: plate-admin-env-secrets
+  secretName: app-env-secrets
   # envFrom으로 전체 Secret을 환경변수로 주입
   # 새 환경변수 추가 시 OpenBao KV에만 추가하면 자동 동기화됨

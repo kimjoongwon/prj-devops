@@ -18,3 +18,8 @@ plate-admin:
     requests:
       cpu: 100m
       memory: 256Mi
+
+# Staging 환경 시크릿
+appSecrets:
+  enabled: true
+  secretName: app-env-secrets

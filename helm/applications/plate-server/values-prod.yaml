@@ -21,4 +21,4 @@ plate-server:
 # Production 환경 시크릿
 appSecrets:
   enabled: true
-  secretName: app-env-secrets-production
+  secretName: app-env-secrets
