@@ -4,6 +4,7 @@
 replicaCount: 1
 
 # Production 이미지 저장소 (Harbor registry)
+# 이미지 규칙: harbor.cocdev.co.kr/{환경}/{앱이름}
 plate-server:
   image:
     repository: harbor.cocdev.co.kr/prod/plate-server
