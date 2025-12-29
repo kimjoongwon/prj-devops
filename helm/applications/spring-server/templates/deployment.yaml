@@ -1,0 +1,58 @@
+# Spring Server Backend Deployment 템플릿
+# Spring Boot 백엔드 애플리케이션(port 8080)을 Kubernetes 클러스터에 배포
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "spring-server.name" . }}
+  labels:
+    {{- include "spring-server.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "spring-server.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "spring-server.labels" . | nindent 8 }}
+      annotations: {}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: {{ include "spring-server.name" . }}
+          image: "{{ index .Values "spring-server" "image" "repository" }}:{{ index .Values "spring-server" "image" "tag" | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ index .Values "spring-server" "image" "pullPolicy" }}
+          ports:
+            - name: http
+              containerPort: {{ index .Values "spring-server" "port" }}
+              protocol: TCP
+          {{- if .Values.appSecrets.enabled }}
+          # envFrom으로 전체 Secret을 환경변수로 주입
+          # 새 환경변수 추가 시 OpenBao KV에만 추가하면 자동 동기화
+          envFrom:
+            - secretRef:
+                name: {{ .Values.appSecrets.secretName }}
+          {{- end }}
+          # Spring Boot Actuator 헬스체크
+          livenessProbe:
+            httpGet:
+              path: /actuator/health
+              port: http
+            initialDelaySeconds: 60
+            periodSeconds: 30
+            timeoutSeconds: 3
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /actuator/health
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 3
+          resources:
+            {{- toYaml (index .Values "spring-server" "resources") | nindent 12 }}

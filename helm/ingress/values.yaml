@@ -16,6 +16,9 @@ services: # 실제 Kubernetes Service 이름과 포트 매핑 (ArgoCD Release �
   admin:
     name: "plate-admin-prod"
     port: 80
+  spring:
+    name: "spring-server-prod"
+    port: 80
 
 ingress:
   enabled: true
@@ -50,6 +53,14 @@ ingress:
           backend:
             service:
               name: admin
+              port:
+                number: 80
+        # /spring prefix -> Spring 백엔드
+        - path: /spring
+          pathType: Prefix
+          backend:
+            service:
+              name: spring
               port:
                 number: 80
 

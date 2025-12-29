@@ -1,0 +1,25 @@
+# Production environment values for Spring Server
+# Override from values.yaml for production environment
+
+replicaCount: 1
+
+# Production 이미지 저장소 (Harbor registry)
+# 이미지 규칙: harbor.cocdev.co.kr/{환경}/{앱이름}
+spring-server:
+  image:
+    repository: harbor.cocdev.co.kr/prod/spring-server
+    tag: "latest"
+    pullPolicy: IfNotPresent
+  port: 8080
+  resources:
+    limits:
+      cpu: 1000m
+      memory: 2Gi
+    requests:
+      cpu: 500m
+      memory: 1Gi
+
+# Production 환경 시크릿
+appSecrets:
+  enabled: true
+  secretName: app-env-secrets

@@ -51,6 +51,10 @@ spec:
                 name: {{ $.Values.services.admin.name }}
                 port:
                   number: {{ $.Values.services.admin.port }}
+                {{- else if eq .backend.service.name "spring" }}
+                name: {{ $.Values.services.spring.name }}
+                port:
+                  number: {{ $.Values.services.spring.port }}
                 {{- else }}
                 name: {{ .backend.service.name }}
                 port:
