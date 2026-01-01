@@ -1,0 +1,19 @@
+# Staging 환경 설정
+
+postgresql:
+  image:
+    pullPolicy: Always
+
+  database: plate_stg
+  username: plate_stg
+
+  resources:
+    limits:
+      cpu: 500m
+      memory: 512Mi
+    requests:
+      cpu: 100m
+      memory: 256Mi
+
+persistence:
+  size: 5Gi

@@ -1,0 +1,13 @@
+# PostgreSQL 데이터베이스 Helm 차트
+apiVersion: v2
+name: plate-db
+description: PostgreSQL 데이터베이스 (Standalone)
+type: application
+version: 0.1.0
+appVersion: "16"
+keywords:
+  - plate
+  - postgresql
+  - database
+maintainers:
+  - name: Plate Team

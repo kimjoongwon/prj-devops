@@ -1,0 +1,16 @@
+# PostgreSQL Service (ClusterIP)
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "plate-db.name" . }}
+  labels:
+    {{- include "plate-db.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+    - port: {{ .Values.service.port }}
+      targetPort: postgresql
+      protocol: TCP
+      name: postgresql
+  selector:
+    {{- include "plate-db.selectorLabels" . | nindent 4 }}

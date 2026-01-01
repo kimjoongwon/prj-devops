@@ -1,0 +1,54 @@
+# PostgreSQL 기본 설정
+postgresql:
+  image:
+    repository: postgres
+    tag: "16-alpine"
+    pullPolicy: IfNotPresent
+
+  port: 5432
+
+  # 데이터베이스 초기 설정
+  database: plate
+  username: plate
+
+  # 리소스 제한
+  resources:
+    limits:
+      cpu: 500m
+      memory: 1Gi
+    requests:
+      cpu: 250m
+      memory: 512Mi
+
+# 영속성 스토리지 설정
+persistence:
+  enabled: true
+  storageClass: "openebs-hostpath"
+  accessModes:
+    - ReadWriteOnce
+  size: 10Gi
+  mountPath: /var/lib/postgresql/data
+
+# Service 설정
+service:
+  type: ClusterIP
+  port: 5432
+
+# 시크릿 설정
+secrets:
+  # 기존 Secret 사용 (kubectl create secret으로 미리 생성)
+  existingSecret: "plate-db-secrets"
+  passwordKey: "POSTGRES_PASSWORD"
+
+# Liveness/Readiness Probe
+probes:
+  liveness:
+    enabled: true
+    initialDelaySeconds: 30
+    periodSeconds: 10
+    timeoutSeconds: 5
+  readiness:
+    enabled: true
+    initialDelaySeconds: 5
+    periodSeconds: 5
+    timeoutSeconds: 3

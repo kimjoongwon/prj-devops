@@ -1,0 +1,16 @@
+# Production 환경 설정
+
+postgresql:
+  database: plate_prod
+  username: plate_prod
+
+  resources:
+    limits:
+      cpu: 1000m
+      memory: 2Gi
+    requests:
+      cpu: 500m
+      memory: 1Gi
+
+persistence:
+  size: 20Gi
