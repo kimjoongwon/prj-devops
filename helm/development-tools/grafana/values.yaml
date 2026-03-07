@@ -388,7 +388,23 @@ topologySpreadConstraints: []
 ## Additional init containers (evaluated as template)
 ## ref: https://kubernetes.io/docs/concepts/workloads/pods/init-containers/
 ##
-extraInitContainers: []
+extraInitContainers:
+  - name: cleanup-stale-apm-dashboards
+    image: docker.io/library/busybox:1.31.1
+    imagePullPolicy: IfNotPresent
+    command:
+      - sh
+      - -c
+      - |
+        set -eu
+        mkdir -p /var/lib/grafana/dashboards/apm
+        find /var/lib/grafana/dashboards/apm -maxdepth 1 -type f -name '*.json' \
+          ! -name 'otel-collector-15983.json' \
+          ! -name 'spanmetrics-demo-18264.json' \
+          -delete
+    volumeMounts:
+      - name: storage
+        mountPath: /var/lib/grafana
 
 ## Enable an Specify container in extraContainers. This is meant to allow adding an authentication proxy to a grafana pod
 extraContainers: ""
