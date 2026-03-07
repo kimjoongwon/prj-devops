@@ -15,6 +15,14 @@ spec:
     repoURL: https://github.com/kimjoongwon/prj-devops.git  # 실제 Git Repository URL로 변경 필요
     path: environments/argocd/apps
     targetRevision: main
+    directory:
+      recurse: true
+      include: "*.yaml"
+      # Deployment mode toggle:
+      # - prod only: exclude "*-stg.yaml"
+      # - stg only:  exclude "*-prod.yaml"
+      # - all:       remove exclude line
+      exclude: "*-stg.yaml"
   destination:
     server: https://kubernetes.default.svc
     namespace: argocd
@@ -28,8 +36,8 @@ spec:
     - name: 'Description'
       value: 'CocDev Platform - App of Apps pattern'
     - name: 'Environment'
-      value: 'Multi-environment (staging, production)'
+      value: 'Production only (staging excluded by directory.exclude)'
     - name: 'Components'
       value: 'fe-web, be-server, ingress, container-cache'
     - name: 'Namespaces'
-      value: 'plate-prod, plate-stg'
+      value: 'plate-prod'
