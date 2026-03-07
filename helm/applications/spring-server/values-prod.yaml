@@ -7,7 +7,9 @@ replicaCount: 1
 # 이미지 규칙: harbor.cocdev.co.kr/{환경}/{앱이름}
 spring-server:
   image:
-    repository: harbor.cocdev.co.kr/prod/spring-server
+    # NOTE: Harbor prod/spring-server:latest 미존재로 인해 현재는 stg 이미지를 사용.
+    # 이미지 파이프라인 정비 후 prod/spring-server로 전환 필요.
+    repository: harbor.cocdev.co.kr/stg/spring-server
     tag: "latest"
     pullPolicy: IfNotPresent
   port: 8080
