@@ -9,10 +9,18 @@ GitOps 기반의 Kubernetes 배포 인프라로, Helm과 ArgoCD를 활용한 선
 ### 주요 특징
 
 - **계층화된 아키텍처**: 클러스터 서비스, 개발 도구, 애플리케이션의 3계층 구조
-- **멀티 환경 지원**: 스테이징과 프로덕션 환경의 완전한 분리
+- **운영 모드 토글 지원**: stg/prod 매니페스트를 유지하면서 App-of-Apps `exclude`로 prod-only/stg-only/all 전환
 - **GitOps 통합**: ArgoCD를 통한 자동화된 배포 파이프라인
 - **보안 강화**: OpenBao 시크릿 관리 및 Harbor 프라이빗 레지스트리
 - **표준화된 구조**: 통일된 Helm 차트 패턴 및 명명 규칙
+
+## 📌 현재 운영 모드 (2026-03-07)
+
+- Parent Application: `frontend-web-apps` (`argocd` namespace)
+- Git 경로: `environments/argocd/apps`
+- 운영 모드: `prod only` (`spec.source.directory.exclude: "*-stg.yaml"`)
+- 변경 감지: GitHub Webhook + 폴링(`timeout.reconciliation: 180s`)
+- 운영 가이드: `docs/argocd-prod-only-webhook-manual.md`
 
 ## 📁 프로젝트 구조
 
@@ -69,7 +77,7 @@ prj-devops/
 │           └── templates/
 ├── environments/                   # ArgoCD 설정
 │   └── argocd/
-│       ├── app-of-apps.yaml       # App of Apps 패턴 메인
+│       ├── app-of-apps.yaml       # App of Apps 패턴 메인 (운영 객체명: frontend-web-apps)
 │       └── apps/                  # 개별 ArgoCD Application 정의
 │           ├── plate-server-stg.yaml
 │           ├── plate-server-prod.yaml
@@ -123,13 +131,17 @@ prj-devops/
 
 - `environments/argocd/app-of-apps.yaml`: 최상위 Application
 - `environments/argocd/apps/`: 각 서비스별 Application 정의
+- 운영 모드 토글: `spec.source.directory.exclude` 값으로 활성 환경 선택
+  - `prod only`: `*-stg.yaml` 제외
+  - `stg only`: `*-prod.yaml` 제외
+  - `all`: `exclude` 제거
 - 자동 동기화: `prune: true`, `selfHeal: true`
 - Sync Wave: 의존성 순서 보장
 
 **배포 흐름**:
 
 1. Git 저장소에 values 파일 수정 및 커밋
-2. ArgoCD가 변경 감지 (3분 폴링 또는 webhook)
+2. ArgoCD가 변경 감지 (GitHub webhook 즉시 + 3분 폴링 백업)
 3. Helm 템플릿 렌더링 및 매니페스트 생성
 4. Kubernetes 리소스 자동 적용
 5. 상태 동기화 및 헬스 체크
@@ -445,7 +457,7 @@ spec:
 
 - **App of Apps**: `environments/argocd/app-of-apps.yaml`이 모든 하위 Application을 관리
 - **개별 Application**: `environments/argocd/apps/` 디렉토리에 각 서비스별 ArgoCD Application 정의
-- **환경 분리**: 스테이징과 프로덕션 환경이 별도의 Application으로 관리됨
+- **환경 선택**: stg/prod Application 정의를 유지하고, Parent App의 `directory.exclude`로 활성 환경을 선택
 - **Values 오버라이드**: 각 Application은 `helm.valueFiles`를 통해 환경별 설정 적용
 - **자동 동기화**: `syncPolicy.automated`로 Git 저장소 변경 시 자동 배포
 
