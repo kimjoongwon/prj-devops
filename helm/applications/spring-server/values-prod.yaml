@@ -31,6 +31,10 @@ extraEnv:
     value: spring-server-prod
   - name: JAVA_TOOL_OPTIONS
     value: "-javaagent:/otel/auto-instrumentation/opentelemetry-javaagent.jar"
+  - name: OTEL_METRICS_EXPORTER
+    value: none
+  - name: OTEL_LOGS_EXPORTER
+    value: none
 
 javaAgent:
   enabled: true

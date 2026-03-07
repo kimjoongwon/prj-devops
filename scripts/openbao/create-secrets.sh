@@ -88,6 +88,8 @@ vault kv put "secret/server/$ENV" \
   OTEL_TRACES_SAMPLER=traceidratio \
   OTEL_TRACES_SAMPLER_ARG=0.1 \
   OTEL_PROPAGATORS="tracecontext,baggage" \
+  OTEL_METRICS_EXPORTER=none \
+  OTEL_LOGS_EXPORTER=none \
   DATABASE_URL="CHANGE_ME_postgresql://user:pass@host:5432/db" \
   DIRECT_URL="CHANGE_ME_postgresql://user:pass@host:5432/db"
 
