@@ -23,7 +23,6 @@ spanmetrics:
     - http.method
     - http.route
     - http.target
-    - status.code
   histogramBuckets:
     - 5ms
     - 10ms
