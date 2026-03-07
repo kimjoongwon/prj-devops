@@ -34,3 +34,16 @@ service:
 appSecrets:
   enabled: true
   secretName: app-env-secrets
+
+# 애플리케이션 추가 환경변수
+extraEnv: []
+
+# Spring Java Agent (OpenTelemetry) 옵션
+javaAgent:
+  enabled: false
+  mountPath: /otel/auto-instrumentation
+  jarPath: /otel/auto-instrumentation/opentelemetry-javaagent.jar
+  downloadUrl: https://github.com/open-telemetry/opentelemetry-java-instrumentation/releases/download/v2.16.0/opentelemetry-javaagent.jar
+  initContainer:
+    image: curlimages/curl:8.8.0
+    pullPolicy: IfNotPresent

@@ -30,6 +30,10 @@ spec:
             - name: http
               containerPort: {{ index .Values "plate-server" "port" }}
               protocol: TCP
+          {{- with .Values.extraEnv }}
+          env:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
           {{- if .Values.appSecrets.enabled }}
           # envFrom으로 전체 Secret을 환경변수로 주입
           # 새 환경변수 추가 시 OpenBao KV에만 추가하면 자동 동기화

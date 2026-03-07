@@ -1,0 +1,35 @@
+replicaCount: 1
+
+image:
+  repository: otel/opentelemetry-collector-contrib
+  tag: "0.103.1"
+  pullPolicy: IfNotPresent
+
+service:
+  type: ClusterIP
+  otlpGrpcPort: 4317
+  otlpHttpPort: 4318
+  healthPort: 13133
+
+exporters:
+  tempo:
+    endpoint: tempo.grafana.svc.cluster.local:4317
+
+redaction:
+  enabled: true
+  keys:
+    - http.request.header.authorization
+    - http.request.header.cookie
+    - http.response.header.set-cookie
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 256Mi
+  limits:
+    cpu: 500m
+    memory: 512Mi
+
+nodeSelector: {}
+tolerations: []
+affinity: {}

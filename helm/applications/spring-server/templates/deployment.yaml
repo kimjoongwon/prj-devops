@@ -22,6 +22,23 @@ spec:
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
+      {{- if .Values.javaAgent.enabled }}
+      initContainers:
+        - name: install-otel-javaagent
+          image: {{ .Values.javaAgent.initContainer.image }}
+          imagePullPolicy: {{ .Values.javaAgent.initContainer.pullPolicy }}
+          command:
+            - /bin/sh
+            - -c
+          args:
+            - >
+              set -e;
+              mkdir -p {{ .Values.javaAgent.mountPath }};
+              curl -sSL {{ .Values.javaAgent.downloadUrl }} -o {{ .Values.javaAgent.jarPath }};
+          volumeMounts:
+            - name: otel-javaagent
+              mountPath: {{ .Values.javaAgent.mountPath }}
+      {{- end }}
       containers:
         - name: {{ include "spring-server.name" . }}
           image: "{{ index .Values "spring-server" "image" "repository" }}:{{ index .Values "spring-server" "image" "tag" | default .Chart.AppVersion }}"
@@ -30,6 +47,10 @@ spec:
             - name: http
               containerPort: {{ index .Values "spring-server" "port" }}
               protocol: TCP
+          {{- with .Values.extraEnv }}
+          env:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
           {{- if .Values.appSecrets.enabled }}
           # envFrom으로 전체 Secret을 환경변수로 주입
           # 새 환경변수 추가 시 OpenBao KV에만 추가하면 자동 동기화
@@ -37,5 +58,15 @@ spec:
             - secretRef:
                 name: {{ .Values.appSecrets.secretName }}
           {{- end }}
+          {{- if .Values.javaAgent.enabled }}
+          volumeMounts:
+            - name: otel-javaagent
+              mountPath: {{ .Values.javaAgent.mountPath }}
+          {{- end }}
           resources:
             {{- toYaml (index .Values "spring-server" "resources") | nindent 12 }}
+      {{- if .Values.javaAgent.enabled }}
+      volumes:
+        - name: otel-javaagent
+          emptyDir: {}
+      {{- end }}

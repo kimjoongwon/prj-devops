@@ -23,3 +23,7 @@ plate-admin:
 appSecrets:
   enabled: true
   secretName: app-env-secrets
+
+extraEnv:
+  - name: OTEL_SERVICE_NAME
+    value: plate-admin-stg

@@ -23,3 +23,12 @@ spring-server:
 appSecrets:
   enabled: true
   secretName: app-env-secrets
+
+extraEnv:
+  - name: OTEL_SERVICE_NAME
+    value: spring-server-prod
+  - name: JAVA_TOOL_OPTIONS
+    value: "-javaagent:/otel/auto-instrumentation/opentelemetry-javaagent.jar"
+
+javaAgent:
+  enabled: true

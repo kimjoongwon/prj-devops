@@ -1,0 +1,55 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "otel-collector.fullname" . }}-config
+  labels:
+    {{- include "otel-collector.labels" . | nindent 4 }}
+data:
+  otel-collector-config.yaml: |
+    receivers:
+      otlp:
+        protocols:
+          grpc:
+            endpoint: 0.0.0.0:{{ .Values.service.otlpGrpcPort }}
+          http:
+            endpoint: 0.0.0.0:{{ .Values.service.otlpHttpPort }}
+
+    processors:
+      memory_limiter:
+        check_interval: 1s
+        limit_mib: 256
+        spike_limit_mib: 64
+      {{- if .Values.redaction.enabled }}
+      attributes/redact:
+        actions:
+        {{- range .Values.redaction.keys }}
+          - key: {{ . }}
+            action: delete
+        {{- end }}
+      {{- end }}
+      batch:
+        send_batch_size: 1024
+        timeout: 5s
+
+    exporters:
+      otlp/tempo:
+        endpoint: {{ .Values.exporters.tempo.endpoint }}
+        tls:
+          insecure: true
+
+    extensions:
+      health_check:
+        endpoint: 0.0.0.0:{{ .Values.service.healthPort }}
+
+    service:
+      extensions: [health_check]
+      pipelines:
+        traces:
+          receivers: [otlp]
+          processors:
+            - memory_limiter
+            {{- if .Values.redaction.enabled }}
+            - attributes/redact
+            {{- end }}
+            - batch
+          exporters: [otlp/tempo]

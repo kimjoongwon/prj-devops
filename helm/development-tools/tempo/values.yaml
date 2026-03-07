@@ -1,0 +1,33 @@
+replicaCount: 1
+
+image:
+  repository: grafana/tempo
+  tag: "2.6.1"
+  pullPolicy: IfNotPresent
+
+service:
+  type: ClusterIP
+  queryPort: 3200
+  otlpGrpcPort: 4317
+  otlpHttpPort: 4318
+
+persistence:
+  enabled: true
+  storageClass: openebs-hostpath
+  accessModes:
+    - ReadWriteOnce
+  size: 20Gi
+
+retention: 168h
+
+resources:
+  requests:
+    cpu: 200m
+    memory: 512Mi
+  limits:
+    cpu: 1000m
+    memory: 2Gi
+
+nodeSelector: {}
+tolerations: []
+affinity: {}

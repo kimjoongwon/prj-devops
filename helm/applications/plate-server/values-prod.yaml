@@ -23,3 +23,8 @@ plate-server:
 appSecrets:
   enabled: true
   secretName: app-env-secrets
+
+# 서비스별 APM 식별자
+extraEnv:
+  - name: OTEL_SERVICE_NAME
+    value: plate-server-prod

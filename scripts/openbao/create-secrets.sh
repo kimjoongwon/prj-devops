@@ -83,6 +83,11 @@ vault kv put "secret/server/$ENV" \
   AUTH_JWT_TOKEN_REFRESH_IN=86400 \
   AUTH_JWT_SALT_ROUNDS=10 \
   CORS_ENABLED=true \
+  OTEL_EXPORTER_OTLP_ENDPOINT="http://otel-collector.grafana.svc.cluster.local:4317" \
+  OTEL_EXPORTER_OTLP_PROTOCOL=grpc \
+  OTEL_TRACES_SAMPLER=traceidratio \
+  OTEL_TRACES_SAMPLER_ARG=0.1 \
+  OTEL_PROPAGATORS="tracecontext,baggage" \
   DATABASE_URL="CHANGE_ME_postgresql://user:pass@host:5432/db" \
   DIRECT_URL="CHANGE_ME_postgresql://user:pass@host:5432/db"
 

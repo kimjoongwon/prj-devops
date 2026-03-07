@@ -1,0 +1,70 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "tempo.fullname" . }}
+  labels:
+    {{- include "tempo.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ include "tempo.name" . }}
+      app.kubernetes.io/instance: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: {{ include "tempo.name" . }}
+        app.kubernetes.io/instance: {{ .Release.Name }}
+    spec:
+      containers:
+        - name: tempo
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          args:
+            - -config.file=/etc/tempo/tempo.yaml
+          ports:
+            - name: http-query
+              containerPort: {{ .Values.service.queryPort }}
+              protocol: TCP
+            - name: otlp-grpc
+              containerPort: {{ .Values.service.otlpGrpcPort }}
+              protocol: TCP
+            - name: otlp-http
+              containerPort: {{ .Values.service.otlpHttpPort }}
+              protocol: TCP
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          livenessProbe:
+            httpGet:
+              path: /ready
+              port: http-query
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: http-query
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          volumeMounts:
+            - name: tempo-config
+              mountPath: /etc/tempo
+            - name: tempo-data
+              mountPath: /var/tempo
+      volumes:
+        - name: tempo-config
+          configMap:
+            name: {{ include "tempo.fullname" . }}-config
+        - name: tempo-data
+          {{- if .Values.persistence.enabled }}
+          persistentVolumeClaim:
+            claimName: {{ include "tempo.fullname" . }}-data
+          {{- else }}
+          emptyDir: {}
+          {{- end }}
+      nodeSelector:
+        {{- toYaml .Values.nodeSelector | nindent 8 }}
+      tolerations:
+        {{- toYaml .Values.tolerations | nindent 8 }}
+      affinity:
+        {{- toYaml .Values.affinity | nindent 8 }}

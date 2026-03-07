@@ -673,7 +673,42 @@ plugins:
 ## Configure grafana datasources
 ## ref: http://docs.grafana.org/administration/provisioning/#datasources
 ##
-datasources: {}
+datasources:
+  datasources.yaml:
+    apiVersion: 1
+    deleteDatasources: []
+    datasources:
+      - name: Prometheus
+        uid: prometheus
+        type: prometheus
+        access: proxy
+        url: http://prometheus-server.prometheus.svc.cluster.local
+        isDefault: true
+        editable: true
+      - name: Tempo
+        uid: tempo
+        type: tempo
+        access: proxy
+        url: http://tempo.grafana.svc.cluster.local:3200
+        editable: true
+        jsonData:
+          httpMethod: GET
+          serviceMap:
+            datasourceUid: prometheus
+          tracesToMetrics:
+            datasourceUid: prometheus
+            tags:
+              - key: service.name
+                value: service
+            spanStartTimeShift: "-5m"
+            spanEndTimeShift: "5m"
+            queries:
+              - name: "Request rate"
+                query: "sum(rate(traces_spanmetrics_calls_total{$$__tags}[5m]))"
+              - name: "Error rate"
+                query: "sum(rate(traces_spanmetrics_calls_total{$$__tags, status_code=\"STATUS_CODE_ERROR\"}[5m])) / sum(rate(traces_spanmetrics_calls_total{$$__tags}[5m]))"
+              - name: "P95 latency"
+                query: "histogram_quantile(0.95, sum(rate(traces_spanmetrics_latency_bucket{$$__tags}[5m])) by (le))"
 #  datasources.yaml:
 #    apiVersion: 1
 #    datasources:

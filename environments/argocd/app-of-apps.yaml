@@ -40,6 +40,6 @@ spec:
     - name: 'Environment'
       value: 'Production only (staging excluded by directory.exclude)'
     - name: 'Components'
-      value: 'fe-web, be-server, ingress, container-cache'
+      value: 'fe-web, be-server, ingress, container-cache, apm'
     - name: 'Namespaces'
       value: 'plate-prod'

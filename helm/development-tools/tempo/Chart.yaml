@@ -1,0 +1,6 @@
+apiVersion: v2
+name: tempo
+description: Grafana Tempo single-binary chart for trace storage
+type: application
+version: 0.1.0
+appVersion: "2.6.1"

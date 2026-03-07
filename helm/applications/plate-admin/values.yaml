@@ -37,3 +37,6 @@ appSecrets:
   secretName: app-env-secrets
   # envFrom으로 전체 Secret을 환경변수로 주입
   # 새 환경변수 추가 시 OpenBao KV에만 추가하면 자동 동기화됨
+
+# 애플리케이션 추가 환경변수
+extraEnv: []

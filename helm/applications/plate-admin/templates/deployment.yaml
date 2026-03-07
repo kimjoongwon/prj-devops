@@ -30,6 +30,10 @@ spec:
             - name: http
               containerPort: {{ index .Values "plate-admin" "port" }}
               protocol: TCP
+          {{- with .Values.extraEnv }}
+          env:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
           {{- if .Values.appSecrets.enabled }}
           # envFrom으로 전체 Secret을 환경변수로 주입
           # OpenBao KV(plate-admin/staging 또는 plate-admin/production)에서 자동 동기화
