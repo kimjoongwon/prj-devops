@@ -18,6 +18,7 @@ exporters:
 
 spanmetrics:
   enabled: true
+  resourceToTelemetryConversion: false
   metricsFlushInterval: 15s
   dimensions:
     - http.method
