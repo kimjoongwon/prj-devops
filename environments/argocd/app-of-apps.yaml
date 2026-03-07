@@ -4,11 +4,11 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: cocdev-platform-apps
+  name: frontend-web-apps
   namespace: argocd
   labels:
-    app.kubernetes.io/name: cocdev-platform-apps
-    app.kubernetes.io/part-of: cocdev-platform
+    app.kubernetes.io/name: frontend-web-apps
+    app.kubernetes.io/part-of: frontend-web
 spec:
   project: default
   source:
@@ -34,7 +34,7 @@ spec:
       - CreateNamespace=true
   info:
     - name: 'Description'
-      value: 'CocDev Platform - App of Apps pattern'
+      value: 'Frontend Web Applications - App of Apps pattern'
     - name: 'Environment'
       value: 'Production only (staging excluded by directory.exclude)'
     - name: 'Components'
