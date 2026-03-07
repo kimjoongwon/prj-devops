@@ -37,10 +37,7 @@ spanmetrics:
     - 10s
 
 prometheus:
-  serviceAnnotations:
-    prometheus.io/scrape: "true"
-    prometheus.io/path: /metrics
-    prometheus.io/port: "8889"
+  serviceAnnotations: {}
   podAnnotations:
     prometheus.io/scrape: "true"
     prometheus.io/path: /metrics

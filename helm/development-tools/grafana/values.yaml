@@ -878,8 +878,10 @@ defaultCurlOptions: "-skf"
 ##
 dashboards:
   apm:
-    trace-red-overview:
-      file: dashboards/apm-trace-red-overview.json
+    spanmetrics-demo-18264:
+      file: dashboards/spanmetrics-demo-18264-r1.json
+    otel-collector-15983:
+      file: dashboards/opentelemetry-collector-15983-r29.json
 
 ## Reference to external ConfigMap per provider. Use provider name as key and ConfigMap name as value.
 ## A provider dashboards must be defined either by external ConfigMaps or in values.yaml, not in both.
