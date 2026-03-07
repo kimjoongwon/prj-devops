@@ -699,16 +699,16 @@ datasources:
             datasourceUid: prometheus
             tags:
               - key: service.name
-                value: service
+                value: service_name
             spanStartTimeShift: "-5m"
             spanEndTimeShift: "5m"
             queries:
               - name: "Request rate"
-                query: "sum(rate(calls_total{job=\"kubernetes-pods\",$$__tags}[5m]))"
+                query: "sum(rate(calls_total{pod=~\".+\",$$__tags}[5m]))"
               - name: "Error rate"
-                query: "sum(rate(calls_total{job=\"kubernetes-pods\",$$__tags, status_code=\"STATUS_CODE_ERROR\"}[5m])) / sum(rate(calls_total{job=\"kubernetes-pods\",$$__tags}[5m]))"
+                query: "(sum(rate(calls_total{pod=~\".+\",$$__tags, status_code=\"STATUS_CODE_ERROR\"}[5m])) or vector(0)) / clamp_min(sum(rate(calls_total{pod=~\".+\",$$__tags}[5m])), 0.001)"
               - name: "P95 latency"
-                query: "histogram_quantile(0.95, sum(rate(duration_milliseconds_bucket{job=\"kubernetes-pods\",$$__tags}[5m])) by (le))"
+                query: "histogram_quantile(0.95, sum(rate(duration_milliseconds_bucket{pod=~\".+\",$$__tags}[5m])) by (le))"
 #  datasources.yaml:
 #    apiVersion: 1
 #    datasources:

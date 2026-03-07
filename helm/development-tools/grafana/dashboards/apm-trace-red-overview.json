@@ -79,7 +79,7 @@
       "targets": [
         {
           "editorMode": "code",
-          "expr": "sum(rate(calls_total{job=\"kubernetes-pods\",service_name=~\"$service\"}[5m]))",
+          "expr": "sum(rate(calls_total{pod=~\".+\",service_name=~\"$service\"}[5m]))",
           "legendFormat": "",
           "range": true,
           "refId": "A"
@@ -145,7 +145,7 @@
       "targets": [
         {
           "editorMode": "code",
-          "expr": "100 * sum(rate(calls_total{job=\"kubernetes-pods\",service_name=~\"$service\",status_code=\"STATUS_CODE_ERROR\"}[5m])) / clamp_min(sum(rate(calls_total{job=\"kubernetes-pods\",service_name=~\"$service\"}[5m])), 0.001)",
+          "expr": "100 * ((sum(rate(calls_total{pod=~\".+\",service_name=~\"$service\",status_code=\"STATUS_CODE_ERROR\"}[5m])) or vector(0)) / clamp_min(sum(rate(calls_total{pod=~\".+\",service_name=~\"$service\"}[5m])), 0.001))",
           "legendFormat": "",
           "range": true,
           "refId": "A"
@@ -211,7 +211,7 @@
       "targets": [
         {
           "editorMode": "code",
-          "expr": "histogram_quantile(0.95, sum by (le) (rate(duration_milliseconds_bucket{job=\"kubernetes-pods\",service_name=~\"$service\"}[5m])))",
+          "expr": "histogram_quantile(0.95, sum by (le) (rate(duration_milliseconds_bucket{pod=~\".+\",service_name=~\"$service\"}[5m])))",
           "legendFormat": "",
           "range": true,
           "refId": "A"
@@ -292,7 +292,7 @@
       "targets": [
         {
           "editorMode": "code",
-          "expr": "sum(rate(calls_total{job=\"kubernetes-pods\",service_name=~\"$service\"}[5m])) by (service_name)",
+          "expr": "sum(rate(calls_total{pod=~\".+\",service_name=~\"$service\"}[5m])) by (service_name)",
           "legendFormat": "{{service_name}}",
           "range": true,
           "refId": "A"
@@ -373,7 +373,7 @@
       "targets": [
         {
           "editorMode": "code",
-          "expr": "100 * sum(rate(calls_total{job=\"kubernetes-pods\",service_name=~\"$service\",status_code=\"STATUS_CODE_ERROR\"}[5m])) by (service_name) / clamp_min(sum(rate(calls_total{job=\"kubernetes-pods\",service_name=~\"$service\"}[5m])) by (service_name), 0.001)",
+          "expr": "(100 * sum by (service_name) (rate(calls_total{pod=~\".+\",service_name=~\"$service\",status_code=\"STATUS_CODE_ERROR\"}[5m])) / clamp_min(sum by (service_name) (rate(calls_total{pod=~\".+\",service_name=~\"$service\"}[5m])), 0.001)) or on(service_name) (0 * sum by (service_name) (rate(calls_total{pod=~\".+\",service_name=~\"$service\"}[5m])))",
           "legendFormat": "{{service_name}}",
           "range": true,
           "refId": "A"
@@ -454,7 +454,7 @@
       "targets": [
         {
           "editorMode": "code",
-          "expr": "histogram_quantile(0.95, sum by (service_name, le) (rate(duration_milliseconds_bucket{job=\"kubernetes-pods\",service_name=~\"$service\"}[5m])))",
+          "expr": "histogram_quantile(0.95, sum by (service_name, le) (rate(duration_milliseconds_bucket{pod=~\".+\",service_name=~\"$service\"}[5m])))",
           "legendFormat": "{{service_name}}",
           "range": true,
           "refId": "A"
@@ -484,7 +484,7 @@
           "type": "prometheus",
           "uid": "prometheus"
         },
-        "definition": "label_values(calls_total{job=\"kubernetes-pods\"}, service_name)",
+        "definition": "label_values(calls_total{pod=~\".+\"}, service_name)",
         "hide": 0,
         "includeAll": true,
         "label": "Service",
@@ -492,7 +492,7 @@
         "name": "service",
         "options": [],
         "query": {
-          "query": "label_values(calls_total{job=\"kubernetes-pods\"}, service_name)",
+          "query": "label_values(calls_total{pod=~\".+\"}, service_name)",
           "refId": "PrometheusVariableQueryEditor-VariableQuery"
         },
         "refresh": 1,
