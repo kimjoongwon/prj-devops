@@ -4,6 +4,10 @@ metadata:
   name: {{ include "otel-collector.fullname" . }}
   labels:
     {{- include "otel-collector.labels" . | nindent 4 }}
+  {{- with .Values.prometheus.serviceAnnotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
 spec:
   type: {{ .Values.service.type }}
   selector:
@@ -22,3 +26,9 @@ spec:
       port: {{ .Values.service.healthPort }}
       targetPort: health
       protocol: TCP
+    {{- if .Values.spanmetrics.enabled }}
+    - name: spanmetrics
+      port: {{ .Values.service.metricsPort }}
+      targetPort: spanmetrics
+      protocol: TCP
+    {{- end }}

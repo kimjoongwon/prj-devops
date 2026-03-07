@@ -31,11 +31,34 @@ data:
         send_batch_size: 1024
         timeout: 5s
 
+    {{- if .Values.spanmetrics.enabled }}
+    connectors:
+      spanmetrics:
+        metrics_flush_interval: {{ .Values.spanmetrics.metricsFlushInterval }}
+        dimensions:
+        {{- range .Values.spanmetrics.dimensions }}
+          - name: {{ . }}
+        {{- end }}
+        histogram:
+          explicit:
+            buckets:
+            {{- range .Values.spanmetrics.histogramBuckets }}
+              - {{ . }}
+            {{- end }}
+    {{- end }}
+
     exporters:
       otlp/tempo:
         endpoint: {{ .Values.exporters.tempo.endpoint }}
         tls:
           insecure: true
+      {{- if .Values.spanmetrics.enabled }}
+      prometheus/spanmetrics:
+        endpoint: 0.0.0.0:{{ .Values.service.metricsPort }}
+        send_timestamps: true
+        resource_to_telemetry_conversion:
+          enabled: true
+      {{- end }}
 
     extensions:
       health_check:
@@ -52,4 +75,13 @@ data:
             - attributes/redact
             {{- end }}
             - batch
-          exporters: [otlp/tempo]
+          exporters:
+            - otlp/tempo
+            {{- if .Values.spanmetrics.enabled }}
+            - spanmetrics
+            {{- end }}
+        {{- if .Values.spanmetrics.enabled }}
+        metrics/spanmetrics:
+          receivers: [spanmetrics]
+          exporters: [prometheus/spanmetrics]
+        {{- end }}

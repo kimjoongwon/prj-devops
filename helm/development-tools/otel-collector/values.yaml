@@ -10,10 +10,42 @@ service:
   otlpGrpcPort: 4317
   otlpHttpPort: 4318
   healthPort: 13133
+  metricsPort: 8889
 
 exporters:
   tempo:
     endpoint: tempo.grafana.svc.cluster.local:4317
+
+spanmetrics:
+  enabled: true
+  metricsFlushInterval: 15s
+  dimensions:
+    - http.method
+    - http.route
+    - http.target
+    - status.code
+  histogramBuckets:
+    - 5ms
+    - 10ms
+    - 25ms
+    - 50ms
+    - 100ms
+    - 250ms
+    - 500ms
+    - 1s
+    - 2s
+    - 5s
+    - 10s
+
+prometheus:
+  serviceAnnotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/path: /metrics
+    prometheus.io/port: "8889"
+  podAnnotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/path: /metrics
+    prometheus.io/port: "8889"
 
 redaction:
   enabled: true
