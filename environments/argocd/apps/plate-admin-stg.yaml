@@ -5,6 +5,8 @@ kind: Application
 metadata:
   name: plate-admin-stg
   namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
   labels:
     app.kubernetes.io/name: plate-admin
     app.kubernetes.io/instance: staging

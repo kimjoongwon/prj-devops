@@ -5,6 +5,8 @@ kind: Application
 metadata:
   name: plate-server-prod
   namespace: argocd  # ArgoCD가 설치된 네임스페이스
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
   labels:
     app.kubernetes.io/name: plate-server
     app.kubernetes.io/instance: production
