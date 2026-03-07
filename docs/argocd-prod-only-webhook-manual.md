@@ -13,6 +13,14 @@
 - ArgoCD가 `argocd` 네임스페이스에 설치됨
 - GitHub 저장소 관리자 권한(또는 Webhook 설정 권한) 보유
 
+## 운영 기준 Parent Application
+- 현재 운영 기준 App of Apps 이름: `frontend-web-apps`
+- 아래 명령으로 확인:
+
+```bash
+kubectl -n argocd get application frontend-web-apps
+```
+
 ## 1. App of Apps를 `prod only`로 변경
 파일: `environments/argocd/app-of-apps.yaml`
 
