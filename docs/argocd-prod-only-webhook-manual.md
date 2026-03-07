@@ -26,6 +26,16 @@ kubectl -n argocd get application frontend-web-apps
 - `idp-web-prod`, `idp-api-prod`
 - `plate-ingress-prod`, `openbao-secrets-manager-prod`
 
+## 현재 운영 제약(2026-03-07)
+- `stg` 하위 앱은 의도적으로 제외(`exclude: "*-stg.yaml"`)되어 있습니다.
+- `idp-api-prod`, `idp-web-prod`는 Harbor 이미지가 없으면 `ImagePullBackOff`로 Health가 `Progressing/Degraded`에 머뭅니다.
+- 배포 전 최소 확인:
+
+```bash
+kubectl -n plate-prod get deploy idp-api-prod idp-web-prod -o custom-columns=NAME:.metadata.name,IMAGE:.spec.template.spec.containers[0].image
+kubectl -n plate-prod get pods | rg 'idp-(api|web)-prod'
+```
+
 ## 1. App of Apps를 `prod only`로 변경
 파일: `environments/argocd/app-of-apps.yaml`
 

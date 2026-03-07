@@ -105,6 +105,12 @@ vault kv put "secret/idp/$ENV" \
   APP_NAME=idp \
   APP_PORT=3007 \
   NODE_ENV="$NODE_ENV" \
+  APP_ADMIN_EMAIL="admin@cocdev.co.kr" \
+  API_PREFIX=api \
+  APP_FALLBACK_LANGUAGE=ko \
+  APP_HEADER_LANGUAGE=x-custom-lang \
+  FRONTEND_DOMAIN="$IDP_DOMAIN" \
+  BACKEND_DOMAIN="$IDP_DOMAIN" \
   DATABASE_URL="CHANGE_ME_postgresql://user:pass@host:5432/db" \
   DIRECT_URL="CHANGE_ME_postgresql://user:pass@host:5432/db" \
   REDIS_HOST="CHANGE_ME_REDIS_HOST" \

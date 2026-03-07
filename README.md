@@ -22,6 +22,15 @@ GitOps 기반의 Kubernetes 배포 인프라로, Helm과 ArgoCD를 활용한 선
 - 변경 감지: GitHub Webhook + 폴링(`timeout.reconciliation: 180s`)
 - 운영 가이드: `docs/argocd-prod-only-webhook-manual.md`
 
+## ⚠️ 현재 운영 제약 (2026-03-07)
+
+- `staging` Child Application은 임시 중지 상태입니다. (`*-stg.yaml` 제외)
+- `idp-api`, `idp-web`는 현재 `production`만 배포 대상입니다.
+- IDP 앱 정상화 선행 조건:
+  - Harbor에 `harbor.cocdev.co.kr/prod/idp-api:latest`
+  - Harbor에 `harbor.cocdev.co.kr/prod/idp-web:latest`
+- 이미지 미존재 시 `ImagePullBackOff`가 발생하며 ArgoCD 앱은 `Synced`여도 `Healthy`가 되지 않습니다.
+
 ## 📁 프로젝트 구조
 
 ```
@@ -115,6 +124,7 @@ prj-devops/
         ├── create-policy.sh      # 정책 생성
         ├── create-token.sh       # 토큰 생성
         ├── create-secrets.sh     # 시크릿 생성
+        ├── validate-idp-env-sync.sh # prj-core IDP env와 OpenBao 키 동기화 점검
         └── revoke-non-root-tokens.sh  # 토큰 폐기
 ```
 
@@ -182,6 +192,8 @@ prj-devops/
 
 ### 2. 애플리케이션 배포
 
+> 현재 `staging` 운영은 중지되어 있으므로, 실운영 기준은 `production`(ArgoCD prod-only)입니다.
+
 #### 스테이징 환경
 
 ```bash
@@ -200,6 +212,27 @@ prj-devops/
 
 # 프로덕션 배포
 ./scripts/deploy-all.sh production
+```
+
+#### IDP 동기화 점검 (권장)
+
+```bash
+# 1) Helm 값/시크릿 규칙 점검
+./scripts/helm-sync-check.sh
+
+# 2) prj-core IDP env.example vs OpenBao(idp/production) 키 드리프트 점검
+./scripts/openbao/validate-idp-env-sync.sh production
+```
+
+#### IDP 배포 상태 점검
+
+```bash
+# ArgoCD 앱 상태
+kubectl -n argocd get applications idp-api-prod idp-web-prod \
+  -o custom-columns=NAME:.metadata.name,SYNC:.status.sync.status,HEALTH:.status.health.status
+
+# 이미지 pull 실패 확인
+kubectl -n plate-prod get pods | rg 'idp-(api|web)-prod'
 ```
 
 ## 🔧 환경 설정

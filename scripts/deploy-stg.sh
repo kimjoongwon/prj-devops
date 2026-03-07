@@ -36,6 +36,13 @@ log_debug() {
     echo -e "${BLUE}[DEBUG]${NC} $1"
 }
 
+# 현재 staging 운영 중지 상태 보호 장치
+if [[ "${ALLOW_STAGING:-false}" != "true" ]]; then
+    log_error "staging 환경은 현재 운영 중지 상태입니다."
+    log_error "테스트가 꼭 필요하면 ALLOW_STAGING=true 를 명시하고 실행하세요."
+    exit 1
+fi
+
 # Helm 설치 확인
 check_helm() {
     if ! command -v helm &> /dev/null; then

@@ -46,7 +46,7 @@ show_usage() {
     echo "Usage: $0 [environment] [options]"
     echo ""
     echo "Environments:"
-    echo "  staging      - Deploy to staging environment (default)"
+    echo "  staging      - Deploy to staging environment (currently paused)"
     echo "  production   - Deploy to production environment"
     echo ""
     echo "Options:"
@@ -101,6 +101,11 @@ validate_environment() {
     case "$ENVIRONMENT" in
         staging|stg|stage)
             ENVIRONMENT="staging"
+            if [[ "${ALLOW_STAGING:-false}" != "true" ]]; then
+                log_error "staging 환경은 현재 운영 중지 상태입니다."
+                log_error "필요 시 ALLOW_STAGING=true 로 명시하고 재실행하세요."
+                exit 1
+            fi
             ;;
         production|prod)
             ENVIRONMENT="production"
