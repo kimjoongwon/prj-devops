@@ -1,0 +1,53 @@
+# IDP Web - Production 환경 ArgoCD Application
+
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: idp-web-prod
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+  labels:
+    app.kubernetes.io/name: idp-web
+    app.kubernetes.io/instance: production
+    environment: production
+spec:
+  project: default
+
+  source:
+    repoURL: https://github.com/kimjoongwon/prj-devops.git
+    path: helm/applications/idp-web
+    targetRevision: main
+    helm:
+      valueFiles:
+        - values-prod.yaml
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: plate-prod
+
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+
+    syncOptions:
+      - CreateNamespace=true
+      - ApplyOutOfSyncOnly=true
+
+    retry:
+      limit: 3
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m
+
+  revisionHistoryLimit: 10
+
+  info:
+    - name: "Environment"
+      value: "Production"
+    - name: "Domain"
+      value: "idp.cocdev.co.kr"
+    - name: "Description"
+      value: "IDP Web - Production Environment"

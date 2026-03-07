@@ -1,0 +1,31 @@
+# IDP Web Chart 기본 값 파일
+
+replicaCount: 1
+
+idp-web:
+  image:
+    repository: harbor.cocdev.co.kr/stg/idp-web
+    tag: "latest"
+    pullPolicy: IfNotPresent
+  port: 3008
+  resources:
+    limits:
+      cpu: 500m
+      memory: 512Mi
+    requests:
+      cpu: 100m
+      memory: 256Mi
+
+imagePullSecrets:
+  - name: harbor-docker-secret
+
+service:
+  type: ClusterIP
+  port: 80
+  targetPort: 3008
+
+appSecrets:
+  enabled: false
+  secretName: idp-env-secrets
+
+extraEnv: []

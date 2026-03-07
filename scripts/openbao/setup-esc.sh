@@ -82,16 +82,18 @@ echo "━━━━━━━━━━━━━━━━━━━━━━━━�
 echo "🚀 Kubernetes에 적용할 명령어"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo ""
+echo "# prod-only 운영이면 Production 명령만 적용"
+echo ""
 echo "# Staging 환경"
 echo "kubectl create secret generic openbao-token \\"
 echo "  --from-literal=token=$TOKEN \\"
-echo "  --namespace=external-secrets-stg \\"
+echo "  --namespace=plate-stg \\"
 echo "  --dry-run=client -o yaml | kubectl apply -f -"
 echo ""
 echo "# Production 환경"
 echo "kubectl create secret generic openbao-token \\"
 echo "  --from-literal=token=$TOKEN \\"
-echo "  --namespace=external-secrets-prod \\"
+echo "  --namespace=plate-prod \\"
 echo "  --dry-run=client -o yaml | kubectl apply -f -"
 echo ""
 
@@ -109,6 +111,15 @@ VAULT_TOKEN="$TOKEN" vault kv get secret/server/production 2>/dev/null && \
   echo "✅ secret/server/production 경로 접근 성공" || \
   echo "⚠️  secret/server/production 경로가 없거나 접근 불가"
 
+# IDP 시크릿 테스트
+VAULT_TOKEN="$TOKEN" vault kv get secret/idp/staging 2>/dev/null && \
+  echo "✅ secret/idp/staging 경로 접근 성공" || \
+  echo "⚠️  secret/idp/staging 경로가 없거나 접근 불가"
+
+VAULT_TOKEN="$TOKEN" vault kv get secret/idp/production 2>/dev/null && \
+  echo "✅ secret/idp/production 경로 접근 성공" || \
+  echo "⚠️  secret/idp/production 경로가 없거나 접근 불가"
+
 # Harbor 시크릿 테스트
 VAULT_TOKEN="$TOKEN" vault kv get secret/harbor/staging 2>/dev/null && \
   echo "✅ secret/harbor/staging 경로 접근 성공" || \
@@ -124,6 +135,7 @@ echo "📝 다음 단계: OpenBao에 시크릿 생성"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo ""
 echo "위 테스트에서 경로가 없다는 메시지가 나왔다면, 시크릿을 먼저 생성해야 합니다:"
+echo "(현재 prod-only 운영이면 production 경로만 우선 생성하면 됩니다.)"
 echo ""
 echo "# Staging 서버 시크릿 생성"
 echo "vault kv put secret/server/staging \\"
@@ -137,12 +149,24 @@ echo "  APP_PORT=3000 \\"
 echo "  APP_NAME=plate-server \\"
 echo "  NODE_ENV=production"
 echo ""
+echo "# Production IDP 시크릿 생성"
+echo "vault kv put secret/idp/production \\"
+echo "  APP_NAME=idp \\"
+echo "  APP_PORT=3007 \\"
+echo "  NODE_ENV=production \\"
+echo "  OIDC_ISSUER=https://idp.cocdev.co.kr \\"
+echo "  IDP_CLIENT_URL=https://idp.cocdev.co.kr"
+echo ""
 echo "# Staging Harbor 시크릿 생성"
 echo "vault kv put secret/harbor/staging \\"
-echo "  .dockerconfigjson='{\"auths\":{\"harbor.example.com\":{\"username\":\"user\",\"password\":\"pass\"}}}'"
+echo "  registry=harbor.cocdev.co.kr \\"
+echo "  username=robot\$plate-staging \\"
+echo "  password=<HARBOR_TOKEN>"
 echo ""
 echo "# Production Harbor 시크릿 생성"
 echo "vault kv put secret/harbor/production \\"
-echo "  .dockerconfigjson='{\"auths\":{\"harbor.example.com\":{\"username\":\"user\",\"password\":\"pass\"}}}'"
+echo "  registry=harbor.cocdev.co.kr \\"
+echo "  username=robot\$plate-production \\"
+echo "  password=<HARBOR_TOKEN>"
 echo ""
 echo "✅ ESC 설정 완료!"

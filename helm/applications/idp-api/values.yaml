@@ -1,0 +1,32 @@
+# IDP API Chart 기본 값 파일
+# Kubernetes에 배포할 IDP API 애플리케이션 설정
+
+replicaCount: 1
+
+idp-api:
+  image:
+    repository: harbor.cocdev.co.kr/stg/idp-api
+    tag: "latest"
+    pullPolicy: IfNotPresent
+  port: 3007
+  resources:
+    limits:
+      cpu: 500m
+      memory: 1Gi
+    requests:
+      cpu: 200m
+      memory: 512Mi
+
+imagePullSecrets:
+  - name: harbor-docker-secret
+
+service:
+  type: ClusterIP
+  port: 80
+  targetPort: 3007
+
+appSecrets:
+  enabled: true
+  secretName: idp-env-secrets
+
+extraEnv: []

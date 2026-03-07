@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "idp-web.name" . }}
+  labels:
+    {{- include "idp-web.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "idp-web.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "idp-web.labels" . | nindent 8 }}
+      annotations: {}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: {{ include "idp-web.name" . }}
+          image: "{{ index .Values "idp-web" "image" "repository" }}:{{ index .Values "idp-web" "image" "tag" | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ index .Values "idp-web" "image" "pullPolicy" }}
+          ports:
+            - name: http
+              containerPort: {{ index .Values "idp-web" "port" }}
+              protocol: TCP
+          {{- with .Values.extraEnv }}
+          env:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- if .Values.appSecrets.enabled }}
+          envFrom:
+            - secretRef:
+                name: {{ .Values.appSecrets.secretName }}
+          {{- end }}
+          resources:
+            {{- toYaml (index .Values "idp-web" "resources") | nindent 12 }}

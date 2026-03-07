@@ -50,10 +50,14 @@ fi
 if [[ "$ENV" == "staging" ]]; then
   FRONTEND_DOMAIN="https://staging.cocdev.co.kr"
   BACKEND_DOMAIN="https://api-staging.cocdev.co.kr"
+  IDP_DOMAIN="https://idp.stg.cocdev.co.kr"
+  CORE_ADMIN_CALLBACK_URL="https://stg.cocdev.co.kr/api/v1/auth/callback"
   NODE_ENV="staging"
 else
   FRONTEND_DOMAIN="https://app.cocdev.co.kr"
   BACKEND_DOMAIN="https://api.cocdev.co.kr"
+  IDP_DOMAIN="https://idp.cocdev.co.kr"
+  CORE_ADMIN_CALLBACK_URL="https://cocdev.co.kr/api/v1/auth/callback"
   NODE_ENV="production"
 fi
 
@@ -96,6 +100,37 @@ vault kv put "secret/server/$ENV" \
 echo "✅ 서버 시크릿 생성 완료: secret/server/$ENV"
 
 echo ""
+echo "🔧 IDP 시크릿 생성 중..."
+vault kv put "secret/idp/$ENV" \
+  APP_NAME=idp \
+  APP_PORT=3007 \
+  NODE_ENV="$NODE_ENV" \
+  DATABASE_URL="CHANGE_ME_postgresql://user:pass@host:5432/db" \
+  DIRECT_URL="CHANGE_ME_postgresql://user:pass@host:5432/db" \
+  REDIS_HOST="CHANGE_ME_REDIS_HOST" \
+  REDIS_PORT=6379 \
+  REDIS_PASSWORD="CHANGE_ME_REDIS_PASSWORD" \
+  CORS_ENABLED=true \
+  SMTP_HOST=smtp.gmail.com \
+  SMTP_PORT=587 \
+  SMTP_USERNAME="CHANGE_ME_SMTP_USER" \
+  SMTP_PASSWORD="CHANGE_ME_SMTP_PASS" \
+  SMTP_SENDER="noreply@cocdev.co.kr" \
+  AUTH_JWT_SECRET="CHANGE_ME_$(openssl rand -hex 32)" \
+  AUTH_JWT_TOKEN_EXPIRES_IN=1h \
+  AUTH_JWT_TOKEN_REFRESH_IN=7d \
+  AUTH_JWT_SALT_ROUNDS=10 \
+  OIDC_ISSUER="$IDP_DOMAIN" \
+  OIDC_COOKIE_SECRET="CHANGE_ME_$(openssl rand -hex 32)" \
+  OIDC_CLIENT_ID=prj-core-admin \
+  OIDC_CLIENT_SECRET="CHANGE_ME_$(openssl rand -hex 24)" \
+  OIDC_REDIRECT_URI="$CORE_ADMIN_CALLBACK_URL" \
+  OIDC_JWKS_URI="$IDP_DOMAIN/oidc/jwks" \
+  IDP_CLIENT_URL="$IDP_DOMAIN"
+
+echo "✅ IDP 시크릿 생성 완료: secret/idp/$ENV"
+
+echo ""
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo "🐳 Step 3: Harbor Registry 시크릿 생성"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
@@ -112,6 +147,9 @@ DOCKER_CONFIG="{\"auths\":{\"harbor.cocdev.co.kr\":{\"username\":\"$HARBOR_USERN
 echo ""
 echo "🔧 Harbor 시크릿 생성 중..."
 vault kv put "secret/harbor/$ENV" \
+  registry="harbor.cocdev.co.kr" \
+  username="$HARBOR_USERNAME" \
+  password="$HARBOR_PASSWORD" \
   .dockerconfigjson="$DOCKER_CONFIG"
 
 echo "✅ Harbor 시크릿 생성 완료: secret/harbor/$ENV"
@@ -123,6 +161,7 @@ echo "━━━━━━━━━━━━━━━━━━━━━━━━�
 echo ""
 echo "📝 생성된 시크릿 확인:"
 echo "  vault kv get secret/server/$ENV"
+echo "  vault kv get secret/idp/$ENV"
 echo "  vault kv get secret/harbor/$ENV"
 echo ""
 echo "⚠️  다음 항목들을 실제 값으로 업데이트하세요:"
@@ -141,6 +180,15 @@ echo "# 데이터베이스 URL 업데이트"
 echo "vault kv patch secret/server/$ENV \\"
 echo "  DATABASE_URL=<실제_DB_URL> \\"
 echo "  DIRECT_URL=<실제_DIRECT_URL>"
+echo ""
+echo "# IDP 시크릿 업데이트"
+echo "vault kv patch secret/idp/$ENV \\"
+echo "  DATABASE_URL=<실제_DB_URL> \\"
+echo "  DIRECT_URL=<실제_DIRECT_URL> \\"
+echo "  REDIS_HOST=<실제_REDIS_HOST> \\"
+echo "  REDIS_PASSWORD=<실제_REDIS_PASSWORD> \\"
+echo "  OIDC_COOKIE_SECRET=<32자이상_시크릿> \\"
+echo "  OIDC_CLIENT_SECRET=<실제_CLIENT_SECRET>"
 echo ""
 echo "# JWT 시크릿 업데이트 (선택사항, 자동 생성됨)"
 echo "vault kv patch secret/server/$ENV \\"

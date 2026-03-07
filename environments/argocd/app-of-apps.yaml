@@ -40,6 +40,6 @@ spec:
     - name: 'Environment'
       value: 'Production only (staging excluded by directory.exclude)'
     - name: 'Components'
-      value: 'fe-web, be-server, ingress, container-cache, apm(grafana/tempo/otel)'
+      value: 'fe-web, be-server, idp-web, idp-api, ingress, container-cache, apm(grafana/tempo/otel)'
     - name: 'Namespaces'
       value: 'plate-prod'

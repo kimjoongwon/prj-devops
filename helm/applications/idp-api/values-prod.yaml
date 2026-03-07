@@ -1,0 +1,35 @@
+# Production environment values for IDP API
+
+replicaCount: 1
+
+idp-api:
+  image:
+    repository: harbor.cocdev.co.kr/prod/idp-api
+    tag: "latest"
+    pullPolicy: IfNotPresent
+  port: 3007
+  resources:
+    limits:
+      cpu: 500m
+      memory: 1Gi
+    requests:
+      cpu: 200m
+      memory: 512Mi
+
+appSecrets:
+  enabled: true
+  secretName: idp-env-secrets
+
+extraEnv:
+  - name: APP_NAME
+    value: idp
+  - name: APP_PORT
+    value: "3007"
+  - name: OIDC_ISSUER
+    value: https://idp.cocdev.co.kr
+  - name: IDP_CLIENT_URL
+    value: https://idp.cocdev.co.kr
+  - name: OIDC_REDIRECT_URI
+    value: https://cocdev.co.kr/api/v1/auth/callback
+  - name: OTEL_SERVICE_NAME
+    value: idp-api-prod

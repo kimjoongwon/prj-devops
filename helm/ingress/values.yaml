@@ -63,8 +63,32 @@ ingress:
               name: spring
               port:
                 number: 80
+    - host: idp.cocdev.co.kr # IDP 전용 도메인
+      paths:
+        - path: /api
+          pathType: Prefix
+          backend:
+            service:
+              name: idp-api-prod
+              port:
+                number: 80
+        - path: /oidc
+          pathType: Prefix
+          backend:
+            service:
+              name: idp-api-prod
+              port:
+                number: 80
+        - path: /
+          pathType: Prefix
+          backend:
+            service:
+              name: idp-web-prod
+              port:
+                number: 80
 
   tls:
     - secretName: web-prod-tls # cert-manager 가 관리하는 프로덕션 TLS 시크릿
       hosts:
         - cocdev.co.kr # SAN / CN 매칭 호스트 목록
+        - idp.cocdev.co.kr

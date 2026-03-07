@@ -60,6 +60,16 @@ prj-devops/
 │   │   │   ├── values.yaml
 │   │   │   ├── values-stg.yaml
 │   │   │   └── templates/
+│   │   ├── idp-api/               # IDP API 백엔드
+│   │   │   ├── Chart.yaml
+│   │   │   ├── values.yaml
+│   │   │   ├── values-prod.yaml
+│   │   │   └── templates/
+│   │   ├── idp-web/               # IDP Web 프론트엔드
+│   │   │   ├── Chart.yaml
+│   │   │   ├── values.yaml
+│   │   │   ├── values-prod.yaml
+│   │   │   └── templates/
 │   │   └── plate-cache/           # 컨테이너 빌드 캐시 PVC
 │   │       ├── Chart.yaml
 │   │       ├── values.yaml        # 통합 설정 (환경 공통)
@@ -84,6 +94,8 @@ prj-devops/
 │           ├── plate-web-stg.yaml
 │           ├── plate-web-prod.yaml
 │           ├── plate-llm-stg.yaml
+│           ├── idp-api-prod.yaml
+│           ├── idp-web-prod.yaml
 │           ├── plate-cache.yaml   # 환경 통합 (단일 PVC)
 │           ├── ingress-stg.yaml
 │           ├── ingress-prod.yaml
@@ -113,7 +125,7 @@ prj-devops/
 **애플리케이션 차트** (`helm/applications/`):
 
 - 차트명 = 디렉토리명 = 릴리스명 = 컨테이너명
-  - 예: `plate-server`, `plate-web`, `plate-llm`
+  - 예: `plate-server`, `plate-web`, `idp-api`, `idp-web`, `plate-llm`
 - 헬퍼 템플릿 단순화: `.Release.Name` 직접 사용
 - imagePullSecrets: Harbor 인증을 위한 `harbor-docker-secret` 포함
 - Ingress: 별도 차트에서 중앙 관리 (`helm/ingress`)
@@ -124,6 +136,7 @@ prj-devops/
 - `values-stg.yaml`: 스테이징 환경 오버라이드
 - `values-prod.yaml`: 프로덕션 환경 오버라이드
 - 예외: `plate-cache`는 단일 `values.yaml` 사용 (환경 간 공유 리소스)
+- 예외: `idp-api`, `idp-web`는 현재 `prod-only` 운영 기준으로 `values-prod.yaml` 중심 관리
 
 ### ArgoCD GitOps 전략
 
@@ -250,10 +263,10 @@ OpenBao를 통한 중앙화된 시크릿 관리:
   - 린트: `helm lint helm/development-tools/<차트>` 또는 `helm lint helm/cluster-services/<차트>`
   - 렌더 확인: `helm template helm/development-tools/<차트> -f values.yaml`
 
-### Plate Applications 운영 원칙
+### Applications 운영 원칙
 
 - 관리 원칙:
-  - 각 애플리케이션 차트(plate-web, plate-server, plate-llm, plate-cache)는 차트 루트에 환경별 values(`values-stg.yaml`, `values-prod.yaml`)를 보관합니다
+  - 각 애플리케이션 차트는 서비스 운영 모드에 맞는 values 파일을 보관합니다 (`values-stg.yaml`, `values-prod.yaml` 또는 단일 `values.yaml`)
   - ArgoCD Application은 차트 경로(`helm/applications/<서비스>`)와 해당 환경 values만 지정하여 배포합니다
 - 변경 절차:
   - 스테이징: `values-stg.yaml` 수정 → PR/리뷰 → ArgoCD 동기화로 적용 → 검증
@@ -325,6 +338,7 @@ kubectl get pods -A
 
 - **Staging**: https://cocdev.co.kr 또는 https://stg.cocdev.co.kr
 - **Production**: https://cocdev.co.kr 또는 https://www.cocdev.co.kr
+- **Production IDP**: https://idp.cocdev.co.kr
 
 ## 🗂️ File Organization
 
@@ -338,7 +352,7 @@ kubectl get pods -A
 
 - Plate 애플리케이션: 각 차트 디렉토리의 환경별 파일을 사용합니다
   - 스테이징: `helm/applications/<서비스>/values-stg.yaml` (예: `plate-web/values-stg.yaml`, `plate-server/values-stg.yaml`)
-  - 프로덕션: `helm/applications/<서비스>/values-prod.yaml` (예: `plate-web/values-prod.yaml`, `plate-server/values-prod.yaml`)
+  - 프로덕션: `helm/applications/<서비스>/values-prod.yaml` (예: `plate-web/values-prod.yaml`, `plate-server/values-prod.yaml`, `idp-api/values-prod.yaml`, `idp-web/values-prod.yaml`)
 - 인프라/도구(클러스터 서비스, 개발 도구): 각 차트 디렉토리의 `values.yaml`로 형상 관리합니다. 예: `helm/cluster-services/cert-manager/values.yaml`, `helm/development-tools/harbor/values.yaml`
 
 ## 🚨 Safety & Best Practices
@@ -449,7 +463,7 @@ spec:
 - **경로 일관성**: 모든 차트를 `helm/` 트리 하위에 배치 → ArgoCD 설정 단순화
 - **환경별 설정 관리**: `environments/` 디렉토리에서 스테이징/프로덕션 values 중앙 관리
 - **GitOps 통합**: ArgoCD를 통한 선언적 배포 및 자동 동기화
-- **멀티 애플리케이션 지원**: plate-web, plate-server, plate-admin, plate-llm, plate-cache 등 Plate 서비스 통합 관리
+- **멀티 애플리케이션 지원**: plate-web, plate-server, plate-admin, plate-llm, plate-cache, idp-api, idp-web 통합 관리
 
 ### ArgoCD Application 구조
 

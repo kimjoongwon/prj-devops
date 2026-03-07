@@ -1,0 +1,17 @@
+apiVersion: v2
+name: idp-web
+description: IDP Web 애플리케이션용 Helm 차트 (Next.js)
+type: application
+version: 0.1.0
+appVersion: "1.0.0"
+keywords:
+  - idp
+  - web
+  - nextjs
+  - frontend
+home: https://cocdev.co.kr
+sources:
+  - https://github.com/kimjoongwon/prj-devops
+maintainers:
+  - name: Plate Team
+    email: dev@cocdev.co.kr

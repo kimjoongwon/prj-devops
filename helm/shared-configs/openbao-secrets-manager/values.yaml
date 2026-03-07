@@ -62,6 +62,30 @@ externalSecrets:
     # 새 환경변수 추가 시 OpenBao KV에만 추가하면 자동 동기화됨
     # 개별 data 매핑이 더 이상 필요하지 않음
 
+# IDP 환경변수 Secret 동기화 (옵션)
+idp:
+  enabled: false
+  externalSecret:
+    name: "idp-env-secrets"
+    refreshInterval: "1h"
+    target:
+      name: "idp-env-secrets"
+      creationPolicy: "Owner"
+      template:
+        type: "Opaque"
+        metadata:
+          labels:
+            app.kubernetes.io/component: "idp-env-secrets"
+  staging:
+    remoteRef:
+      key: "idp/staging"
+  production:
+    remoteRef:
+      key: "idp/production"
+  development:
+    remoteRef:
+      key: "idp/development"
+
 # Environment-specific overrides
 environments:
   staging:

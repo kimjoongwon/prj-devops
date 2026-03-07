@@ -517,12 +517,12 @@ EOF
             echo -e "${CYAN}Secret을 생성할 네임스페이스를 선택하세요:${NC}"
             echo "  1) external-secrets (클러스터 레벨 시크릿용)"
             echo "  2) plate-stg (Staging 환경용)"
-            echo "  3) plate-prod (Production 환경용)"
-            echo "  4) 모두 생성 (권장)"
+            echo "  3) plate-prod (Production 환경용, prod-only 권장)"
+            echo "  4) 모두 생성"
             echo "  5) 직접 입력"
             echo
-            read -r -p "선택 (1-5, 기본값: 4): " NS_CHOICE
-            NS_CHOICE=${NS_CHOICE:-4}
+            read -r -p "선택 (1-5, 기본값: 3): " NS_CHOICE
+            NS_CHOICE=${NS_CHOICE:-3}
 
             case $NS_CHOICE in
                 1) NAMESPACES=("external-secrets") ;;
@@ -534,7 +534,7 @@ EOF
                     read -r CUSTOM_NS
                     IFS=',' read -ra NAMESPACES <<< "$CUSTOM_NS"
                     ;;
-                *) NAMESPACES=("external-secrets" "plate-stg" "plate-prod") ;;
+                *) NAMESPACES=("plate-prod") ;;
             esac
 
             echo

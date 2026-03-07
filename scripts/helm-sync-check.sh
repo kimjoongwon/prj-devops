@@ -23,9 +23,20 @@ log_warn() { echo -e "${YELLOW}⚠${NC} $1"; ((WARN++)); }
 log_info() { echo -e "  $1"; }
 
 # appSecrets가 필요한 앱 목록 (nginx 프록시, PVC만 관리하는 앱 제외)
-APPS_WITH_SECRETS=("plate-server" "plate-admin")
+APPS_WITH_SECRETS=("plate-server" "plate-admin" "idp-api")
 # 모든 앱 목록
-ALL_APPS=("plate-server" "plate-admin" "plate-web" "plate-llm" "plate-cache")
+ALL_APPS=("plate-server" "plate-admin" "plate-web" "plate-llm" "plate-cache" "idp-api" "idp-web")
+
+get_expected_secret() {
+    case "$1" in
+        idp-api)
+            echo "idp-env-secrets"
+            ;;
+        *)
+            echo "app-env-secrets"
+            ;;
+    esac
+}
 
 echo "========================================"
 echo " Helm Values 싱크 검증"
@@ -64,10 +75,9 @@ echo ""
 # 2. appSecrets 설정 검사
 echo "🔐 appSecrets 설정 검사"
 echo "----------------------------------------"
-EXPECTED_SECRET="app-env-secrets"
-
 for app in "${APPS_WITH_SECRETS[@]}"; do
     app_dir="${HELM_DIR}/${app}"
+    expected_secret="$(get_expected_secret "$app")"
 
     for values_file in values.yaml values-stg.yaml values-prod.yaml; do
         file_path="${app_dir}/${values_file}"
@@ -79,10 +89,10 @@ for app in "${APPS_WITH_SECRETS[@]}"; do
         # secretName 추출
         secret_name=$(grep -E "^\s*secretName:" "$file_path" | head -1 | awk '{print $2}' | tr -d '"' | tr -d "'")
 
-        if [[ "$secret_name" == "$EXPECTED_SECRET" ]]; then
+        if [[ "$secret_name" == "$expected_secret" ]]; then
             log_pass "${app}/${values_file}: secretName=${secret_name}"
         elif [[ -n "$secret_name" ]]; then
-            log_fail "${app}/${values_file}: secretName=${secret_name} (예상: ${EXPECTED_SECRET})"
+            log_fail "${app}/${values_file}: secretName=${secret_name} (예상: ${expected_secret})"
         else
             log_warn "${app}/${values_file}: secretName 없음"
         fi

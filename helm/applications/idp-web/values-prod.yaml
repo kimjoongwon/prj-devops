@@ -1,0 +1,27 @@
+# Production environment values for IDP Web
+
+replicaCount: 1
+
+idp-web:
+  image:
+    repository: harbor.cocdev.co.kr/prod/idp-web
+    tag: "latest"
+    pullPolicy: IfNotPresent
+  port: 3008
+  resources:
+    limits:
+      cpu: 500m
+      memory: 512Mi
+    requests:
+      cpu: 100m
+      memory: 256Mi
+
+appSecrets:
+  enabled: false
+  secretName: idp-env-secrets
+
+extraEnv:
+  - name: IDP_API_INTERNAL_URL
+    value: http://idp-api-prod
+  - name: OTEL_SERVICE_NAME
+    value: idp-web-prod
