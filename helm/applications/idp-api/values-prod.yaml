@@ -6,7 +6,7 @@ idp-api:
   image:
     repository: harbor.cocdev.co.kr/prod/idp-api
     tag: "latest"
-    pullPolicy: IfNotPresent
+    pullPolicy: Always
   port: 3007
   resources:
     limits:
