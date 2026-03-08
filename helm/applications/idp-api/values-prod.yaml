@@ -20,6 +20,11 @@ appSecrets:
   enabled: true
   secretName: idp-api-env-secrets
 
+command:
+  - node
+  - apps/idp/api/dist/main.js
+args: []
+
 extraEnv:
   - name: APP_NAME
     value: idp

@@ -29,4 +29,7 @@ appSecrets:
   enabled: true
   secretName: idp-api-env-secrets
 
+command: []
+args: []
+
 extraEnv: []

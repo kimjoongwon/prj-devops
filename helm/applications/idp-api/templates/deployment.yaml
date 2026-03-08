@@ -23,6 +23,14 @@ spec:
         - name: {{ include "idp-api.name" . }}
           image: "{{ index .Values "idp-api" "image" "repository" }}:{{ index .Values "idp-api" "image" "tag" | default .Chart.AppVersion }}"
           imagePullPolicy: {{ index .Values "idp-api" "image" "pullPolicy" }}
+          {{- with .Values.command }}
+          command:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.args }}
+          args:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
           ports:
             - name: http
               containerPort: {{ index .Values "idp-api" "port" }}
