@@ -29,6 +29,12 @@ appSecrets:
   enabled: true
   secretName: idp-api-env-secrets
 
+# 인프라 공통 환경변수 Secret 설정
+# OpenBao 경로: devops/{environment}
+infraSecrets:
+  enabled: true
+  secretName: infra-env-secrets
+
 command: []
 args: []
 

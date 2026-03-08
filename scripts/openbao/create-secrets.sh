@@ -62,6 +62,16 @@ else
 fi
 
 echo ""
+echo "🔧 인프라 공통 시크릿 생성 중..."
+vault kv put "secret/devops/$ENV" \
+  AWS_ACCESS_KEY_ID="CHANGE_ME_AWS_KEY" \
+  AWS_SECRET_ACCESS_KEY="CHANGE_ME_AWS_SECRET" \
+  AWS_REGION=ap-northeast-2 \
+  AWS_S3_BUCKET_NAME="plate-$ENV"
+
+echo "✅ 인프라 공통 시크릿 생성 완료: secret/devops/$ENV"
+
+echo ""
 echo "🔧 서버 시크릿 생성 중..."
 vault kv put "secret/core-api/$ENV" \
   APP_PORT=3000 \
@@ -73,10 +83,6 @@ vault kv put "secret/core-api/$ENV" \
   FRONTEND_DOMAIN="$FRONTEND_DOMAIN" \
   BACKEND_DOMAIN="$BACKEND_DOMAIN" \
   NODE_ENV="$NODE_ENV" \
-  AWS_ACCESS_KEY_ID="CHANGE_ME_AWS_KEY" \
-  AWS_SECRET_ACCESS_KEY="CHANGE_ME_AWS_SECRET" \
-  AWS_REGION=ap-northeast-2 \
-  AWS_S3_BUCKET_NAME="plate-$ENV" \
   SMTP_HOST=smtp.gmail.com \
   SMTP_PORT=587 \
   SMTP_USERNAME="CHANGE_ME_SMTP_USER" \
@@ -182,6 +188,7 @@ echo "✅ 모든 시크릿 생성 완료!"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo ""
 echo "📝 생성된 시크릿 확인:"
+echo "  vault kv get secret/devops/$ENV"
 echo "  vault kv get secret/core-api/$ENV"
 echo "  vault kv get secret/idp-api/$ENV"
 echo "  vault kv get secret/idp-web/$ENV"
@@ -190,7 +197,7 @@ echo ""
 echo "⚠️  다음 항목들을 실제 값으로 업데이트하세요:"
 echo ""
 echo "# AWS 자격증명 업데이트"
-echo "vault kv patch secret/core-api/$ENV \\"
+echo "vault kv patch secret/devops/$ENV \\"
 echo "  AWS_ACCESS_KEY_ID=<실제_키> \\"
 echo "  AWS_SECRET_ACCESS_KEY=<실제_시크릿>"
 echo ""

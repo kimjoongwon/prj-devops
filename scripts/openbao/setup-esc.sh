@@ -111,6 +111,15 @@ VAULT_TOKEN="$TOKEN" vault kv get secret/core-api/production 2>/dev/null && \
   echo "✅ secret/core-api/production 경로 접근 성공" || \
   echo "⚠️  secret/core-api/production 경로가 없거나 접근 불가"
 
+# 인프라 공통 시크릿 테스트
+VAULT_TOKEN="$TOKEN" vault kv get secret/devops/staging 2>/dev/null && \
+  echo "✅ secret/devops/staging 경로 접근 성공" || \
+  echo "⚠️  secret/devops/staging 경로가 없거나 접근 불가"
+
+VAULT_TOKEN="$TOKEN" vault kv get secret/devops/production 2>/dev/null && \
+  echo "✅ secret/devops/production 경로 접근 성공" || \
+  echo "⚠️  secret/devops/production 경로가 없거나 접근 불가"
+
 # IDP API 시크릿 테스트
 VAULT_TOKEN="$TOKEN" vault kv get secret/idp-api/staging 2>/dev/null && \
   echo "✅ secret/idp-api/staging 경로 접근 성공" || \
@@ -145,6 +154,20 @@ echo "━━━━━━━━━━━━━━━━━━━━━━━━�
 echo ""
 echo "위 테스트에서 경로가 없다는 메시지가 나왔다면, 시크릿을 먼저 생성해야 합니다:"
 echo "(현재 prod-only 운영이면 production 경로만 우선 생성하면 됩니다.)"
+echo ""
+echo "# Staging 인프라 공통 시크릿 생성"
+echo "vault kv put secret/devops/staging \\"
+echo "  AWS_ACCESS_KEY_ID=<AWS_KEY> \\"
+echo "  AWS_SECRET_ACCESS_KEY=<AWS_SECRET> \\"
+echo "  AWS_REGION=ap-northeast-2 \\"
+echo "  AWS_S3_BUCKET_NAME=plate-staging"
+echo ""
+echo "# Production 인프라 공통 시크릿 생성"
+echo "vault kv put secret/devops/production \\"
+echo "  AWS_ACCESS_KEY_ID=<AWS_KEY> \\"
+echo "  AWS_SECRET_ACCESS_KEY=<AWS_SECRET> \\"
+echo "  AWS_REGION=ap-northeast-2 \\"
+echo "  AWS_S3_BUCKET_NAME=plate-production"
 echo ""
 echo "# Staging 서버 시크릿 생성"
 echo "vault kv put secret/core-api/staging \\"

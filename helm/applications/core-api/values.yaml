@@ -37,6 +37,12 @@ appSecrets:
   # envFrom으로 전체 Secret을 환경변수로 주입
   # 새 환경변수 추가 시 OpenBao KV에만 추가하면 자동 동기화됨
 
+# 인프라 공통 환경변수 Secret 설정
+# OpenBao 경로: devops/{environment}
+infraSecrets:
+  enabled: true
+  secretName: infra-env-secrets
+
 # 애플리케이션 추가 환경변수
 # APM 도입 시 OTEL_SERVICE_NAME 같은 서비스별 값을 주입하는 용도
 extraEnv: []

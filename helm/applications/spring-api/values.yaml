@@ -35,6 +35,12 @@ appSecrets:
   enabled: true
   secretName: app-env-secrets
 
+# 인프라 공통 환경변수 Secret 설정
+# OpenBao 경로: devops/{environment}
+infraSecrets:
+  enabled: true
+  secretName: infra-env-secrets
+
 # 애플리케이션 추가 환경변수
 extraEnv: []
 

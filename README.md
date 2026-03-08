@@ -139,6 +139,7 @@ prj-devops/
         ├── create-policy.sh      # 정책 생성
         ├── create-token.sh       # 토큰 생성
         ├── create-secrets.sh     # 시크릿 생성
+        ├── migrate-infra-secrets.sh # infra 키를 devops/* 로 이관
         ├── migrate-idp-to-idp-api-web.sh # secret/idp -> idp-api,idp-web 마이그레이션
         ├── validate-idp-env-sync.sh # prj-core IDP env와 OpenBao 키 동기화 점검
         └── revoke-non-root-tokens.sh  # 토큰 폐기
@@ -280,6 +281,9 @@ OpenBao를 통한 중앙화된 시크릿 관리:
 # Vault CLI 설치
 ./scripts/openbao/install-vault-cli.sh
 
+# 인프라 공통 키(AWS 등) 이관
+./scripts/openbao/migrate-infra-secrets.sh all
+
 # 라이브러리(인프라 + 도구)만 배포
 ./scripts/deploy-all.sh staging --libraries-only
 
@@ -289,6 +293,10 @@ OpenBao를 통한 중앙화된 시크릿 관리:
 # 프로덕션 드라이런(검증용, 실제 적용 X)
 ./scripts/deploy-all.sh production --dry-run
 ```
+
+OpenBao 경로 원칙:
+- 애플리케이션별: `secret/core-api/<env>`, `secret/idp-api/<env>`, `secret/idp-web/<env>`
+- 인프라 공통: `secret/devops/<env>` (예: AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY)
 
 ### deploy-libraries.sh
 

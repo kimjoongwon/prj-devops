@@ -112,6 +112,32 @@ idpWeb:
     remoteRef:
       key: "idp-web/development"
 
+# 공통 인프라 환경변수 Secret 동기화 (옵션)
+# OpenBao 경로: devops/{environment}
+# 예: AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_REGION ...
+infra:
+  enabled: true
+  externalSecret:
+    name: "infra-env-secrets"
+    refreshInterval: "1h"
+    target:
+      name: "infra-env-secrets"
+      creationPolicy: "Owner"
+      template:
+        type: "Opaque"
+        metadata:
+          labels:
+            app.kubernetes.io/component: "infra-env-secrets"
+  staging:
+    remoteRef:
+      key: "devops/staging"
+  production:
+    remoteRef:
+      key: "devops/production"
+  development:
+    remoteRef:
+      key: "devops/development"
+
 # Environment-specific overrides
 environments:
   staging:
