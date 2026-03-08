@@ -11,9 +11,9 @@
 ## 지원 대상 앱 (prod)
 - `idp-api`
 - `idp-web`
-- `plate-server`
-- `plate-admin`
-- `spring-server`
+- `core-api`
+- `admin-web`
+- `spring-api`
 
 ## 스크립트
 - 경로: `scripts/jenkins/update-gitops-image-tag.sh`

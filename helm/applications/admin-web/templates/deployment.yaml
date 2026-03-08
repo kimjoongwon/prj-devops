@@ -1,0 +1,45 @@
+# Admin Web Deployment 템플릿
+# Next.js 애플리케이션(port 3000)을 Kubernetes 클러스터에 배포
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "admin-web.name" . }}
+  labels:
+    {{- include "admin-web.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "admin-web.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "admin-web.labels" . | nindent 8 }}
+      annotations: {}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: {{ include "admin-web.name" . }}
+          image: "{{ index .Values "admin-web" "image" "repository" }}:{{ index .Values "admin-web" "image" "tag" | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ index .Values "admin-web" "image" "pullPolicy" }}
+          ports:
+            - name: http
+              containerPort: {{ index .Values "admin-web" "port" }}
+              protocol: TCP
+          {{- with .Values.extraEnv }}
+          env:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- if .Values.appSecrets.enabled }}
+          # envFrom으로 전체 Secret을 환경변수로 주입
+          # OpenBao KV(admin-web/staging 또는 admin-web/production)에서 자동 동기화
+          envFrom:
+            - secretRef:
+                name: {{ .Values.appSecrets.secretName }}
+          {{- end }}
+          resources:
+            {{- toYaml (index .Values "admin-web" "resources") | nindent 12 }}

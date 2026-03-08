@@ -103,13 +103,13 @@ echo "🧪 Step 6: 토큰 권한 테스트"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 
 # 서버 시크릿 테스트
-VAULT_TOKEN="$TOKEN" vault kv get secret/server/staging 2>/dev/null && \
-  echo "✅ secret/server/staging 경로 접근 성공" || \
-  echo "⚠️  secret/server/staging 경로가 없거나 접근 불가"
+VAULT_TOKEN="$TOKEN" vault kv get secret/core-api/staging 2>/dev/null && \
+  echo "✅ secret/core-api/staging 경로 접근 성공" || \
+  echo "⚠️  secret/core-api/staging 경로가 없거나 접근 불가"
 
-VAULT_TOKEN="$TOKEN" vault kv get secret/server/production 2>/dev/null && \
-  echo "✅ secret/server/production 경로 접근 성공" || \
-  echo "⚠️  secret/server/production 경로가 없거나 접근 불가"
+VAULT_TOKEN="$TOKEN" vault kv get secret/core-api/production 2>/dev/null && \
+  echo "✅ secret/core-api/production 경로 접근 성공" || \
+  echo "⚠️  secret/core-api/production 경로가 없거나 접근 불가"
 
 # IDP 시크릿 테스트
 VAULT_TOKEN="$TOKEN" vault kv get secret/idp/staging 2>/dev/null && \
@@ -138,15 +138,15 @@ echo "위 테스트에서 경로가 없다는 메시지가 나왔다면, 시크�
 echo "(현재 prod-only 운영이면 production 경로만 우선 생성하면 됩니다.)"
 echo ""
 echo "# Staging 서버 시크릿 생성"
-echo "vault kv put secret/server/staging \\"
+echo "vault kv put secret/core-api/staging \\"
 echo "  APP_PORT=3000 \\"
-echo "  APP_NAME=plate-server \\"
+echo "  APP_NAME=core-api \\"
 echo "  NODE_ENV=staging"
 echo ""
 echo "# Production 서버 시크릿 생성"
-echo "vault kv put secret/server/production \\"
+echo "vault kv put secret/core-api/production \\"
 echo "  APP_PORT=3000 \\"
-echo "  APP_NAME=plate-server \\"
+echo "  APP_NAME=core-api \\"
 echo "  NODE_ENV=production"
 echo ""
 echo "# Production IDP 시크릿 생성"

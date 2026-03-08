@@ -81,7 +81,7 @@ echo "📝 Step 3: 저장 경로 선택"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo ""
 echo "저장할 경로를 입력하세요."
-echo "  - 기존 경로 사용: server/staging"
+echo "  - 기존 경로 사용: core-api/staging"
 echo "  - 새 경로 생성:   myapp/config (자동 생성됨)"
 echo ""
 read -p "경로 입력: " SECRET_PATH

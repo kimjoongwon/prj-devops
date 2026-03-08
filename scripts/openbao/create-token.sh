@@ -427,7 +427,7 @@ if [ $? -eq 0 ]; then
     echo "   export VAULT_TOKEN=$TOKEN"
     echo
     echo "2. CLI에서 직접 사용:"
-    echo "   vault kv get -token=$TOKEN secret/server/staging"
+    echo "   vault kv get -token=$TOKEN secret/core-api/staging"
     echo
     echo "3. 토큰 정보 확인:"
     echo "   vault token lookup $TOKEN"
@@ -466,7 +466,7 @@ Period: $TOKEN_PERIOD
 
 # Usage:
 # export VAULT_TOKEN=$TOKEN
-# vault kv get secret/server/staging
+# vault kv get secret/core-api/staging
 #
 # Renew token (갱신):
 # vault token renew $TOKEN
@@ -487,7 +487,7 @@ TTL: $TOKEN_TTL
 
 # Usage:
 # export VAULT_TOKEN=$TOKEN
-# vault kv get secret/server/staging
+# vault kv get secret/core-api/staging
 EOF
         fi
         echo

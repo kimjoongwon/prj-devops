@@ -1,0 +1,42 @@
+# Core API Chart 기본 값 파일
+# Kubernetes에 배포할 백엔드 서버 설정
+# 환경별 오버라이드: values-prod.yaml, values-stg.yaml
+
+replicaCount: 1
+
+# core-api 애플리케이션 설정
+core-api:
+  image:
+    repository: harbor.cocdev.co.kr/stg/core-api
+    tag: "latest"
+    pullPolicy: IfNotPresent
+  port: 3006
+  resources:
+    limits:
+      cpu: 500m
+      memory: 1Gi
+    requests:
+      cpu: 250m
+      memory: 512Mi
+
+# Harbor registry authentication
+imagePullSecrets:
+  - name: harbor-docker-secret
+
+service:
+  type: LoadBalancer
+  port: 80
+  targetPort: 3006
+
+# 애플리케이션 환경변수 Secret 설정
+# OpenBao KV 경로: core-api/staging, core-api/production
+# 시크릿: app-env-secrets (환경별 공유)
+appSecrets:
+  enabled: true
+  secretName: app-env-secrets
+  # envFrom으로 전체 Secret을 환경변수로 주입
+  # 새 환경변수 추가 시 OpenBao KV에만 추가하면 자동 동기화됨
+
+# 애플리케이션 추가 환경변수
+# APM 도입 시 OTEL_SERVICE_NAME 같은 서비스별 값을 주입하는 용도
+extraEnv: []

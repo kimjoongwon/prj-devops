@@ -1,0 +1,29 @@
+# Production environment values for Admin Web
+# Override from values.yaml for production environment
+
+replicaCount: 1
+
+# Production 이미지 저장소 (Harbor registry)
+# 이미지 규칙: harbor.cocdev.co.kr/{환경}/{앱이름}
+admin-web:
+  image:
+    repository: harbor.cocdev.co.kr/prod/admin-web
+    tag: "latest"
+    pullPolicy: IfNotPresent  # Production은 캐시된 이미지 사용
+  port: 3000
+  resources:
+    limits:
+      cpu: 500m
+      memory: 512Mi
+    requests:
+      cpu: 200m
+      memory: 256Mi
+
+# Production 환경 시크릿
+appSecrets:
+  enabled: true
+  secretName: app-env-secrets
+
+extraEnv:
+  - name: OTEL_SERVICE_NAME
+    value: admin-web-prod

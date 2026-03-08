@@ -1,0 +1,30 @@
+# Production environment values for Core API
+# Override from values.yaml for production environment
+
+replicaCount: 1
+
+# Production 이미지 저장소 (Harbor registry)
+# 이미지 규칙: harbor.cocdev.co.kr/{환경}/{앱이름}
+core-api:
+  image:
+    repository: harbor.cocdev.co.kr/prod/core-api
+    tag: "latest"
+    pullPolicy: IfNotPresent
+  port: 3006
+  resources:
+    limits:
+      cpu: 500m
+      memory: 1Gi
+    requests:
+      cpu: 250m
+      memory: 512Mi
+
+# Production 환경 시크릿
+appSecrets:
+  enabled: true
+  secretName: app-env-secrets
+
+# 서비스별 APM 식별자
+extraEnv:
+  - name: OTEL_SERVICE_NAME
+    value: core-api-prod

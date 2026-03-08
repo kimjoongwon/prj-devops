@@ -24,7 +24,7 @@ Usage:
   ${SCRIPT_NAME} --app <name> --tag <image_tag> [options]
 
 Required:
-  --app <name>                 App name (idp-api|idp-web|plate-server|plate-admin|spring-server)
+  --app <name>                 App name (idp-api|idp-web|core-api|admin-web|spring-api)
   --tag <image_tag>            New image tag to set
 
 Options:
@@ -145,20 +145,20 @@ case "${APP_NAME}" in
     VALUES_REL_PATH="helm/applications/idp-web/values-prod.yaml"
     APP_YAML_KEY="idp-web"
     ;;
-  plate-server)
-    VALUES_REL_PATH="helm/applications/plate-server/values-prod.yaml"
-    APP_YAML_KEY="plate-server"
+  core-api)
+    VALUES_REL_PATH="helm/applications/core-api/values-prod.yaml"
+    APP_YAML_KEY="core-api"
     ;;
-  plate-admin)
-    VALUES_REL_PATH="helm/applications/plate-admin/values-prod.yaml"
-    APP_YAML_KEY="plate-admin"
+  admin-web)
+    VALUES_REL_PATH="helm/applications/admin-web/values-prod.yaml"
+    APP_YAML_KEY="admin-web"
     ;;
-  spring-server)
-    VALUES_REL_PATH="helm/applications/spring-server/values-prod.yaml"
-    APP_YAML_KEY="spring-server"
+  spring-api)
+    VALUES_REL_PATH="helm/applications/spring-api/values-prod.yaml"
+    APP_YAML_KEY="spring-api"
     ;;
   *)
-    fail "Unsupported app '${APP_NAME}'. Allowed: idp-api, idp-web, plate-server, plate-admin, spring-server"
+    fail "Unsupported app '${APP_NAME}'. Allowed: idp-api, idp-web, core-api, admin-web, spring-api"
     ;;
 esac
 

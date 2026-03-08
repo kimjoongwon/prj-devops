@@ -1,0 +1,16 @@
+# Spring API Backend Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "spring-api.name" . }}
+  labels:
+    {{- include "spring-api.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+    - port: {{ .Values.service.port }}           # External service port
+      targetPort: {{ .Values.service.targetPort }} # Container port (spring-api.port: 8080)
+      protocol: TCP
+      name: http
+  selector:
+    {{- include "spring-api.selectorLabels" . | nindent 4 }}

@@ -23,9 +23,9 @@ log_warn() { echo -e "${YELLOW}⚠${NC} $1"; ((WARN++)); }
 log_info() { echo -e "  $1"; }
 
 # appSecrets가 필요한 앱 목록 (nginx 프록시, PVC만 관리하는 앱 제외)
-APPS_WITH_SECRETS=("plate-server" "plate-admin" "idp-api")
+APPS_WITH_SECRETS=("core-api" "admin-web" "spring-api" "idp-api")
 # 모든 앱 목록
-ALL_APPS=("plate-server" "plate-admin" "plate-web" "plate-llm" "plate-cache" "idp-api" "idp-web")
+ALL_APPS=("core-api" "admin-web" "spring-api" "plate-llm" "plate-cache" "idp-api" "idp-web")
 
 get_expected_secret() {
     case "$1" in

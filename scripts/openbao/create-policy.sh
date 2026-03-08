@@ -133,7 +133,7 @@ if vault policy write "$POLICY_NAME" "$POLICY_FILE"; then
     echo "  정책 이름: $POLICY_NAME"
     echo "  권한: 읽기 전용 (read-only)"
     echo "  접근 가능 경로:"
-    echo "    - secret/data/server/{staging,production,default}"
+    echo "    - secret/data/core-api/{staging,production,default}"
     echo "    - secret/data/harbor/{staging,production,development}"
     echo "    - auth/token/lookup-self (토큰 정보)"
     echo "    - auth/token/renew-self (토큰 갱신)"

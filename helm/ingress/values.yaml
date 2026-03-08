@@ -8,16 +8,16 @@ appName: plate
 # Service names (actual service names in the cluster)
 services: # 실제 Kubernetes Service 이름과 포트 매핑 (ArgoCD Release 명 기준)
   frontend:
-    name: "plate-web-prod" # 프론트엔드 서비스
+    name: "admin-web-prod" # 기본 진입 서비스
     port: 80
   backend:
-    name: "plate-server-prod"
+    name: "core-api-prod"
     port: 80
   admin:
-    name: "plate-admin-prod"
+    name: "admin-web-prod"
     port: 80
   spring:
-    name: "spring-server-prod"
+    name: "spring-api-prod"
     port: 80
 
 ingress:
@@ -31,7 +31,7 @@ ingress:
   hosts:
     - host: cocdev.co.kr # 메인 도메인 (A 레코드 -> Ingress Controller LB)
       paths:
-        # 프런트엔드 전체 경로
+        # 기본 진입 경로
         - path: /
           pathType: Prefix
           backend:

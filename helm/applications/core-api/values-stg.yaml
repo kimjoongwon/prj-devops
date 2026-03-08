@@ -1,0 +1,29 @@
+# Staging environment values for Core API
+# Override from values.yaml for staging environment
+
+replicaCount: 1
+
+# Staging 이미지 저장소 (Harbor registry)
+# 이미지 규칙: harbor.cocdev.co.kr/{환경}/{앱이름}
+core-api:
+  image:
+    repository: harbor.cocdev.co.kr/stg/core-api
+    tag: "latest"
+    pullPolicy: Always  # Always pull for latest builds in staging
+  port: 3006
+  resources:
+    limits:
+      cpu: 500m
+      memory: 1Gi
+    requests:
+      cpu: 200m
+      memory: 512Mi
+
+# Staging 환경 시크릿
+appSecrets:
+  enabled: true
+  secretName: app-env-secrets
+
+extraEnv:
+  - name: OTEL_SERVICE_NAME
+    value: core-api-stg

@@ -1,0 +1,40 @@
+# Production environment values for Spring API
+# Override from values.yaml for production environment
+
+replicaCount: 1
+
+# Production 이미지 저장소 (Harbor registry)
+# 이미지 규칙: harbor.cocdev.co.kr/{환경}/{앱이름}
+spring-api:
+  image:
+    # NOTE: Harbor prod/spring-api:latest 미존재로 인해 현재는 stg 이미지를 사용.
+    # 이미지 파이프라인 정비 후 prod/spring-api로 전환 필요.
+    repository: harbor.cocdev.co.kr/stg/spring-api
+    tag: "latest"
+    pullPolicy: IfNotPresent
+  port: 8080
+  resources:
+    limits:
+      cpu: 1000m
+      memory: 2Gi
+    requests:
+      cpu: 500m
+      memory: 1Gi
+
+# Production 환경 시크릿
+appSecrets:
+  enabled: true
+  secretName: app-env-secrets
+
+extraEnv:
+  - name: OTEL_SERVICE_NAME
+    value: spring-api-prod
+  - name: JAVA_TOOL_OPTIONS
+    value: "-javaagent:/otel/auto-instrumentation/opentelemetry-javaagent.jar"
+  - name: OTEL_METRICS_EXPORTER
+    value: none
+  - name: OTEL_LOGS_EXPORTER
+    value: none
+
+javaAgent:
+  enabled: true

@@ -54,13 +54,19 @@ prj-devops/
 │   │   ├── openebs/               # 스토리지 오케스트레이션
 │   │   └── kubernetes-dashboard/  # 클러스터 관리 UI
 │   ├── applications/              # 계층 3: Plate 애플리케이션
-│   │   ├── plate-server/          # Plate Server 백엔드
+│   │   ├── core-api/          # Core API 백엔드
 │   │   │   ├── Chart.yaml
 │   │   │   ├── values.yaml        # 기본 설정
 │   │   │   ├── values-stg.yaml    # 스테이징 오버라이드
 │   │   │   ├── values-prod.yaml   # 프로덕션 오버라이드
 │   │   │   └── templates/
-│   │   ├── plate-web/             # Plate 웹 프론트엔드
+│   │   ├── admin-web/             # Admin 웹 프론트엔드
+│   │   │   ├── Chart.yaml
+│   │   │   ├── values.yaml
+│   │   │   ├── values-stg.yaml
+│   │   │   ├── values-prod.yaml
+│   │   │   └── templates/
+│   │   ├── spring-api/            # Spring API 백엔드
 │   │   │   ├── Chart.yaml
 │   │   │   ├── values.yaml
 │   │   │   ├── values-stg.yaml
@@ -100,10 +106,12 @@ prj-devops/
 │   └── argocd/
 │       ├── app-of-apps.yaml       # App of Apps 패턴 메인 (운영 객체명: frontend-web-apps)
 │       └── apps/                  # 개별 ArgoCD Application 정의
-│           ├── plate-server-stg.yaml
-│           ├── plate-server-prod.yaml
-│           ├── plate-web-stg.yaml
-│           ├── plate-web-prod.yaml
+│           ├── core-api-stg.yaml
+│           ├── core-api-prod.yaml
+│           ├── admin-web-stg.yaml
+│           ├── admin-web-prod.yaml
+│           ├── spring-api-stg.yaml
+│           ├── spring-api-prod.yaml
 │           ├── plate-llm-stg.yaml
 │           ├── idp-api-prod.yaml
 │           ├── idp-web-prod.yaml
@@ -137,7 +145,7 @@ prj-devops/
 **애플리케이션 차트** (`helm/applications/`):
 
 - 차트명 = 디렉토리명 = 릴리스명 = 컨테이너명
-  - 예: `plate-server`, `plate-web`, `idp-api`, `idp-web`, `plate-llm`
+  - 예: `core-api`, `admin-web`, `spring-api`, `idp-api`, `idp-web`, `plate-llm`
 - 헬퍼 템플릿 단순화: `.Release.Name` 직접 사용
 - imagePullSecrets: Harbor 인증을 위한 `harbor-docker-secret` 포함
 - Ingress: 별도 차트에서 중앙 관리 (`helm/ingress`)
@@ -387,8 +395,8 @@ kubectl get pods -A
 ### 환경별 Values 파일
 
 - Plate 애플리케이션: 각 차트 디렉토리의 환경별 파일을 사용합니다
-  - 스테이징: `helm/applications/<서비스>/values-stg.yaml` (예: `plate-web/values-stg.yaml`, `plate-server/values-stg.yaml`)
-  - 프로덕션: `helm/applications/<서비스>/values-prod.yaml` (예: `plate-web/values-prod.yaml`, `plate-server/values-prod.yaml`, `idp-api/values-prod.yaml`, `idp-web/values-prod.yaml`)
+  - 스테이징: `helm/applications/<서비스>/values-stg.yaml` (예: `core-api/values-stg.yaml`, `admin-web/values-stg.yaml`, `spring-api/values-stg.yaml`)
+  - 프로덕션: `helm/applications/<서비스>/values-prod.yaml` (예: `core-api/values-prod.yaml`, `admin-web/values-prod.yaml`, `spring-api/values-prod.yaml`, `idp-api/values-prod.yaml`, `idp-web/values-prod.yaml`)
 - 인프라/도구(클러스터 서비스, 개발 도구): 각 차트 디렉토리의 `values.yaml`로 형상 관리합니다. 예: `helm/cluster-services/cert-manager/values.yaml`, `helm/development-tools/harbor/values.yaml`
 
 ## 🚨 Safety & Best Practices
@@ -499,7 +507,7 @@ spec:
 - **경로 일관성**: 모든 차트를 `helm/` 트리 하위에 배치 → ArgoCD 설정 단순화
 - **환경별 설정 관리**: `environments/` 디렉토리에서 스테이징/프로덕션 values 중앙 관리
 - **GitOps 통합**: ArgoCD를 통한 선언적 배포 및 자동 동기화
-- **멀티 애플리케이션 지원**: plate-web, plate-server, plate-admin, plate-llm, plate-cache, idp-api, idp-web 통합 관리
+- **멀티 애플리케이션 지원**: core-api, admin-web, spring-api, plate-llm, plate-cache, idp-api, idp-web 통합 관리
 
 ### ArgoCD Application 구조
 
@@ -527,7 +535,7 @@ spec:
 
 ### 2025-12-12
 
-- **OpenBao 정책 보안 수정**: `esc-policy.hcl`에 `secret/data/server/cluster` 경로 읽기 권한 추가
-  - 문제: ClusterExternalSecret이 `server/cluster` 경로 접근 시 403 Permission Denied 오류 발생
+- **OpenBao 정책 보안 수정**: `esc-policy.hcl`에 `secret/data/cluster/secrets` 경로 읽기 권한 추가
+  - 문제: ClusterExternalSecret이 `cluster/secrets` 경로 접근 시 403 Permission Denied 오류 발생
   - 원인: ESC 정책에 해당 경로에 대한 권한이 누락되어 있었음
   - 해결: `scripts/openbao/policies/esc-policy.hcl`에 cluster 경로 권한 추가 후 정책 업데이트

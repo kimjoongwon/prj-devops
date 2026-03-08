@@ -1,0 +1,45 @@
+# Core API Backend Deployment 템플릿
+# 백엔드 애플리케이션(port 3006)을 Kubernetes 클러스터에 배포
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "core-api.name" . }}
+  labels:
+    {{- include "core-api.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "core-api.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "core-api.labels" . | nindent 8 }}
+      annotations: {}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: {{ include "core-api.name" . }}
+          image: "{{ index .Values "core-api" "image" "repository" }}:{{ index .Values "core-api" "image" "tag" | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ index .Values "core-api" "image" "pullPolicy" }}
+          ports:
+            - name: http
+              containerPort: {{ index .Values "core-api" "port" }}
+              protocol: TCP
+          {{- with .Values.extraEnv }}
+          env:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- if .Values.appSecrets.enabled }}
+          # envFrom으로 전체 Secret을 환경변수로 주입
+          # 새 환경변수 추가 시 OpenBao KV에만 추가하면 자동 동기화
+          envFrom:
+            - secretRef:
+                name: {{ .Values.appSecrets.secretName }}
+          {{- end }}
+          resources:
+            {{- toYaml (index .Values "core-api" "resources") | nindent 12 }}

@@ -1,0 +1,72 @@
+# Spring API Backend Deployment 템플릿
+# Spring Boot 백엔드 애플리케이션(port 8080)을 Kubernetes 클러스터에 배포
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "spring-api.name" . }}
+  labels:
+    {{- include "spring-api.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "spring-api.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "spring-api.labels" . | nindent 8 }}
+      annotations: {}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- if .Values.javaAgent.enabled }}
+      initContainers:
+        - name: install-otel-javaagent
+          image: {{ .Values.javaAgent.initContainer.image }}
+          imagePullPolicy: {{ .Values.javaAgent.initContainer.pullPolicy }}
+          command:
+            - /bin/sh
+            - -c
+          args:
+            - >
+              set -e;
+              mkdir -p {{ .Values.javaAgent.mountPath }};
+              curl -sSL {{ .Values.javaAgent.downloadUrl }} -o {{ .Values.javaAgent.jarPath }};
+          volumeMounts:
+            - name: otel-javaagent
+              mountPath: {{ .Values.javaAgent.mountPath }}
+      {{- end }}
+      containers:
+        - name: {{ include "spring-api.name" . }}
+          image: "{{ index .Values "spring-api" "image" "repository" }}:{{ index .Values "spring-api" "image" "tag" | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ index .Values "spring-api" "image" "pullPolicy" }}
+          ports:
+            - name: http
+              containerPort: {{ index .Values "spring-api" "port" }}
+              protocol: TCP
+          {{- with .Values.extraEnv }}
+          env:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- if .Values.appSecrets.enabled }}
+          # envFrom으로 전체 Secret을 환경변수로 주입
+          # 새 환경변수 추가 시 OpenBao KV에만 추가하면 자동 동기화
+          envFrom:
+            - secretRef:
+                name: {{ .Values.appSecrets.secretName }}
+          {{- end }}
+          {{- if .Values.javaAgent.enabled }}
+          volumeMounts:
+            - name: otel-javaagent
+              mountPath: {{ .Values.javaAgent.mountPath }}
+          {{- end }}
+          resources:
+            {{- toYaml (index .Values "spring-api" "resources") | nindent 12 }}
+      {{- if .Values.javaAgent.enabled }}
+      volumes:
+        - name: otel-javaagent
+          emptyDir: {}
+      {{- end }}

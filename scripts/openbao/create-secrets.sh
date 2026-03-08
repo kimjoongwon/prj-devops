@@ -63,9 +63,9 @@ fi
 
 echo ""
 echo "🔧 서버 시크릿 생성 중..."
-vault kv put "secret/server/$ENV" \
+vault kv put "secret/core-api/$ENV" \
   APP_PORT=3000 \
-  APP_NAME=plate-server \
+  APP_NAME=core-api \
   APP_ADMIN_EMAIL="admin@cocdev.co.kr" \
   API_PREFIX=/api \
   APP_FALLBACK_LANGUAGE=ko \
@@ -97,7 +97,7 @@ vault kv put "secret/server/$ENV" \
   DATABASE_URL="CHANGE_ME_postgresql://user:pass@host:5432/db" \
   DIRECT_URL="CHANGE_ME_postgresql://user:pass@host:5432/db"
 
-echo "✅ 서버 시크릿 생성 완료: secret/server/$ENV"
+echo "✅ 서버 시크릿 생성 완료: secret/core-api/$ENV"
 
 echo ""
 echo "🔧 IDP 시크릿 생성 중..."
@@ -166,24 +166,24 @@ echo "✅ 모든 시크릿 생성 완료!"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo ""
 echo "📝 생성된 시크릿 확인:"
-echo "  vault kv get secret/server/$ENV"
+echo "  vault kv get secret/core-api/$ENV"
 echo "  vault kv get secret/idp/$ENV"
 echo "  vault kv get secret/harbor/$ENV"
 echo ""
 echo "⚠️  다음 항목들을 실제 값으로 업데이트하세요:"
 echo ""
 echo "# AWS 자격증명 업데이트"
-echo "vault kv patch secret/server/$ENV \\"
+echo "vault kv patch secret/core-api/$ENV \\"
 echo "  AWS_ACCESS_KEY_ID=<실제_키> \\"
 echo "  AWS_SECRET_ACCESS_KEY=<실제_시크릿>"
 echo ""
 echo "# SMTP 자격증명 업데이트"
-echo "vault kv patch secret/server/$ENV \\"
+echo "vault kv patch secret/core-api/$ENV \\"
 echo "  SMTP_USERNAME=<실제_사용자명> \\"
 echo "  SMTP_PASSWORD=<실제_비밀번호>"
 echo ""
 echo "# 데이터베이스 URL 업데이트"
-echo "vault kv patch secret/server/$ENV \\"
+echo "vault kv patch secret/core-api/$ENV \\"
 echo "  DATABASE_URL=<실제_DB_URL> \\"
 echo "  DIRECT_URL=<실제_DIRECT_URL>"
 echo ""
@@ -197,5 +197,5 @@ echo "  OIDC_COOKIE_SECRET=<32자이상_시크릿> \\"
 echo "  OIDC_CLIENT_SECRET=<실제_CLIENT_SECRET>"
 echo ""
 echo "# JWT 시크릿 업데이트 (선택사항, 자동 생성됨)"
-echo "vault kv patch secret/server/$ENV \\"
+echo "vault kv patch secret/core-api/$ENV \\"
 echo "  AUTH_JWT_SECRET=<실제_JWT_시크릿>"

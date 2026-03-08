@@ -7,27 +7,29 @@
 **앱 이름 구조:**
 
 ```
-{프로젝트명}-{하위분류} = 앱이름
+{도메인}-{역할} = 앱이름
 ```
 
-| 프로젝트명 | 하위분류 | 앱이름 |
-|-----------|---------|--------|
-| plate | admin | `plate-admin` |
-| plate | server | `plate-server` |
+| 도메인 | 역할 | 앱이름 |
+|--------|------|--------|
+| core | api | `core-api` |
+| admin | web | `admin-web` |
+| idp | api | `idp-api` |
+| idp | web | `idp-web` |
 | plate | web | `plate-web` |
 | plate | llm | `plate-llm` |
 
 **핵심 원칙: 앱이름이 모든 리소스 명명의 기준**
 
-`plate-admin`을 예시로 한 전체 명명 규칙:
+`admin-web`을 예시로 한 전체 명명 규칙:
 
-| 구성 요소 | 명명 규칙 | plate-admin 예시 |
+| 구성 요소 | 명명 규칙 | admin-web 예시 |
 |----------|----------|-----------------|
-| Helm 차트 폴더 | `helm/applications/{앱이름}/` | `helm/applications/plate-admin/` |
-| Chart.yaml name | `{앱이름}` | `plate-admin` |
-| ArgoCD Application 파일 | `{앱이름}-{환경}.yaml` | `plate-admin-stg.yaml` |
-| ArgoCD Application name | `{앱이름}-{환경}` | `plate-admin-stg` |
-| 이미지 레포지토리 | `harbor.cocdev.co.kr/{환경}/{앱이름}` | `harbor.cocdev.co.kr/stg/plate-admin` |
+| Helm 차트 폴더 | `helm/applications/{앱이름}/` | `helm/applications/admin-web/` |
+| Chart.yaml name | `{앱이름}` | `admin-web` |
+| ArgoCD Application 파일 | `{앱이름}-{환경}.yaml` | `admin-web-stg.yaml` |
+| ArgoCD Application name | `{앱이름}-{환경}` | `admin-web-stg` |
+| 이미지 레포지토리 | `harbor.cocdev.co.kr/{환경}/{앱이름}` | `harbor.cocdev.co.kr/stg/admin-web` |
 | K8s Secret 이름 | `app-env-secrets-{환경}` | `app-env-secrets-staging` |
 | OpenBao KV 경로 | `server/{환경}` | `server/staging` |
 
@@ -41,9 +43,9 @@ harbor.cocdev.co.kr/{환경}/{앱이름}
 
 | 환경 | 앱이름 | 전체 경로 |
 |------|--------|----------|
-| Staging | plate-admin | `harbor.cocdev.co.kr/stg/plate-admin` |
-| Production | plate-admin | `harbor.cocdev.co.kr/prod/plate-admin` |
-| Staging | plate-server | `harbor.cocdev.co.kr/stg/plate-server` |
+| Staging | admin-web | `harbor.cocdev.co.kr/stg/admin-web` |
+| Production | admin-web | `harbor.cocdev.co.kr/prod/admin-web` |
+| Staging | core-api | `harbor.cocdev.co.kr/stg/core-api` |
 | Production | plate-web | `harbor.cocdev.co.kr/prod/plate-web` |
 
 ## OpenBao KV 경로 규칙
@@ -110,14 +112,14 @@ environments/argocd/apps/
 
 ## 표준 values.yaml 템플릿
 
-### Next.js 애플리케이션 (plate-admin 예시)
+### Next.js 애플리케이션 (admin-web 예시)
 
 ```yaml
 replicaCount: 1
 
-plate-admin:  # 앱이름을 키로 사용
+admin-web:  # 앱이름을 키로 사용
   image:
-    repository: harbor.cocdev.co.kr/stg/plate-admin
+    repository: harbor.cocdev.co.kr/stg/admin-web
     tag: "latest"
     pullPolicy: IfNotPresent
   port: 3000
@@ -142,14 +144,14 @@ appSecrets:
   secretName: app-env-secrets-staging  # app-env-secrets-{환경}
 ```
 
-### NestJS 애플리케이션 (plate-server 예시)
+### NestJS 애플리케이션 (core-api 예시)
 
 ```yaml
 replicaCount: 1
 
-plate-server:  # 앱이름을 키로 사용
+core-api:  # 앱이름을 키로 사용
   image:
-    repository: harbor.cocdev.co.kr/stg/plate-server
+    repository: harbor.cocdev.co.kr/stg/core-api
     tag: "latest"
     pullPolicy: IfNotPresent
   port: 3006

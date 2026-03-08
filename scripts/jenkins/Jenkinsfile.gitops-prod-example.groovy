@@ -4,7 +4,7 @@ pipeline {
   parameters {
     choice(
       name: 'APP_NAME',
-      choices: ['idp-api', 'idp-web', 'plate-server', 'plate-admin', 'spring-server'],
+      choices: ['idp-api', 'idp-web', 'core-api', 'admin-web', 'spring-api'],
       description: 'GitOps values-prod.yaml image.tag를 갱신할 앱 이름'
     )
     string(
