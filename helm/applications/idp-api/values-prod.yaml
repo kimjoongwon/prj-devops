@@ -21,8 +21,12 @@ appSecrets:
   secretName: idp-api-env-secrets
 
 command:
-  - node
-  - apps/idp/api/dist/main.js
+  - sh
+  - -c
+  - |
+    set -e
+    sed -i "s|globalThis\\['__dirname'\\].*|globalThis['__dirname'] = __dirname;|" /app/packages/be-prisma/dist/src/generated/client/client.js
+    exec node apps/idp/api/dist/main.js
 args: []
 
 extraEnv:
