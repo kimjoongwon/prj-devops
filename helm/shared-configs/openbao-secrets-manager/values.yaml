@@ -53,6 +53,8 @@ externalSecrets:
       creationPolicy: "Owner"
       template:
         type: "Opaque"
+        # Keep extracted OpenBao keys and merge template.data (OTEL defaults).
+        mergePolicy: "Merge"
         metadata:
           labels:
             app.kubernetes.io/component: "env-secrets"
