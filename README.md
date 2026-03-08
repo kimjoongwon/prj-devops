@@ -21,6 +21,8 @@ GitOps 기반의 Kubernetes 배포 인프라로, Helm과 ArgoCD를 활용한 선
 - 운영 모드: `prod only` (`spec.source.directory.exclude: "*-stg.yaml"`)
 - 변경 감지: GitHub Webhook + 폴링(`timeout.reconciliation: 180s`)
 - 운영 가이드: `docs/argocd-prod-only-webhook-manual.md`
+- Jenkins 연계 가이드: `docs/jenkins-gitops-image-bump.md`
+- Jenkinsfile 예시: `scripts/jenkins/Jenkinsfile.gitops-prod-example.groovy`
 
 ## ⚠️ 현재 운영 제약 (2026-03-07)
 
@@ -304,6 +306,7 @@ OpenBao를 통한 중앙화된 시크릿 관리:
 - 변경 절차:
   - 스테이징: `values-stg.yaml` 수정 → PR/리뷰 → ArgoCD 동기화로 적용 → 검증
   - 프로덕션: 검증 완료 후 `values-prod.yaml` 반영 → ArgoCD 동기화로 적용
+  - CI 자동 반영: Jenkins 빌드/Harbor push 성공 → `scripts/jenkins/update-gitops-image-tag.sh`로 `values-prod.yaml` 태그 자동 커밋/푸시
   - 템플릿(templates/\*.yaml) 변경 시 반드시 린트/렌더 확인 수행
 - 권장 검사:
   - 린트: `helm lint helm/applications/<서비스>`
