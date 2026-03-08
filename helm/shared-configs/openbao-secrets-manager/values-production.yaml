@@ -11,7 +11,7 @@ environments:
   production:
     namespace: "plate-prod"
     remoteRef:
-      key: "server/production"
+      key: "core-api/production"
 
 # External Secrets configuration for production
 externalSecrets:
@@ -44,7 +44,7 @@ externalSecrets:
           OTEL_METRICS_EXPORTER: "none"
           OTEL_LOGS_EXPORTER: "none"
     
-    # dataFrom을 사용하여 OpenBao KV(server/production)의 모든 키-값을 자동으로 가져옴
+    # dataFrom을 사용하여 OpenBao KV(core-api/production)의 모든 키-값을 자동으로 가져옴
     # 개별 data 매핑이 더 이상 필요하지 않음
 
 # Resource limits for production (more robust)

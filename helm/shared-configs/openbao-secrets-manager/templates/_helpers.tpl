@@ -108,10 +108,10 @@ Get remote ref key based on environment
 {{- define "openbao-secrets-manager.remoteRefKey" -}}
 {{- $env := include "openbao-secrets-manager.environment" . }}
 {{- if eq $env "production" }}
-{{- .Values.environments.production.remoteRef.key | default "server/production" }}
+{{- .Values.environments.production.remoteRef.key | default "core-api/production" }}
 {{- else if eq $env "staging" }}
-{{- .Values.environments.staging.remoteRef.key | default "server/staging" }}
+{{- .Values.environments.staging.remoteRef.key | default "core-api/staging" }}
 {{- else }}
-{{- .Values.externalSecrets.externalSecret.data.remoteRef.key | default "server/development" }}
+{{- .Values.externalSecrets.externalSecret.data.remoteRef.key | default "core-api/development" }}
 {{- end }}
 {{- end }}

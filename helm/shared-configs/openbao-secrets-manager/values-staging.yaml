@@ -11,7 +11,7 @@ environments:
   staging:
     namespace: "plate-stg"
     remoteRef:
-      key: "server/staging"
+      key: "core-api/staging"
 
 # External Secrets configuration for staging
 externalSecrets:
@@ -34,7 +34,7 @@ externalSecrets:
             environment: staging
             tier: non-production
 
-    # dataFrom을 사용하여 OpenBao KV(server/staging)의 모든 키-값을 자동으로 가져옴
+    # dataFrom을 사용하여 OpenBao KV(core-api/staging)의 모든 키-값을 자동으로 가져옴
     # 개별 data 매핑이 더 이상 필요하지 않음
 
 # Resource limits for staging (lighter than production)

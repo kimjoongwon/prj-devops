@@ -91,11 +91,11 @@ environments:
   staging:
     namespace: "plate-stg"
     remoteRef:
-      key: "server/staging"
+      key: "core-api/staging"
   production:
     namespace: "plate-prod"
     remoteRef:
-      key: "server/production"
+      key: "core-api/production"
 
 # Resource management
 resources:
