@@ -21,12 +21,12 @@
 kubectl -n argocd get application frontend-web-apps
 ```
 
-## 현재 prod-only 하위 앱(2026-03-07 기준)
+## 현재 prod-only 하위 앱(2026-03-08 기준)
 - `admin-web-prod`, `core-api-prod`, `spring-api-prod`
 - `idp-web-prod`, `idp-api-prod`
-- `plate-ingress-prod`, `openbao-secrets-manager-prod`
+- `plate-ingress-prod`, `openbao-secrets-manager-prod`, `openbao-cluster-secrets-manager`
 
-## 현재 운영 제약(2026-03-07)
+## 현재 운영 제약(2026-03-08)
 - `stg` 하위 앱은 의도적으로 제외(`exclude: "*-stg.yaml"`)되어 있습니다.
 - `idp-api-prod`, `idp-web-prod`는 Harbor 이미지가 없으면 `ImagePullBackOff`로 Health가 `Progressing/Degraded`에 머뭅니다.
 - 배포 전 최소 확인:

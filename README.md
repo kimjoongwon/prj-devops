@@ -14,7 +14,7 @@ GitOps 기반의 Kubernetes 배포 인프라로, Helm과 ArgoCD를 활용한 선
 - **보안 강화**: OpenBao 시크릿 관리 및 Harbor 프라이빗 레지스트리
 - **표준화된 구조**: 통일된 Helm 차트 패턴 및 명명 규칙
 
-## 📌 현재 운영 모드 (2026-03-07)
+## 📌 현재 운영 모드 (2026-03-08)
 
 - Parent Application: `frontend-web-apps` (`argocd` namespace)
 - Git 경로: `environments/argocd/apps`
@@ -24,7 +24,7 @@ GitOps 기반의 Kubernetes 배포 인프라로, Helm과 ArgoCD를 활용한 선
 - Jenkins 연계 가이드: `docs/jenkins-gitops-image-bump.md`
 - Jenkinsfile 예시: `scripts/jenkins/Jenkinsfile.gitops-prod-example.groovy`
 
-## ⚠️ 현재 운영 제약 (2026-03-07)
+## ⚠️ 현재 운영 제약 (2026-03-08)
 
 - `staging` Child Application은 임시 중지 상태입니다. (`*-stg.yaml` 제외)
 - `idp-api`, `idp-web`는 현재 `production`만 배포 대상입니다.
@@ -97,10 +97,14 @@ prj-devops/
 │   │   ├── values-prod.yaml
 │   │   └── templates/
 │   └── shared-configs/
-│       └── openbao-secrets-manager/  # OpenBao 시크릿 동기화
+│       ├── openbao-secrets-manager/          # 앱 레벨 OpenBao 시크릿 동기화
+│       │   ├── Chart.yaml
+│       │   ├── values-staging.yaml
+│       │   ├── values-production.yaml
+│       │   └── templates/
+│       └── openbao-cluster-secrets-manager/  # 클러스터 공통 OpenBao 시크릿 동기화
 │           ├── Chart.yaml
-│           ├── values-staging.yaml
-│           ├── values-production.yaml
+│           ├── values.yaml
 │           └── templates/
 ├── environments/                   # ArgoCD 설정
 │   └── argocd/
@@ -119,7 +123,8 @@ prj-devops/
 │           ├── ingress-stg.yaml
 │           ├── ingress-prod.yaml
 │           ├── openbao-secrets-manager-stg.yaml
-│           └── openbao-secrets-manager-prod.yaml
+│           ├── openbao-secrets-manager-prod.yaml
+│           └── openbao-cluster-secrets-manager.yaml
 └── scripts/                       # 배포 자동화 스크립트
     ├── deploy-all.sh             # 메인 배포 오케스트레이터
     ├── deploy-libraries.sh       # 클러스터 서비스 및 도구 배포
@@ -380,7 +385,7 @@ kubectl get pods -A
 
 배포 완료 후 접근 URL:
 
-- **Staging**: https://cocdev.co.kr 또는 https://stg.cocdev.co.kr
+- **Staging**: https://stg.cocdev.co.kr
 - **Production**: https://cocdev.co.kr 또는 https://www.cocdev.co.kr
 - **Production IDP**: https://idp.cocdev.co.kr
 
@@ -477,7 +482,7 @@ kubectl get certificates -A
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: plate-cache-stg
+  name: plate-cache
   namespace: argocd
 spec:
   project: default
@@ -487,7 +492,7 @@ spec:
     targetRevision: main
     helm:
       valueFiles:
-        - values-stg.yaml
+        - values.yaml
   destination:
     server: https://kubernetes.default.svc
     namespace: devops-tools
