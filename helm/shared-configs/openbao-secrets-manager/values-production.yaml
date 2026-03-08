@@ -93,18 +93,31 @@ harbor:
     remoteRef:
       key: "harbor/production"
 
-# IDP 전용 시크릿 동기화
-idp:
+# IDP API 전용 시크릿 동기화
+idpApi:
   enabled: true
   externalSecret:
-    name: "idp-env-secrets-production"
+    name: "idp-api-env-secrets-production"
     refreshInterval: "1h"
     target:
-      name: "idp-env-secrets"
+      name: "idp-api-env-secrets"
       creationPolicy: "Owner"
   production:
     remoteRef:
-      key: "idp/production"
+      key: "idp-api/production"
+
+# IDP Web 전용 시크릿 동기화
+idpWeb:
+  enabled: true
+  externalSecret:
+    name: "idp-web-env-secrets-production"
+    refreshInterval: "1h"
+    target:
+      name: "idp-web-env-secrets"
+      creationPolicy: "Owner"
+  production:
+    remoteRef:
+      key: "idp-web/production"
 
 # OpenBao token configuration
 # 토큰은 ./scripts/openbao/create-token.sh 스크립트로 Kubernetes Secret 생성

@@ -7,7 +7,7 @@
 # ============================================
 
 # 모든 시크릿 데이터 읽기
-# 예: secret/data/core-api/staging, secret/data/idp/production, secret/data/harbor/production 등
+# 예: secret/data/core-api/staging, secret/data/idp-api/production, secret/data/idp-web/production, secret/data/harbor/production 등
 path "secret/data/*" {
   capabilities = ["read"]
 }

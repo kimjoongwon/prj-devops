@@ -18,7 +18,7 @@ idp-web:
 
 appSecrets:
   enabled: false
-  secretName: idp-env-secrets
+  secretName: idp-web-env-secrets
 
 extraEnv:
   - name: IDP_API_INTERNAL_URL

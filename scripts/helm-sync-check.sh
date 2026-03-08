@@ -30,7 +30,7 @@ ALL_APPS=("core-api" "admin-web" "spring-api" "plate-llm" "plate-cache" "idp-api
 get_expected_secret() {
     case "$1" in
         idp-api)
-            echo "idp-env-secrets"
+            echo "idp-api-env-secrets"
             ;;
         *)
             echo "app-env-secrets"

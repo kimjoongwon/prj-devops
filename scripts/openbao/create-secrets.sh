@@ -100,8 +100,8 @@ vault kv put "secret/core-api/$ENV" \
 echo "✅ 서버 시크릿 생성 완료: secret/core-api/$ENV"
 
 echo ""
-echo "🔧 IDP 시크릿 생성 중..."
-vault kv put "secret/idp/$ENV" \
+echo "🔧 IDP API 시크릿 생성 중..."
+vault kv put "secret/idp-api/$ENV" \
   APP_NAME=idp \
   APP_PORT=3007 \
   NODE_ENV="$NODE_ENV" \
@@ -134,7 +134,23 @@ vault kv put "secret/idp/$ENV" \
   OIDC_JWKS_URI="$IDP_DOMAIN/oidc/jwks" \
   IDP_CLIENT_URL="$IDP_DOMAIN"
 
-echo "✅ IDP 시크릿 생성 완료: secret/idp/$ENV"
+echo "✅ IDP API 시크릿 생성 완료: secret/idp-api/$ENV"
+
+echo ""
+echo "🔧 IDP Web 시크릿 생성 중..."
+if [[ "$ENV" == "staging" ]]; then
+  IDP_API_INTERNAL_URL="http://idp-api-stg"
+else
+  IDP_API_INTERNAL_URL="http://idp-api-prod"
+fi
+
+vault kv put "secret/idp-web/$ENV" \
+  APP_NAME=idp-web \
+  APP_PORT=3008 \
+  NODE_ENV="$NODE_ENV" \
+  IDP_API_INTERNAL_URL="$IDP_API_INTERNAL_URL"
+
+echo "✅ IDP Web 시크릿 생성 완료: secret/idp-web/$ENV"
 
 echo ""
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
@@ -167,7 +183,8 @@ echo "━━━━━━━━━━━━━━━━━━━━━━━━�
 echo ""
 echo "📝 생성된 시크릿 확인:"
 echo "  vault kv get secret/core-api/$ENV"
-echo "  vault kv get secret/idp/$ENV"
+echo "  vault kv get secret/idp-api/$ENV"
+echo "  vault kv get secret/idp-web/$ENV"
 echo "  vault kv get secret/harbor/$ENV"
 echo ""
 echo "⚠️  다음 항목들을 실제 값으로 업데이트하세요:"
@@ -187,14 +204,18 @@ echo "vault kv patch secret/core-api/$ENV \\"
 echo "  DATABASE_URL=<실제_DB_URL> \\"
 echo "  DIRECT_URL=<실제_DIRECT_URL>"
 echo ""
-echo "# IDP 시크릿 업데이트"
-echo "vault kv patch secret/idp/$ENV \\"
+echo "# IDP API 시크릿 업데이트"
+echo "vault kv patch secret/idp-api/$ENV \\"
 echo "  DATABASE_URL=<실제_DB_URL> \\"
 echo "  DIRECT_URL=<실제_DIRECT_URL> \\"
 echo "  REDIS_HOST=<실제_REDIS_HOST> \\"
 echo "  REDIS_PASSWORD=<실제_REDIS_PASSWORD> \\"
 echo "  OIDC_COOKIE_SECRET=<32자이상_시크릿> \\"
 echo "  OIDC_CLIENT_SECRET=<실제_CLIENT_SECRET>"
+echo ""
+echo "# IDP Web 시크릿 업데이트"
+echo "vault kv patch secret/idp-web/$ENV \\"
+echo "  IDP_API_INTERNAL_URL=<idp_api_service_url>"
 echo ""
 echo "# JWT 시크릿 업데이트 (선택사항, 자동 생성됨)"
 echo "vault kv patch secret/core-api/$ENV \\"

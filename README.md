@@ -139,6 +139,7 @@ prj-devops/
         ├── create-policy.sh      # 정책 생성
         ├── create-token.sh       # 토큰 생성
         ├── create-secrets.sh     # 시크릿 생성
+        ├── migrate-idp-to-idp-api-web.sh # secret/idp -> idp-api,idp-web 마이그레이션
         ├── validate-idp-env-sync.sh # prj-core IDP env와 OpenBao 키 동기화 점검
         └── revoke-non-root-tokens.sh  # 토큰 폐기
 ```
@@ -235,7 +236,7 @@ prj-devops/
 # 1) Helm 값/시크릿 규칙 점검
 ./scripts/helm-sync-check.sh
 
-# 2) prj-core IDP env.example vs OpenBao(idp/production) 키 드리프트 점검
+# 2) prj-core IDP API env.example vs OpenBao(idp-api/production) 키 드리프트 점검
 ./scripts/openbao/validate-idp-env-sync.sh production
 ```
 

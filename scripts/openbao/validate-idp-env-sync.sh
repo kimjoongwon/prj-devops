@@ -2,8 +2,9 @@
 set -euo pipefail
 
 # IDP 환경변수 동기화 점검 스크립트
-# - prj-core/apps/idp/api/.env.example 키 목록과
-# - OpenBao secret/idp/<env> 키 목록을 비교합니다.
+# - prj-core/apps/idp-api(.env.example) 또는 apps/idp/api/.env.example
+# - prj-core/apps/idp-web(.env.example) 또는 apps/idp/web/.env.example
+# - OpenBao secret/idp-<api|web>/<env> 키 목록을 비교합니다.
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PRJ_DEVOPS_ROOT="$(cd "${SCRIPT_DIR}/../.." && pwd)"
@@ -11,8 +12,50 @@ DEFAULT_PRJ_CORE_ROOT="$(cd "${PRJ_DEVOPS_ROOT}/.." && pwd)/prj-core"
 
 ENVIRONMENT="${1:-production}"
 PRJ_CORE_ROOT="${2:-$DEFAULT_PRJ_CORE_ROOT}"
-ENV_FILE="${PRJ_CORE_ROOT}/apps/idp/api/.env.example"
-OPENBAO_PATH="secret/idp/${ENVIRONMENT}"
+COMPONENT="${3:-idp-api}"
+
+# 하위 호환: 두 번째 인자에 컴포넌트만 넣는 기존 호출도 지원
+if [[ "${2:-}" == "idp-api" || "${2:-}" == "idp-web" || "${2:-}" == "api" || "${2:-}" == "web" ]]; then
+  PRJ_CORE_ROOT="$DEFAULT_PRJ_CORE_ROOT"
+  COMPONENT="${2:-idp-api}"
+fi
+
+case "$COMPONENT" in
+  idp-api|api)
+    COMPONENT_NAME="IDP API"
+    ENV_FILE_CANDIDATES=(
+      "${PRJ_CORE_ROOT}/apps/idp-api/.env.example"
+      "${PRJ_CORE_ROOT}/apps/idp/api/.env.example"
+    )
+    OPENBAO_PATH="secret/idp-api/${ENVIRONMENT}"
+    ;;
+  idp-web|web)
+    COMPONENT_NAME="IDP Web"
+    ENV_FILE_CANDIDATES=(
+      "${PRJ_CORE_ROOT}/apps/idp-web/.env.example"
+      "${PRJ_CORE_ROOT}/apps/idp/web/.env.example"
+    )
+    OPENBAO_PATH="secret/idp-web/${ENVIRONMENT}"
+    ;;
+  *)
+    echo "[ERROR] 지원하지 않는 컴포넌트입니다: $COMPONENT"
+    echo "사용법: $0 [staging|production] [prj-core 경로(선택)] [idp-api|idp-web]"
+    exit 1
+    ;;
+esac
+
+ENV_FILE=""
+for candidate in "${ENV_FILE_CANDIDATES[@]}"; do
+  if [[ -f "$candidate" ]]; then
+    ENV_FILE="$candidate"
+    break
+  fi
+done
+
+if [[ -z "$ENV_FILE" ]]; then
+  # 첫 번째 후보 경로를 오류 메시지에 표시
+  ENV_FILE="${ENV_FILE_CANDIDATES[0]}"
+fi
 
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -25,12 +68,12 @@ log_error() { echo -e "${RED}[ERROR]${NC} $1"; }
 
 if [[ "$ENVIRONMENT" != "staging" && "$ENVIRONMENT" != "production" ]]; then
   log_error "환경 값이 올바르지 않습니다: $ENVIRONMENT"
-  echo "사용법: $0 [staging|production] [prj-core 경로(선택)]"
+  echo "사용법: $0 [staging|production] [prj-core 경로(선택)] [idp-api|idp-web]"
   exit 1
 fi
 
 if [[ ! -f "$ENV_FILE" ]]; then
-  log_error "IDP env 예시 파일을 찾을 수 없습니다: $ENV_FILE"
+  log_error "${COMPONENT_NAME} env 예시 파일을 찾을 수 없습니다: $ENV_FILE"
   exit 1
 fi
 
@@ -86,10 +129,10 @@ else
 fi
 
 if [[ -n "$missing_in_vault" ]]; then
-  log_error "IDP 환경변수 동기화 실패"
+  log_error "${COMPONENT_NAME} 환경변수 동기화 실패"
   echo "누락 키는 다음처럼 반영하세요:"
   echo "  vault kv patch ${OPENBAO_PATH} KEY=value ..."
   exit 1
 fi
 
-log_info "IDP 환경변수 동기화 통과"
+log_info "${COMPONENT_NAME} 환경변수 동기화 통과"

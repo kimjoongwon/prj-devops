@@ -111,14 +111,23 @@ VAULT_TOKEN="$TOKEN" vault kv get secret/core-api/production 2>/dev/null && \
   echo "✅ secret/core-api/production 경로 접근 성공" || \
   echo "⚠️  secret/core-api/production 경로가 없거나 접근 불가"
 
-# IDP 시크릿 테스트
-VAULT_TOKEN="$TOKEN" vault kv get secret/idp/staging 2>/dev/null && \
-  echo "✅ secret/idp/staging 경로 접근 성공" || \
-  echo "⚠️  secret/idp/staging 경로가 없거나 접근 불가"
+# IDP API 시크릿 테스트
+VAULT_TOKEN="$TOKEN" vault kv get secret/idp-api/staging 2>/dev/null && \
+  echo "✅ secret/idp-api/staging 경로 접근 성공" || \
+  echo "⚠️  secret/idp-api/staging 경로가 없거나 접근 불가"
 
-VAULT_TOKEN="$TOKEN" vault kv get secret/idp/production 2>/dev/null && \
-  echo "✅ secret/idp/production 경로 접근 성공" || \
-  echo "⚠️  secret/idp/production 경로가 없거나 접근 불가"
+VAULT_TOKEN="$TOKEN" vault kv get secret/idp-api/production 2>/dev/null && \
+  echo "✅ secret/idp-api/production 경로 접근 성공" || \
+  echo "⚠️  secret/idp-api/production 경로가 없거나 접근 불가"
+
+# IDP Web 시크릿 테스트
+VAULT_TOKEN="$TOKEN" vault kv get secret/idp-web/staging 2>/dev/null && \
+  echo "✅ secret/idp-web/staging 경로 접근 성공" || \
+  echo "⚠️  secret/idp-web/staging 경로가 없거나 접근 불가"
+
+VAULT_TOKEN="$TOKEN" vault kv get secret/idp-web/production 2>/dev/null && \
+  echo "✅ secret/idp-web/production 경로 접근 성공" || \
+  echo "⚠️  secret/idp-web/production 경로가 없거나 접근 불가"
 
 # Harbor 시크릿 테스트
 VAULT_TOKEN="$TOKEN" vault kv get secret/harbor/staging 2>/dev/null && \
@@ -149,13 +158,20 @@ echo "  APP_PORT=3000 \\"
 echo "  APP_NAME=core-api \\"
 echo "  NODE_ENV=production"
 echo ""
-echo "# Production IDP 시크릿 생성"
-echo "vault kv put secret/idp/production \\"
+echo "# Production IDP API 시크릿 생성"
+echo "vault kv put secret/idp-api/production \\"
 echo "  APP_NAME=idp \\"
 echo "  APP_PORT=3007 \\"
 echo "  NODE_ENV=production \\"
 echo "  OIDC_ISSUER=https://idp.cocdev.co.kr \\"
 echo "  IDP_CLIENT_URL=https://idp.cocdev.co.kr"
+echo ""
+echo "# Production IDP Web 시크릿 생성"
+echo "vault kv put secret/idp-web/production \\"
+echo "  APP_NAME=idp-web \\"
+echo "  APP_PORT=3008 \\"
+echo "  NODE_ENV=production \\"
+echo "  IDP_API_INTERNAL_URL=http://idp-api-prod"
 echo ""
 echo "# Staging Harbor 시크릿 생성"
 echo "vault kv put secret/harbor/staging \\"
