@@ -296,7 +296,7 @@ OpenBao를 통한 중앙화된 시크릿 관리:
 
 OpenBao 경로 원칙:
 - 애플리케이션별: `secret/core-api/<env>`, `secret/idp-api/<env>`, `secret/idp-web/<env>`
-- 인프라 공통: `secret/devops/<env>` (예: AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY)
+- 인프라 공통: `secret/devops/<env>` (예: `OBJECT_STORAGE_ACCESS_KEY`, `OBJECT_STORAGE_SECRET_KEY`, `OBJECT_STORAGE_BUCKET`)
 
 ### deploy-libraries.sh
 

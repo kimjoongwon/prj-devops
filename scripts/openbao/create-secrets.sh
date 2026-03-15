@@ -34,7 +34,8 @@ echo "📝 Step 2: 서버 환경 변수 시크릿 생성"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo ""
 echo "⚠️  실제 값으로 교체해야 하는 항목들:"
-echo "  - AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY"
+echo "  - OBJECT_STORAGE_ACCESS_KEY, OBJECT_STORAGE_SECRET_KEY"
+echo "  - OBJECT_STORAGE_ENDPOINT, OBJECT_STORAGE_API_TOKEN"
 echo "  - SMTP_USERNAME, SMTP_PASSWORD"
 echo "  - AUTH_JWT_SECRET"
 echo "  - DATABASE_URL, DIRECT_URL"
@@ -64,10 +65,12 @@ fi
 echo ""
 echo "🔧 인프라 공통 시크릿 생성 중..."
 vault kv put "secret/devops/$ENV" \
-  AWS_ACCESS_KEY_ID="CHANGE_ME_AWS_KEY" \
-  AWS_SECRET_ACCESS_KEY="CHANGE_ME_AWS_SECRET" \
-  AWS_REGION=ap-northeast-2 \
-  AWS_S3_BUCKET_NAME="plate-$ENV"
+  OBJECT_STORAGE_ACCESS_KEY="CHANGE_ME_OBJECT_STORAGE_ACCESS_KEY" \
+  OBJECT_STORAGE_SECRET_KEY="CHANGE_ME_OBJECT_STORAGE_SECRET_KEY" \
+  OBJECT_STORAGE_REGION="CHANGE_ME_OBJECT_STORAGE_REGION" \
+  OBJECT_STORAGE_BUCKET="plate" \
+  OBJECT_STORAGE_ENDPOINT="CHANGE_ME_OBJECT_STORAGE_ENDPOINT" \
+  OBJECT_STORAGE_API_TOKEN="CHANGE_ME_OBJECT_STORAGE_API_TOKEN"
 
 echo "✅ 인프라 공통 시크릿 생성 완료: secret/devops/$ENV"
 
@@ -196,10 +199,14 @@ echo "  vault kv get secret/harbor/$ENV"
 echo ""
 echo "⚠️  다음 항목들을 실제 값으로 업데이트하세요:"
 echo ""
-echo "# AWS 자격증명 업데이트"
+echo "# Object storage 자격증명 업데이트"
 echo "vault kv patch secret/devops/$ENV \\"
-echo "  AWS_ACCESS_KEY_ID=<실제_키> \\"
-echo "  AWS_SECRET_ACCESS_KEY=<실제_시크릿>"
+echo "  OBJECT_STORAGE_ACCESS_KEY=<실제_액세스_키> \\"
+echo "  OBJECT_STORAGE_SECRET_KEY=<실제_시크릿_키> \\"
+echo "  OBJECT_STORAGE_REGION=<실제_리전_또는_auto> \\"
+echo "  OBJECT_STORAGE_BUCKET=plate \\"
+echo "  OBJECT_STORAGE_ENDPOINT=<실제_엔드포인트> \\"
+echo "  OBJECT_STORAGE_API_TOKEN=<실제_API_토큰>"
 echo ""
 echo "# SMTP 자격증명 업데이트"
 echo "vault kv patch secret/core-api/$ENV \\"

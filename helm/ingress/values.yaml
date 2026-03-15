@@ -12,7 +12,7 @@ services: # 실제 Kubernetes Service 이름과 포트 매핑 (ArgoCD Release �
     port: 80
   backend:
     name: "core-api-prod"
-    port: 80
+    port: 3006
   admin:
     name: "admin-web-prod"
     port: 80

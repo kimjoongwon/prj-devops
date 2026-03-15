@@ -114,7 +114,7 @@ idpWeb:
 
 # 공통 인프라 환경변수 Secret 동기화 (옵션)
 # OpenBao 경로: devops/{environment}
-# 예: AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_REGION ...
+# 예: OBJECT_STORAGE_ACCESS_KEY, OBJECT_STORAGE_SECRET_KEY, OBJECT_STORAGE_ENDPOINT ...
 infra:
   enabled: true
   externalSecret:

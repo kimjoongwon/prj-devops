@@ -12,7 +12,7 @@ services:                 # ArgoCD 릴리스명 기준 Service 오브젝트 이�
     port: 80
   backend:
     name: "core-api-stg"
-    port: 80
+    port: 3006
   admin:
     name: "admin-web-stg"
     port: 80

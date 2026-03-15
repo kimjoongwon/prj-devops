@@ -25,7 +25,7 @@ imagePullSecrets:
 
 service:
   type: LoadBalancer
-  port: 80
+  port: 3006
   targetPort: 3006
 
 # 애플리케이션 환경변수 Secret 설정
