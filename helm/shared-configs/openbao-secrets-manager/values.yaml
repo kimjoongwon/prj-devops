@@ -125,11 +125,9 @@ infra:
       creationPolicy: "Owner"
       template:
         type: "Opaque"
-        mergePolicy: "Merge"
         metadata:
           labels:
             app.kubernetes.io/component: "infra-env-secrets"
-        data: {}
   staging:
     remoteRef:
       key: "devops/staging"
