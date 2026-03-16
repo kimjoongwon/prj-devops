@@ -35,7 +35,7 @@ echo "━━━━━━━━━━━━━━━━━━━━━━━━�
 echo ""
 echo "⚠️  실제 값으로 교체해야 하는 항목들:"
 echo "  - OBJECT_STORAGE_ACCESS_KEY, OBJECT_STORAGE_SECRET_KEY"
-echo "  - OBJECT_STORAGE_ENDPOINT, OBJECT_STORAGE_API_TOKEN"
+echo "  - OBJECT_STORAGE_PROVIDER, OBJECT_STORAGE_ENDPOINT, OBJECT_STORAGE_API_TOKEN"
 echo "  - SMTP_USERNAME, SMTP_PASSWORD"
 echo "  - AUTH_JWT_SECRET"
 echo "  - DATABASE_URL, DIRECT_URL"
@@ -67,6 +67,7 @@ echo "🔧 인프라 공통 시크릿 생성 중..."
 vault kv put "secret/devops/$ENV" \
   OBJECT_STORAGE_ACCESS_KEY="CHANGE_ME_OBJECT_STORAGE_ACCESS_KEY" \
   OBJECT_STORAGE_SECRET_KEY="CHANGE_ME_OBJECT_STORAGE_SECRET_KEY" \
+  OBJECT_STORAGE_PROVIDER="CHANGE_ME_OBJECT_STORAGE_PROVIDER" \
   OBJECT_STORAGE_REGION="CHANGE_ME_OBJECT_STORAGE_REGION" \
   OBJECT_STORAGE_BUCKET="plate" \
   OBJECT_STORAGE_ENDPOINT="CHANGE_ME_OBJECT_STORAGE_ENDPOINT" \
@@ -203,6 +204,7 @@ echo "# Object storage 자격증명 업데이트"
 echo "vault kv patch secret/devops/$ENV \\"
 echo "  OBJECT_STORAGE_ACCESS_KEY=<실제_액세스_키> \\"
 echo "  OBJECT_STORAGE_SECRET_KEY=<실제_시크릿_키> \\"
+echo "  OBJECT_STORAGE_PROVIDER=<aws-s3|backblaze-b2|cloudflare-r2> \\"
 echo "  OBJECT_STORAGE_REGION=<실제_리전_또는_auto> \\"
 echo "  OBJECT_STORAGE_BUCKET=plate \\"
 echo "  OBJECT_STORAGE_ENDPOINT=<실제_엔드포인트> \\"
