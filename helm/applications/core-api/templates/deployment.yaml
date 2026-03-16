@@ -30,6 +30,18 @@ spec:
             - name: http
               containerPort: {{ index .Values "core-api" "port" }}
               protocol: TCP
+          {{- with index .Values "core-api" "probes" "startup" }}
+          startupProbe:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with index .Values "core-api" "probes" "readiness" }}
+          readinessProbe:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with index .Values "core-api" "probes" "liveness" }}
+          livenessProbe:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
           {{- with .Values.extraEnv }}
           env:
             {{- toYaml . | nindent 12 }}

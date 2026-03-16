@@ -18,6 +18,28 @@ core-api:
     requests:
       cpu: 250m
       memory: 512Mi
+  probes:
+    startup:
+      httpGet:
+        path: /api-json
+        port: http
+      periodSeconds: 10
+      timeoutSeconds: 3
+      failureThreshold: 18
+    readiness:
+      httpGet:
+        path: /api-json
+        port: http
+      periodSeconds: 10
+      timeoutSeconds: 3
+      failureThreshold: 3
+    liveness:
+      httpGet:
+        path: /api-json
+        port: http
+      periodSeconds: 20
+      timeoutSeconds: 3
+      failureThreshold: 3
 
 # Harbor registry authentication
 imagePullSecrets:

@@ -9,7 +9,7 @@ core-api:
   image:
     repository: harbor.cocdev.co.kr/prod/core-api
     tag: "latest"
-    pullPolicy: IfNotPresent
+    pullPolicy: Always
   port: 3006
   resources:
     limits:
