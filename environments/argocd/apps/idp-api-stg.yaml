@@ -1,0 +1,53 @@
+# IDP API - Staging 환경 ArgoCD Application
+
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: idp-api-stg
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+  labels:
+    app.kubernetes.io/name: idp-api
+    app.kubernetes.io/instance: staging
+    environment: staging
+spec:
+  project: default
+
+  source:
+    repoURL: https://github.com/kimjoongwon/prj-devops.git
+    path: helm/applications/idp-api
+    targetRevision: main
+    helm:
+      valueFiles:
+        - values-stg.yaml
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: plate-stg
+
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+
+    syncOptions:
+      - CreateNamespace=true
+      - ApplyOutOfSyncOnly=true
+
+    retry:
+      limit: 5
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m
+
+  revisionHistoryLimit: 10
+
+  info:
+    - name: "Environment"
+      value: "Staging"
+    - name: "Domain"
+      value: "idp-stg.cocdev.co.kr (api/oidc)"
+    - name: "Description"
+      value: "IDP API - Staging Environment"

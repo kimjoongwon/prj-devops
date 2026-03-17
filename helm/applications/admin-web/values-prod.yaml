@@ -25,5 +25,9 @@ appSecrets:
   secretName: app-env-secrets
 
 extraEnv:
+  - name: CORE_API_INTERNAL_URL
+    value: http://core-api-prod:3006
+  - name: IDP_API_INTERNAL_URL
+    value: http://idp-api-prod
   - name: OTEL_SERVICE_NAME
     value: admin-web-prod

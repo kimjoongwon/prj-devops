@@ -1,6 +1,6 @@
 # 공용 Ingress Chart Staging 값
 # 목적: plate-stg 네임스페이스 서비스(frontend/backend)를 외부(stg 서브도메인)로 노출
-# 차이점: HTTP 허용(ssl-redirect=false), TLS는 실서명(또는 스테이징) 인증서, 도메인 stg.cocdev.co.kr
+# 차이점: HTTP 허용(ssl-redirect=false), TLS는 실서명(또는 스테이징) 인증서, 도메인 stg.cocdev.co.kr / idp-stg.cocdev.co.kr
 
 # App name (default: plate)
 appName: plate
@@ -39,6 +39,35 @@ ingress:
               name: frontend
               port:
                 number: 80
+        # IDP 인증/관리 경로는 IDP API로 전달
+        - path: /api/v1/auth
+          pathType: Prefix
+          backend:
+            service:
+              name: idp-api-stg
+              port:
+                number: 80
+        - path: /api/v1/idp
+          pathType: Prefix
+          backend:
+            service:
+              name: idp-api-stg
+              port:
+                number: 80
+        - path: /api/v1/oidc-clients
+          pathType: Prefix
+          backend:
+            service:
+              name: idp-api-stg
+              port:
+                number: 80
+        - path: /api/v1/oidc-sessions
+          pathType: Prefix
+          backend:
+            service:
+              name: idp-api-stg
+              port:
+                number: 80
         # /api prefix -> 백엔드 API
         - path: /api
           pathType: Prefix
@@ -73,9 +102,33 @@ ingress:
               name: plate-llm-stg
               port:
                 number: 80
+    - host: idp-stg.cocdev.co.kr
+      paths:
+        - path: /api
+          pathType: Prefix
+          backend:
+            service:
+              name: idp-api-stg
+              port:
+                number: 80
+        - path: /oidc
+          pathType: Prefix
+          backend:
+            service:
+              name: idp-api-stg
+              port:
+                number: 80
+        - path: /
+          pathType: Prefix
+          backend:
+            service:
+              name: idp-web-stg
+              port:
+                number: 80
   
   tls:
     - secretName: plate-stg-tls   # SAN 인증서: 모든 스테이징 도메인 포함
       hosts:
         - stg.cocdev.co.kr
         - llm.cocdev.co.kr
+        - idp-stg.cocdev.co.kr

@@ -1,0 +1,38 @@
+# Staging environment values for IDP API
+
+replicaCount: 1
+
+idp-api:
+  image:
+    repository: harbor.cocdev.co.kr/stg/idp-api
+    tag: "latest"
+    pullPolicy: Always
+  port: 3007
+  resources:
+    limits:
+      cpu: 500m
+      memory: 1Gi
+    requests:
+      cpu: 200m
+      memory: 512Mi
+
+appSecrets:
+  enabled: true
+  secretName: idp-api-env-secrets
+
+command:
+  - sh
+  - -c
+  - |
+    set -e
+    sed -i "s|globalThis\\['__dirname'\\].*|globalThis['__dirname'] = __dirname;|" /app/packages/be-prisma/dist/src/generated/client/client.js
+    exec node apps/idp/api/dist/main.js
+args: []
+
+extraEnv:
+  - name: APP_NAME
+    value: idp
+  - name: APP_PORT
+    value: "3007"
+  - name: OTEL_SERVICE_NAME
+    value: idp-api-stg

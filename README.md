@@ -14,23 +14,28 @@ GitOps 기반의 Kubernetes 배포 인프라로, Helm과 ArgoCD를 활용한 선
 - **보안 강화**: OpenBao 시크릿 관리 및 Harbor 프라이빗 레지스트리
 - **표준화된 구조**: 통일된 Helm 차트 패턴 및 명명 규칙
 
-## 📌 현재 운영 모드 (2026-03-08)
+## 📌 현재 운영 모드 (2026-03-17)
 
-- Parent Application: `frontend-web-apps` (`argocd` namespace)
+- Production Parent Application: `frontend-web-apps` (`argocd` namespace)
+- Staging Parent Application: `frontend-web-apps-stg` (`argocd` namespace, 별도 생성/적용 필요)
+- 공유 Child(`plate-cache`, `openbao-cluster-secrets-manager`)는 중복 소유를 피하기 위해 staging parent에 포함하지 않습니다.
 - Git 경로: `environments/argocd/apps`
-- 운영 모드: `prod only` (`spec.source.directory.exclude: "*-stg.yaml"`)
+- Production 모드: `prod only` (`environments/argocd/app-of-apps.yaml`)
+- Staging 모드: `stg only` (`environments/argocd/app-of-apps-stg.yaml`)
 - 변경 감지: GitHub Webhook + 폴링(`timeout.reconciliation: 180s`)
 - 운영 가이드: `docs/argocd-prod-only-webhook-manual.md`
 - Jenkins 연계 가이드: `docs/jenkins-gitops-image-bump.md`
 - Jenkinsfile 예시: `scripts/jenkins/Jenkinsfile.gitops-prod-example.groovy`
 
-## ⚠️ 현재 운영 제약 (2026-03-08)
+## ⚠️ 현재 운영 제약 (2026-03-17)
 
-- `staging` Child Application은 임시 중지 상태입니다. (`*-stg.yaml` 제외)
-- `idp-api`, `idp-web`는 현재 `production`만 배포 대상입니다.
+- `frontend-web-apps-stg` Parent Application은 repo에 추가되지만, 클러스터에는 별도 apply 전까지 생성되지 않습니다.
+- Staging IDP는 `idp-stg.cocdev.co.kr` DNS와 OpenBao 시크릿 patch가 끝나야 정상 동작합니다.
 - IDP 앱 정상화 선행 조건:
   - Harbor에 `harbor.cocdev.co.kr/prod/idp-api:latest`
   - Harbor에 `harbor.cocdev.co.kr/prod/idp-web:latest`
+  - Harbor에 `harbor.cocdev.co.kr/stg/idp-api:latest`
+  - Harbor에 `harbor.cocdev.co.kr/stg/idp-web:latest`
 - 이미지 미존재 시 `ImagePullBackOff`가 발생하며 ArgoCD 앱은 `Synced`여도 `Healthy`가 되지 않습니다.
 
 ## 📁 프로젝트 구조
@@ -80,11 +85,13 @@ prj-devops/
 │   │   ├── idp-api/               # IDP API 백엔드
 │   │   │   ├── Chart.yaml
 │   │   │   ├── values.yaml
+│   │   │   ├── values-stg.yaml
 │   │   │   ├── values-prod.yaml
 │   │   │   └── templates/
 │   │   ├── idp-web/               # IDP Web 프론트엔드
 │   │   │   ├── Chart.yaml
 │   │   │   ├── values.yaml
+│   │   │   ├── values-stg.yaml
 │   │   │   ├── values-prod.yaml
 │   │   │   └── templates/
 │   │   └── plate-cache/           # 컨테이너 빌드 캐시 PVC
@@ -108,7 +115,8 @@ prj-devops/
 │           └── templates/
 ├── environments/                   # ArgoCD 설정
 │   └── argocd/
-│       ├── app-of-apps.yaml       # App of Apps 패턴 메인 (운영 객체명: frontend-web-apps)
+│       ├── app-of-apps.yaml       # Production App of Apps (frontend-web-apps)
+│       ├── app-of-apps-stg.yaml   # Staging App of Apps (frontend-web-apps-stg)
 │       └── apps/                  # 개별 ArgoCD Application 정의
 │           ├── core-api-stg.yaml
 │           ├── core-api-prod.yaml
@@ -117,7 +125,9 @@ prj-devops/
 │           ├── spring-api-stg.yaml
 │           ├── spring-api-prod.yaml
 │           ├── plate-llm-stg.yaml
+│           ├── idp-api-stg.yaml
 │           ├── idp-api-prod.yaml
+│           ├── idp-web-stg.yaml
 │           ├── idp-web-prod.yaml
 │           ├── plate-cache.yaml   # 환경 통합 (단일 PVC)
 │           ├── ingress-stg.yaml
@@ -139,6 +149,7 @@ prj-devops/
         ├── create-policy.sh      # 정책 생성
         ├── create-token.sh       # 토큰 생성
         ├── create-secrets.sh     # 시크릿 생성
+        ├── patch-idp-endpoints.sh # IDP 도메인/내부 URL patch
         ├── migrate-infra-secrets.sh # infra 키를 devops/* 로 이관
         ├── migrate-idp-to-idp-api-web.sh # secret/idp -> idp-api,idp-web 마이그레이션
         ├── validate-idp-env-sync.sh # prj-core IDP env와 OpenBao 키 동기화 점검
@@ -163,18 +174,18 @@ prj-devops/
 - `values-stg.yaml`: 스테이징 환경 오버라이드
 - `values-prod.yaml`: 프로덕션 환경 오버라이드
 - 예외: `plate-cache`는 단일 `values.yaml` 사용 (환경 간 공유 리소스)
-- 예외: `idp-api`, `idp-web`는 현재 `prod-only` 운영 기준으로 `values-prod.yaml` 중심 관리
+- `idp-api`, `idp-web`도 `values-stg.yaml`, `values-prod.yaml`을 모두 사용합니다.
 
 ### ArgoCD GitOps 전략
 
 **App of Apps 패턴**:
 
-- `environments/argocd/app-of-apps.yaml`: 최상위 Application
+- `environments/argocd/app-of-apps.yaml`: production child 전용 Parent Application
+- `environments/argocd/app-of-apps-stg.yaml`: staging child 전용 Parent Application
 - `environments/argocd/apps/`: 각 서비스별 Application 정의
-- 운영 모드 토글: `spec.source.directory.exclude` 값으로 활성 환경 선택
-  - `prod only`: `*-stg.yaml` 제외
-  - `stg only`: `*-prod.yaml` 제외
-  - `all`: `exclude` 제거
+- 운영 모드 선택:
+  - Production Parent: `exclude: "*-stg.yaml"`
+  - Staging Parent: `include: "*-stg.yaml"`
 - 자동 동기화: `prune: true`, `selfHeal: true`
 - Sync Wave: 의존성 순서 보장
 
@@ -209,21 +220,30 @@ prj-devops/
 
 ### 2. 애플리케이션 배포
 
-> 현재 `staging` 운영은 중지되어 있으므로, 실운영 기준은 `production`(ArgoCD prod-only)입니다.
+> Production Parent와 Staging Parent를 분리해 운영합니다. staging은 `frontend-web-apps-stg`를 별도 apply 해야 합니다.
 
 #### 스테이징 환경
 
 ```bash
-# 스테이징 환경에 배포
-./scripts/deploy-stg.sh
+# 1) Staging Parent Application 생성
+kubectl apply -f environments/argocd/app-of-apps-stg.yaml
 
-# 또는 메인 스크립트 사용
-./scripts/deploy-all.sh staging
+# 2) OpenBao 값 확인
+./scripts/openbao/patch-idp-endpoints.sh staging dry-run
+
+# 3) OpenBao patch 적용
+./scripts/openbao/patch-idp-endpoints.sh staging apply
 ```
 
 #### 프로덕션 환경
 
 ```bash
+# 1) OpenBao 값 확인
+./scripts/openbao/patch-idp-endpoints.sh production dry-run
+
+# 2) OpenBao patch 적용
+./scripts/openbao/patch-idp-endpoints.sh production apply
+
 # 드라이런 실행 (권장)
 ./scripts/deploy-all.sh production --dry-run
 
@@ -245,11 +265,12 @@ prj-devops/
 
 ```bash
 # ArgoCD 앱 상태
-kubectl -n argocd get applications idp-api-prod idp-web-prod \
+kubectl -n argocd get applications idp-api-stg idp-web-stg idp-api-prod idp-web-prod \
   -o custom-columns=NAME:.metadata.name,SYNC:.status.sync.status,HEALTH:.status.health.status
 
 # 이미지 pull 실패 확인
 kubectl -n plate-prod get pods | rg 'idp-(api|web)-prod'
+kubectl -n plate-stg get pods | rg 'idp-(api|web)-stg'
 ```
 
 ## 🔧 환경 설정
@@ -339,7 +360,9 @@ OpenBao 경로 원칙:
 
 ### deploy-stg.sh
 
-스테이징 전용 배포 스크립트 (특징):
+레거시 스테이징 배포 스크립트입니다. 현재 권장 경로는 `app-of-apps-stg.yaml` 적용 후 ArgoCD/OpenBao 기준으로 운영하는 방식입니다.
+
+기존 스크립트 특징:
 
 - 빠른 반복 배포
 - 상태 모니터링 지원
@@ -377,11 +400,11 @@ OpenBao 경로 원칙:
 ### 배포 상태 확인
 
 ```bash
-# 스테이징 상태 확인
-./scripts/deploy-stg.sh status
+# 스테이징 Parent / Child 상태 확인
+kubectl -n argocd get applications frontend-web-apps-stg idp-api-stg idp-web-stg admin-web-stg core-api-stg plate-ingress-stg openbao-secrets-manager-stg
 
 # 프로덕션 상태 확인
-./scripts/deploy-prod.sh status
+kubectl -n argocd get applications frontend-web-apps idp-api-prod idp-web-prod admin-web-prod core-api-prod plate-ingress-prod openbao-secrets-manager-prod
 
 # ArgoCD를 통한 확인
 kubectl get applications -n argocd
@@ -395,6 +418,7 @@ kubectl get pods -A
 배포 완료 후 접근 URL:
 
 - **Staging**: https://stg.cocdev.co.kr
+- **Staging IDP**: https://idp-stg.cocdev.co.kr
 - **Production**: https://cocdev.co.kr 또는 https://www.cocdev.co.kr
 - **Production IDP**: https://idp.cocdev.co.kr
 
@@ -527,7 +551,7 @@ spec:
 
 이 프로젝트는 ArgoCD의 App-of-Apps 패턴을 활용하여 모든 애플리케이션을 관리합니다:
 
-- **App of Apps**: `environments/argocd/app-of-apps.yaml`이 모든 하위 Application을 관리
+- **App of Apps**: `environments/argocd/app-of-apps.yaml`은 production child를, `environments/argocd/app-of-apps-stg.yaml`은 staging child를 관리
 - **개별 Application**: `environments/argocd/apps/` 디렉토리에 각 서비스별 ArgoCD Application 정의
 - **환경 선택**: stg/prod Application 정의를 유지하고, Parent App의 `directory.exclude`로 활성 환경을 선택
 - **Values 오버라이드**: 각 Application은 `helm.valueFiles`를 통해 환경별 설정 적용

@@ -67,6 +67,6 @@ spec:
     - name: "Environment"
       value: "Staging"
     - name: "Domain"
-      value: "stg.cocdev.co.kr"
+      value: "stg.cocdev.co.kr, idp-stg.cocdev.co.kr"
     - name: "Description"
-      value: "스테이징 환경 인그레스 - admin-web, core-api, spring-api 라우팅 처리"
+      value: "스테이징 환경 인그레스 - admin-web, core-api, spring-api, idp-web/idp-api 라우팅 처리"

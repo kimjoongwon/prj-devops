@@ -1,12 +1,12 @@
-# Production environment values for IDP Web
+# Staging environment values for IDP Web
 
 replicaCount: 1
 
 idp-web:
   image:
-    repository: harbor.cocdev.co.kr/prod/idp-web
+    repository: harbor.cocdev.co.kr/stg/idp-web
     tag: "latest"
-    pullPolicy: IfNotPresent
+    pullPolicy: Always
   port: 3008
   resources:
     limits:
@@ -22,4 +22,4 @@ appSecrets:
 
 extraEnv:
   - name: OTEL_SERVICE_NAME
-    value: idp-web-prod
+    value: idp-web-stg

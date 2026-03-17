@@ -51,7 +51,7 @@ fi
 if [[ "$ENV" == "staging" ]]; then
   FRONTEND_DOMAIN="https://staging.cocdev.co.kr"
   BACKEND_DOMAIN="https://api-staging.cocdev.co.kr"
-  IDP_DOMAIN="https://idp.stg.cocdev.co.kr"
+  IDP_DOMAIN="https://idp-stg.cocdev.co.kr"
   CORE_ADMIN_CALLBACK_URL="https://stg.cocdev.co.kr/api/v1/auth/callback"
   NODE_ENV="staging"
 else
@@ -61,6 +61,9 @@ else
   CORE_ADMIN_CALLBACK_URL="https://cocdev.co.kr/api/v1/auth/callback"
   NODE_ENV="production"
 fi
+
+OIDC_CLIENT_ID="prj-core-admin"
+OIDC_CLIENT_SECRET="CHANGE_ME_$(openssl rand -hex 24)"
 
 echo ""
 echo "🔧 인프라 공통 시크릿 생성 중..."
@@ -77,6 +80,14 @@ echo "✅ 인프라 공통 시크릿 생성 완료: secret/devops/$ENV"
 
 echo ""
 echo "🔧 서버 시크릿 생성 중..."
+if [[ "$ENV" == "staging" ]]; then
+  CORE_API_INTERNAL_URL="http://core-api-stg:3006"
+  IDP_API_INTERNAL_URL="http://idp-api-stg"
+else
+  CORE_API_INTERNAL_URL="http://core-api-prod:3006"
+  IDP_API_INTERNAL_URL="http://idp-api-prod"
+fi
+
 vault kv put "secret/core-api/$ENV" \
   APP_PORT=3000 \
   APP_NAME=core-api \
@@ -104,6 +115,14 @@ vault kv put "secret/core-api/$ENV" \
   OTEL_PROPAGATORS="tracecontext,baggage" \
   OTEL_METRICS_EXPORTER=none \
   OTEL_LOGS_EXPORTER=none \
+  CORE_API_INTERNAL_URL="$CORE_API_INTERNAL_URL" \
+  IDP_API_INTERNAL_URL="$IDP_API_INTERNAL_URL" \
+  OIDC_ISSUER="$IDP_DOMAIN" \
+  OIDC_JWKS_URI="$IDP_DOMAIN/oidc/jwks" \
+  OIDC_CLIENT_ID="$OIDC_CLIENT_ID" \
+  OIDC_CLIENT_SECRET="$OIDC_CLIENT_SECRET" \
+  OIDC_REDIRECT_URI="$CORE_ADMIN_CALLBACK_URL" \
+  IDP_CLIENT_URL="$IDP_DOMAIN" \
   DATABASE_URL="CHANGE_ME_postgresql://user:pass@host:5432/db" \
   DIRECT_URL="CHANGE_ME_postgresql://user:pass@host:5432/db"
 
@@ -138,8 +157,8 @@ vault kv put "secret/idp-api/$ENV" \
   AUTH_JWT_SALT_ROUNDS=10 \
   OIDC_ISSUER="$IDP_DOMAIN" \
   OIDC_COOKIE_SECRET="CHANGE_ME_$(openssl rand -hex 32)" \
-  OIDC_CLIENT_ID=prj-core-admin \
-  OIDC_CLIENT_SECRET="CHANGE_ME_$(openssl rand -hex 24)" \
+  OIDC_CLIENT_ID="$OIDC_CLIENT_ID" \
+  OIDC_CLIENT_SECRET="$OIDC_CLIENT_SECRET" \
   OIDC_REDIRECT_URI="$CORE_ADMIN_CALLBACK_URL" \
   OIDC_JWKS_URI="$IDP_DOMAIN/oidc/jwks" \
   IDP_CLIENT_URL="$IDP_DOMAIN"
@@ -148,12 +167,6 @@ echo "✅ IDP API 시크릿 생성 완료: secret/idp-api/$ENV"
 
 echo ""
 echo "🔧 IDP Web 시크릿 생성 중..."
-if [[ "$ENV" == "staging" ]]; then
-  IDP_API_INTERNAL_URL="http://idp-api-stg"
-else
-  IDP_API_INTERNAL_URL="http://idp-api-prod"
-fi
-
 vault kv put "secret/idp-web/$ENV" \
   APP_NAME=idp-web \
   APP_PORT=3008 \

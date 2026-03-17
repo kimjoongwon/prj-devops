@@ -54,6 +54,32 @@ harbor:
     remoteRef:
       key: "harbor/staging"
 
+# IDP API 전용 시크릿 동기화
+idpApi:
+  enabled: true
+  externalSecret:
+    name: "idp-api-env-secrets-staging"
+    refreshInterval: "30m"
+    target:
+      name: "idp-api-env-secrets"
+      creationPolicy: "Owner"
+  staging:
+    remoteRef:
+      key: "idp-api/staging"
+
+# IDP Web 전용 시크릿 동기화
+idpWeb:
+  enabled: true
+  externalSecret:
+    name: "idp-web-env-secrets-staging"
+    refreshInterval: "30m"
+    target:
+      name: "idp-web-env-secrets"
+      creationPolicy: "Owner"
+  staging:
+    remoteRef:
+      key: "idp-web/staging"
+
 # OpenBao token configuration
 # 토큰은 ./scripts/openbao/create-token.sh 스크립트로 Kubernetes Secret 생성
 openbao:
