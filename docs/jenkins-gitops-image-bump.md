@@ -7,6 +7,7 @@
 ## 핵심 원칙
 - Jenkins는 **클러스터 직접 배포를 하지 않고**, GitOps 저장소 변경까지만 수행
 - ArgoCD가 Git 단일 진실 원천(SSOT)으로 배포를 담당
+- Production 이미지는 `latest` 대신 빌드 번호 같은 **immutable tag**를 사용하고, `values-prod.yaml`도 그 태그로만 갱신
 
 ## 지원 대상 앱 (prod)
 - `idp-api`
@@ -38,6 +39,7 @@
 - `scripts/jenkins/Jenkinsfile.gitops-prod-example.groovy`
 
 핵심 동작:
+- 프로덕션 빌드는 이미지에 `${BUILD_NUMBER}` 같은 immutable tag만 push
 - 이미지 빌드/푸시 후 `prj-devops`를 토큰 인증으로 clone
 - `update-gitops-image-tag.sh` 호출로 `values-prod.yaml` 갱신
 - `ci(gitops): bump <app> image to <tag>` 커밋 후 `main` push
