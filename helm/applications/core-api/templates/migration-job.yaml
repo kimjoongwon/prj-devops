@@ -1,0 +1,54 @@
+{{- if .Values.migrationJob.enabled }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ printf "%s-migration" (include "core-api.name" .) | trunc 63 | trimSuffix "-" }}
+  labels:
+    {{- include "core-api.labels" . | nindent 4 }}
+    app.kubernetes.io/component: migration
+  annotations:
+    argocd.argoproj.io/hook: PreSync
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation,HookSucceeded
+spec:
+  backoffLimit: {{ .Values.migrationJob.backoffLimit }}
+  ttlSecondsAfterFinished: {{ .Values.migrationJob.ttlSecondsAfterFinished }}
+  template:
+    metadata:
+      labels:
+        {{- include "core-api.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: migration
+    spec:
+      restartPolicy: OnFailure
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: schema-and-reference-data-migrator
+          image: "{{ index .Values "core-api" "image" "repository" }}:{{ index .Values "core-api" "image" "tag" | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ index .Values "core-api" "image" "pullPolicy" }}
+          workingDir: {{ .Values.migrationJob.workingDir }}
+          command:
+            {{- toYaml .Values.migrationJob.command | nindent 12 }}
+          args:
+            {{- toYaml .Values.migrationJob.args | nindent 12 }}
+          {{- with .Values.extraEnv }}
+          env:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- $hasAppSecrets := .Values.appSecrets.enabled }}
+          {{- $hasInfraSecrets := and .Values.infraSecrets .Values.infraSecrets.enabled }}
+          {{- if or $hasAppSecrets $hasInfraSecrets }}
+          envFrom:
+            {{- if $hasAppSecrets }}
+            - secretRef:
+                name: {{ .Values.appSecrets.secretName }}
+            {{- end }}
+            {{- if $hasInfraSecrets }}
+            - secretRef:
+                name: {{ .Values.infraSecrets.secretName }}
+            {{- end }}
+          {{- end }}
+          resources:
+            {{- toYaml .Values.migrationJob.resources | nindent 12 }}
+{{- end }}

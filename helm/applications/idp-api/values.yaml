@@ -39,3 +39,26 @@ command: []
 args: []
 
 extraEnv: []
+
+# 앱 배포 전에 스키마/기준 데이터를 먼저 반영하는 PreSync Job 설정
+migrationJob:
+  enabled: true
+  backoffLimit: 2
+  ttlSecondsAfterFinished: 300
+  workingDir: /app/packages/be-prisma
+  command:
+    - /bin/sh
+    - -lc
+  args:
+    - |
+      set -e
+      cd /app/packages/be-prisma
+      node_modules/.bin/prisma migrate deploy
+      node_modules/.bin/tsx data-migrate.ts
+  resources:
+    limits:
+      cpu: 300m
+      memory: 512Mi
+    requests:
+      cpu: 100m
+      memory: 256Mi
