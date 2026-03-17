@@ -9,7 +9,7 @@ GitOps 기반의 Kubernetes 배포 인프라로, Helm과 ArgoCD를 활용한 선
 ### 주요 특징
 
 - **계층화된 아키텍처**: 클러스터 서비스, 개발 도구, 애플리케이션의 3계층 구조
-- **운영 모드 토글 지원**: stg/prod 매니페스트를 유지하면서 App-of-Apps `exclude`로 prod-only/stg-only/all 전환
+- **운영 정책 분리**: stg/prod 매니페스트는 유지하되, 기본 GitOps 경로는 prod-only로 운영
 - **GitOps 통합**: ArgoCD를 통한 자동화된 배포 파이프라인
 - **보안 강화**: OpenBao 시크릿 관리 및 Harbor 프라이빗 레지스트리
 - **표준화된 구조**: 통일된 Helm 차트 패턴 및 명명 규칙
@@ -17,11 +17,9 @@ GitOps 기반의 Kubernetes 배포 인프라로, Helm과 ArgoCD를 활용한 선
 ## 📌 현재 운영 모드 (2026-03-17)
 
 - Production Parent Application: `frontend-web-apps` (`argocd` namespace)
-- Staging Parent Application: `frontend-web-apps-stg` (`argocd` namespace, 별도 생성/적용 필요)
-- 공유 Child(`plate-cache`, `openbao-cluster-secrets-manager`)는 중복 소유를 피하기 위해 staging parent에 포함하지 않습니다.
+- Staging 매니페스트는 `environments/argocd/apps/*-stg.yaml`에만 유지하며, 별도 Parent Application은 운영하지 않습니다.
 - Git 경로: `environments/argocd/apps`
 - Production 모드: `prod only` (`environments/argocd/app-of-apps.yaml`)
-- Staging 모드: `stg only` (`environments/argocd/app-of-apps-stg.yaml`)
 - 변경 감지: GitHub Webhook + 폴링(`timeout.reconciliation: 180s`)
 - 운영 가이드: `docs/argocd-prod-only-webhook-manual.md`
 - Jenkins 연계 가이드: `docs/jenkins-gitops-image-bump.md`
@@ -29,7 +27,7 @@ GitOps 기반의 Kubernetes 배포 인프라로, Helm과 ArgoCD를 활용한 선
 
 ## ⚠️ 현재 운영 제약 (2026-03-17)
 
-- `frontend-web-apps-stg` Parent Application은 repo에 추가되지만, 클러스터에는 별도 apply 전까지 생성되지 않습니다.
+- staging child manifest는 repo에 존재하더라도 기본 운영 경로에서는 apply되지 않습니다.
 - Staging IDP는 `idp-stg.cocdev.co.kr` DNS와 OpenBao 시크릿 patch가 끝나야 정상 동작합니다.
 - IDP 앱 정상화 선행 조건:
   - Harbor에 `harbor.cocdev.co.kr/prod/idp-api:latest`
@@ -116,7 +114,6 @@ prj-devops/
 ├── environments/                   # ArgoCD 설정
 │   └── argocd/
 │       ├── app-of-apps.yaml       # Production App of Apps (frontend-web-apps)
-│       ├── app-of-apps-stg.yaml   # Staging App of Apps (frontend-web-apps-stg)
 │       └── apps/                  # 개별 ArgoCD Application 정의
 │           ├── core-api-stg.yaml
 │           ├── core-api-prod.yaml
@@ -181,11 +178,10 @@ prj-devops/
 **App of Apps 패턴**:
 
 - `environments/argocd/app-of-apps.yaml`: production child 전용 Parent Application
-- `environments/argocd/app-of-apps-stg.yaml`: staging child 전용 Parent Application
 - `environments/argocd/apps/`: 각 서비스별 Application 정의
-- 운영 모드 선택:
+- 현재 운영 정책:
   - Production Parent: `exclude: "*-stg.yaml"`
-  - Staging Parent: `include: "*-stg.yaml"`
+  - staging manifest는 정의만 유지하고 기본 GitOps 경로에 포함하지 않음
 - 자동 동기화: `prune: true`, `selfHeal: true`
 - Sync Wave: 의존성 순서 보장
 
@@ -220,20 +216,7 @@ prj-devops/
 
 ### 2. 애플리케이션 배포
 
-> Production Parent와 Staging Parent를 분리해 운영합니다. staging은 `frontend-web-apps-stg`를 별도 apply 해야 합니다.
-
-#### 스테이징 환경
-
-```bash
-# 1) Staging Parent Application 생성
-kubectl apply -f environments/argocd/app-of-apps-stg.yaml
-
-# 2) OpenBao 값 확인
-./scripts/openbao/patch-idp-endpoints.sh staging dry-run
-
-# 3) OpenBao patch 적용
-./scripts/openbao/patch-idp-endpoints.sh staging apply
-```
+> 현재 기본 GitOps 경로는 production only 입니다. staging manifest는 repo에 유지하지만 자동 배포하지 않습니다.
 
 #### 프로덕션 환경
 
@@ -360,7 +343,7 @@ OpenBao 경로 원칙:
 
 ### deploy-stg.sh
 
-레거시 스테이징 배포 스크립트입니다. 현재 권장 경로는 `app-of-apps-stg.yaml` 적용 후 ArgoCD/OpenBao 기준으로 운영하는 방식입니다.
+레거시 스테이징 배포 스크립트입니다. 현재는 staging Parent Application을 운영하지 않으며, 필요 시에만 별도 절차로 수동 검증용 배포를 수행합니다.
 
 기존 스크립트 특징:
 
@@ -400,9 +383,6 @@ OpenBao 경로 원칙:
 ### 배포 상태 확인
 
 ```bash
-# 스테이징 Parent / Child 상태 확인
-kubectl -n argocd get applications frontend-web-apps-stg idp-api-stg idp-web-stg admin-web-stg core-api-stg plate-ingress-stg openbao-secrets-manager-stg
-
 # 프로덕션 상태 확인
 kubectl -n argocd get applications frontend-web-apps idp-api-prod idp-web-prod admin-web-prod core-api-prod plate-ingress-prod openbao-secrets-manager-prod
 
@@ -551,9 +531,9 @@ spec:
 
 이 프로젝트는 ArgoCD의 App-of-Apps 패턴을 활용하여 모든 애플리케이션을 관리합니다:
 
-- **App of Apps**: `environments/argocd/app-of-apps.yaml`은 production child를, `environments/argocd/app-of-apps-stg.yaml`은 staging child를 관리
+- **App of Apps**: `environments/argocd/app-of-apps.yaml`이 production child를 관리
 - **개별 Application**: `environments/argocd/apps/` 디렉토리에 각 서비스별 ArgoCD Application 정의
-- **환경 선택**: stg/prod Application 정의를 유지하고, Parent App의 `directory.exclude`로 활성 환경을 선택
+- **환경 선택**: stg/prod Application 정의는 유지하지만, 현재 Parent App은 `directory.exclude`로 staging을 제외한 prod-only 운영
 - **Values 오버라이드**: 각 Application은 `helm.valueFiles`를 통해 환경별 설정 적용
 - **자동 동기화**: `syncPolicy.automated`로 Git 저장소 변경 시 자동 배포
 
