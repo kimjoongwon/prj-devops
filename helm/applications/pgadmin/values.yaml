@@ -5,7 +5,7 @@ replicaCount: 1
 pgadmin:
   image:
     repository: dpage/pgadmin4
-    tag: "9.13"
+    tag: "9.12"
     pullPolicy: IfNotPresent
   port: 5050
   resources:
