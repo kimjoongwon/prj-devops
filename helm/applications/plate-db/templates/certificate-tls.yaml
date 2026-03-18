@@ -1,0 +1,24 @@
+{{- if and .Values.tls.enabled .Values.tls.autoGenerate }}
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: {{ include "plate-db.tlsCertificateName" . }}
+  labels:
+    {{- include "plate-db.labels" . | nindent 4 }}
+spec:
+  secretName: {{ .Values.tls.secretName }}
+  issuerRef:
+    name: {{ include "plate-db.tlsIssuerName" . }}
+    kind: Issuer
+  privateKey:
+    algorithm: RSA
+    size: 2048
+  dnsNames:
+    - {{ include "plate-db.name" . | quote }}
+    - {{ printf "%s.%s" (include "plate-db.name" .) .Release.Namespace | quote }}
+    - {{ printf "%s.%s.svc" (include "plate-db.name" .) .Release.Namespace | quote }}
+    - {{ printf "%s.%s.svc.cluster.local" (include "plate-db.name" .) .Release.Namespace | quote }}
+    {{- if .Values.tls.host }}
+    - {{ .Values.tls.host | quote }}
+    {{- end }}
+{{- end }}

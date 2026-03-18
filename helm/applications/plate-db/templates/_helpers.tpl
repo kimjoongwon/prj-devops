@@ -39,3 +39,24 @@ Headless Service 이름
 {{- define "plate-db.headlessServiceName" -}}
 {{- printf "%s-headless" (include "plate-db.name" .) }}
 {{- end }}
+
+{{/*
+pg_hba.conf ConfigMap 이름
+*/}}
+{{- define "plate-db.hbaConfigName" -}}
+{{- printf "%s-hba" (include "plate-db.name" .) }}
+{{- end }}
+
+{{/*
+TLS Issuer 이름
+*/}}
+{{- define "plate-db.tlsIssuerName" -}}
+{{- printf "%s-tls" (include "plate-db.name" .) }}
+{{- end }}
+
+{{/*
+TLS Certificate 이름
+*/}}
+{{- define "plate-db.tlsCertificateName" -}}
+{{- printf "%s-tls" (include "plate-db.name" .) }}
+{{- end }}

@@ -1,0 +1,17 @@
+{{- if .Values.tls.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "plate-db.hbaConfigName" . }}
+  labels:
+    {{- include "plate-db.labels" . | nindent 4 }}
+data:
+  pg_hba.conf: |
+    local   all             all                                     trust
+    host    all             all             127.0.0.1/32            trust
+    host    all             all             ::1/128                 trust
+    hostnossl all           all             0.0.0.0/0               reject
+    hostnossl all           all             ::/0                    reject
+    hostssl all             all             0.0.0.0/0               scram-sha-256
+    hostssl all             all             ::/0                    scram-sha-256
+{{- end }}

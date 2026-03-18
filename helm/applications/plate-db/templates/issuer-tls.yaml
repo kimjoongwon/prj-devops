@@ -1,0 +1,10 @@
+{{- if and .Values.tls.enabled .Values.tls.autoGenerate }}
+apiVersion: cert-manager.io/v1
+kind: Issuer
+metadata:
+  name: {{ include "plate-db.tlsIssuerName" . }}
+  labels:
+    {{- include "plate-db.labels" . | nindent 4 }}
+spec:
+  selfSigned: {}
+{{- end }}

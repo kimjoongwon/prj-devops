@@ -16,10 +16,48 @@ spec:
       labels:
         {{- include "plate-db.labels" . | nindent 8 }}
     spec:
+      {{- if .Values.tls.enabled }}
+      initContainers:
+        - name: prepare-postgres-tls
+          image: "{{ .Values.postgresql.image.repository }}:{{ .Values.postgresql.image.tag }}"
+          imagePullPolicy: {{ .Values.postgresql.image.pullPolicy }}
+          command:
+            - /bin/sh
+            - -ec
+            - |
+              POSTGRES_UID="$(id -u postgres)"
+              POSTGRES_GID="$(id -g postgres)"
+              cp /tls-source/tls.crt /tls-runtime/tls.crt
+              cp /tls-source/tls.key /tls-runtime/tls.key
+              chown "${POSTGRES_UID}:${POSTGRES_GID}" /tls-runtime/tls.crt /tls-runtime/tls.key
+              chmod 0600 /tls-runtime/tls.key
+              chmod 0644 /tls-runtime/tls.crt
+          volumeMounts:
+            - name: postgres-tls-source
+              mountPath: /tls-source
+              readOnly: true
+            - name: postgres-tls-runtime
+              mountPath: /tls-runtime
+      {{- end }}
       containers:
         - name: postgresql
           image: "{{ .Values.postgresql.image.repository }}:{{ .Values.postgresql.image.tag }}"
           imagePullPolicy: {{ .Values.postgresql.image.pullPolicy }}
+          args:
+            - -c
+            - listen_addresses=*
+            {{- if .Values.tls.enabled }}
+            - -c
+            - hba_file=/tmp/pg_hba.conf
+            - -c
+            - ssl=on
+            - -c
+            - ssl_cert_file=/tls/tls.crt
+            - -c
+            - ssl_key_file=/tls/tls.key
+            - -c
+            - password_encryption=scram-sha-256
+            {{- end }}
           ports:
             - name: postgresql
               containerPort: {{ .Values.postgresql.port }}
@@ -63,6 +101,26 @@ spec:
           volumeMounts:
             - name: data
               mountPath: {{ .Values.persistence.mountPath }}
+            {{- if .Values.tls.enabled }}
+            - name: postgres-hba-config
+              mountPath: /tmp/pg_hba.conf
+              subPath: pg_hba.conf
+              readOnly: true
+            - name: postgres-tls-runtime
+              mountPath: /tls
+              readOnly: true
+            {{- end }}
+      {{- if .Values.tls.enabled }}
+      volumes:
+        - name: postgres-hba-config
+          configMap:
+            name: {{ include "plate-db.hbaConfigName" . }}
+        - name: postgres-tls-source
+          secret:
+            secretName: {{ .Values.tls.secretName }}
+        - name: postgres-tls-runtime
+          emptyDir: {}
+      {{- end }}
   {{- if .Values.persistence.enabled }}
   volumeClaimTemplates:
     - metadata:

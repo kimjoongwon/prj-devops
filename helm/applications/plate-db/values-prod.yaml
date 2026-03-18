@@ -14,3 +14,13 @@ postgresql:
 
 persistence:
   size: 20Gi
+
+service:
+  type: LoadBalancer
+  loadBalancerSourceRanges: []
+
+tls:
+  enabled: true
+  autoGenerate: true
+  secretName: plate-db-server-tls
+  host: db.cocdev.co.kr
