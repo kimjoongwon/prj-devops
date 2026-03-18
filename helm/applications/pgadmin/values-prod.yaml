@@ -13,3 +13,6 @@ pgadmin:
 
 persistence:
   enabled: false
+
+server:
+  importOnStartup: false

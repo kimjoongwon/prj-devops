@@ -37,6 +37,7 @@ server:
   username: plate_prod
   sslMode: require
   connectTimeout: 10
+  importOnStartup: true
 
 persistence:
   enabled: true

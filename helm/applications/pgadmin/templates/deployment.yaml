@@ -41,6 +41,10 @@ spec:
               value: "true"
             - name: PGADMIN_REPLACE_SERVERS_ON_STARTUP
               value: "True"
+            {{- if not .Values.server.importOnStartup }}
+            - name: PGADMIN_SERVER_JSON_FILE
+              value: "/dev/null"
+            {{- end }}
             - name: PGADMIN_CONFIG_ENHANCED_COOKIE_PROTECTION
               value: "False"
           {{- if .Values.probes.startup.enabled }}
