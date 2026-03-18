@@ -84,5 +84,9 @@ spec:
           configMap:
             name: {{ include "pgadmin.name" . }}-servers
         - name: data
+          {{- if .Values.persistence.enabled }}
           persistentVolumeClaim:
             claimName: {{ include "pgadmin.name" . }}-data
+          {{- else }}
+          emptyDir: {}
+          {{- end }}

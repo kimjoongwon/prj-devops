@@ -12,4 +12,4 @@ pgadmin:
       memory: 256Mi
 
 persistence:
-  size: 1Gi
+  enabled: false
