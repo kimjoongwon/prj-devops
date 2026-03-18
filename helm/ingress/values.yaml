@@ -31,6 +31,14 @@ ingress:
   hosts:
     - host: cocdev.co.kr # 메인 도메인 (A 레코드 -> Ingress Controller LB)
       paths:
+        # /storybook prefix -> Storybook 정적 서비스
+        - path: /storybook
+          pathType: Prefix
+          backend:
+            service:
+              name: tool-storybook-prod
+              port:
+                number: 80
         # 기본 진입 경로
         - path: /
           pathType: Prefix
@@ -115,7 +123,6 @@ ingress:
               name: idp-web-prod
               port:
                 number: 80
-
   tls:
     - secretName: web-prod-tls # cert-manager 가 관리하는 프로덕션 TLS 시크릿
       hosts:

@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "tool-storybook.name" . }}
+  labels:
+    {{- include "tool-storybook.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "tool-storybook.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "tool-storybook.labels" . | nindent 8 }}
+      annotations: {}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: {{ include "tool-storybook.name" . }}
+          image: "{{ index .Values "tool-storybook" "image" "repository" }}:{{ index .Values "tool-storybook" "image" "tag" | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ index .Values "tool-storybook" "image" "pullPolicy" }}
+          ports:
+            - name: http
+              containerPort: {{ index .Values "tool-storybook" "port" }}
+              protocol: TCP
+          {{- with .Values.extraEnv }}
+          env:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- if .Values.appSecrets.enabled }}
+          envFrom:
+            - secretRef:
+                name: {{ .Values.appSecrets.secretName }}
+          {{- end }}
+          resources:
+            {{- toYaml (index .Values "tool-storybook" "resources") | nindent 12 }}

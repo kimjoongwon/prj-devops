@@ -40,6 +40,6 @@ spec:
     - name: 'Environment'
       value: 'Production only (staging excluded by directory.exclude)'
     - name: 'Components'
-      value: 'admin-web, core-api, spring-api, idp-web, idp-api, ingress, plate-cache, apm(grafana/tempo/otel)'
+      value: 'admin-web, core-api, spring-api, idp-web, idp-api, tool-storybook, ingress, plate-cache, apm(grafana/tempo/otel)'
     - name: 'Namespaces'
       value: 'plate-prod'

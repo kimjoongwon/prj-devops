@@ -1,0 +1,32 @@
+# Tool Storybook Chart 기본 값 파일
+# Production 배포만 지원하는 정적 Storybook 애플리케이션 설정
+
+replicaCount: 1
+
+tool-storybook:
+  image:
+    repository: harbor.cocdev.co.kr/prod/tool-storybook
+    tag: "latest"
+    pullPolicy: IfNotPresent
+  port: 3009
+  resources:
+    limits:
+      cpu: 200m
+      memory: 256Mi
+    requests:
+      cpu: 50m
+      memory: 64Mi
+
+imagePullSecrets:
+  - name: harbor-docker-secret
+
+service:
+  type: ClusterIP
+  port: 80
+  targetPort: 3009
+
+appSecrets:
+  enabled: false
+  secretName: tool-storybook-env-secrets
+
+extraEnv: []

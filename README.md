@@ -149,7 +149,7 @@ prj-devops/
         ├── patch-idp-endpoints.sh # IDP 도메인/내부 URL patch
         ├── migrate-infra-secrets.sh # infra 키를 devops/* 로 이관
         ├── migrate-idp-to-idp-api-web.sh # secret/idp -> idp-api,idp-web 마이그레이션
-        ├── validate-idp-env-sync.sh # prj-core IDP env와 OpenBao 키 동기화 점검
+        ├── validate-idp-env-sync.sh # prj-core IDP API env와 OpenBao 키 동기화 점검
         └── revoke-non-root-tokens.sh  # 토큰 폐기
 ```
 

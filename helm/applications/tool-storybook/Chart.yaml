@@ -1,0 +1,17 @@
+apiVersion: v2
+name: tool-storybook
+description: Storybook 정적 웹 애플리케이션용 Helm 차트 (nginx)
+type: application
+version: 0.1.0
+appVersion: "1.0.0"
+keywords:
+  - tool
+  - storybook
+  - frontend
+  - static
+home: https://cocdev.co.kr
+sources:
+  - https://github.com/kimjoongwon/prj-devops
+maintainers:
+  - name: Plate Team
+    email: dev@cocdev.co.kr

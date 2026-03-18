@@ -1,0 +1,21 @@
+# Production environment values for Tool Storybook
+
+replicaCount: 1
+
+tool-storybook:
+  image:
+    repository: harbor.cocdev.co.kr/prod/tool-storybook
+    tag: "latest"
+    pullPolicy: IfNotPresent
+  port: 3009
+  resources:
+    limits:
+      cpu: 200m
+      memory: 256Mi
+    requests:
+      cpu: 50m
+      memory: 64Mi
+
+appSecrets:
+  enabled: false
+  secretName: tool-storybook-env-secrets

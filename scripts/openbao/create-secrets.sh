@@ -52,19 +52,20 @@ if [[ "$ENV" == "staging" ]]; then
   FRONTEND_DOMAIN="https://staging.cocdev.co.kr"
   BACKEND_DOMAIN="https://api-staging.cocdev.co.kr"
   IDP_DOMAIN="https://idp-stg.cocdev.co.kr"
-  CORE_ADMIN_CALLBACK_URL="https://stg.cocdev.co.kr/api/v1/auth/callback"
+  ADMIN_BASE_URL="https://stg.cocdev.co.kr"
   NODE_ENV="staging"
 else
   FRONTEND_DOMAIN="https://app.cocdev.co.kr"
   BACKEND_DOMAIN="https://api.cocdev.co.kr"
   IDP_DOMAIN="https://idp.cocdev.co.kr"
-  CORE_ADMIN_CALLBACK_URL="https://cocdev.co.kr/api/v1/auth/callback"
+  ADMIN_BASE_URL="https://cocdev.co.kr"
   NODE_ENV="production"
 fi
 
-OIDC_CLIENT_ID="admin-web"
-OIDC_CLIENT_SECRET="CHANGE_ME_$(openssl rand -hex 24)"
-OIDC_IDP_CONSOLE_CLIENT_ID="idp-web"
+OIDC_ADMIN_CLIENT_ID="admin-web"
+OIDC_ADMIN_CLIENT_SECRET="CHANGE_ME_$(openssl rand -hex 24)"
+OIDC_IDP_WEB_CLIENT_ID="idp-web"
+OIDC_IDP_WEB_CLIENT_SECRET="CHANGE_ME_$(openssl rand -hex 24)"
 
 echo ""
 echo "🔧 인프라 공통 시크릿 생성 중..."
@@ -120,9 +121,9 @@ vault kv put "secret/core-api/$ENV" \
   IDP_API_INTERNAL_URL="$IDP_API_INTERNAL_URL" \
   OIDC_ISSUER="$IDP_DOMAIN" \
   OIDC_JWKS_URI="$IDP_DOMAIN/oidc/jwks" \
-  OIDC_CLIENT_ID="$OIDC_CLIENT_ID" \
-  OIDC_CLIENT_SECRET="$OIDC_CLIENT_SECRET" \
-  OIDC_REDIRECT_URI="$CORE_ADMIN_CALLBACK_URL" \
+  OIDC_ADMIN_BASE_URL="$ADMIN_BASE_URL" \
+  OIDC_ADMIN_CLIENT_ID="$OIDC_ADMIN_CLIENT_ID" \
+  OIDC_ADMIN_CLIENT_SECRET="$OIDC_ADMIN_CLIENT_SECRET" \
   IDP_CLIENT_URL="$IDP_DOMAIN" \
   DATABASE_URL="CHANGE_ME_postgresql://user:pass@host:5432/db" \
   DIRECT_URL="CHANGE_ME_postgresql://user:pass@host:5432/db"
@@ -158,11 +159,12 @@ vault kv put "secret/idp-api/$ENV" \
   AUTH_JWT_SALT_ROUNDS=10 \
   OIDC_ISSUER="$IDP_DOMAIN" \
   OIDC_COOKIE_SECRET="CHANGE_ME_$(openssl rand -hex 32)" \
-  OIDC_CLIENT_ID="$OIDC_CLIENT_ID" \
-  OIDC_CLIENT_SECRET="$OIDC_CLIENT_SECRET" \
-  OIDC_REDIRECT_URI="$CORE_ADMIN_CALLBACK_URL" \
-  OIDC_IDP_CONSOLE_CLIENT_ID="$OIDC_IDP_CONSOLE_CLIENT_ID" \
-  OIDC_IDP_CONSOLE_REDIRECT_URI="$IDP_DOMAIN/api/v1/auth/callback" \
+  OIDC_ADMIN_BASE_URL="$ADMIN_BASE_URL" \
+  OIDC_ADMIN_CLIENT_ID="$OIDC_ADMIN_CLIENT_ID" \
+  OIDC_ADMIN_CLIENT_SECRET="$OIDC_ADMIN_CLIENT_SECRET" \
+  OIDC_IDP_WEB_CLIENT_ID="$OIDC_IDP_WEB_CLIENT_ID" \
+  OIDC_IDP_WEB_CLIENT_SECRET="$OIDC_IDP_WEB_CLIENT_SECRET" \
+  OIDC_IDP_WEB_REDIRECT_URI="$IDP_DOMAIN/api/v1/auth/callback" \
   OIDC_JWKS_URI="$IDP_DOMAIN/oidc/jwks" \
   IDP_CLIENT_URL="$IDP_DOMAIN"
 
@@ -243,9 +245,10 @@ echo "  DIRECT_URL=<실제_DIRECT_URL> \\"
 echo "  REDIS_HOST=<실제_REDIS_HOST> \\"
 echo "  REDIS_PASSWORD=<실제_REDIS_PASSWORD> \\"
 echo "  OIDC_COOKIE_SECRET=<32자이상_시크릿> \\"
-echo "  OIDC_CLIENT_SECRET=<실제_CLIENT_SECRET> \\"
-echo "  OIDC_IDP_CONSOLE_CLIENT_ID=idp-web \\"
-echo "  OIDC_IDP_CONSOLE_REDIRECT_URI=$IDP_DOMAIN/api/v1/auth/callback"
+echo "  OIDC_ADMIN_CLIENT_SECRET=<실제_ADMIN_CLIENT_SECRET> \\"
+echo "  OIDC_IDP_WEB_CLIENT_ID=idp-web \\"
+echo "  OIDC_IDP_WEB_CLIENT_SECRET=<실제_or_생성된_IDP_WEB_SECRET> \\"
+echo "  OIDC_IDP_WEB_REDIRECT_URI=$IDP_DOMAIN/api/v1/auth/callback"
 echo ""
 echo "# IDP Web 시크릿 업데이트"
 echo "vault kv patch secret/idp-web/$ENV \\"
