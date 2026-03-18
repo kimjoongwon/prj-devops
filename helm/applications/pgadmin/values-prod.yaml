@@ -11,6 +11,11 @@ pgadmin:
       cpu: 100m
       memory: 256Mi
 
+auth:
+  email: admin@plate.com
+  existingSecret: pgadmin-auth-secrets
+  passwordKey: PGADMIN_PASSWORD
+
 persistence:
   enabled: false
 

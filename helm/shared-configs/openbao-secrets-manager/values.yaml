@@ -112,6 +112,30 @@ idpWeb:
     remoteRef:
       key: "idp-web/development"
 
+# pgAdmin 로그인 Secret 동기화 (옵션)
+pgadmin:
+  enabled: false
+  externalSecret:
+    name: "pgadmin-auth-secrets"
+    refreshInterval: "1h"
+    target:
+      name: "pgadmin-auth-secrets"
+      creationPolicy: "Owner"
+      template:
+        type: "Opaque"
+        metadata:
+          labels:
+            app.kubernetes.io/component: "pgadmin-auth-secrets"
+  staging:
+    remoteRef:
+      key: "pgadmin/staging"
+  production:
+    remoteRef:
+      key: "pgadmin/production"
+  development:
+    remoteRef:
+      key: "pgadmin/development"
+
 # 공통 인프라 환경변수 Secret 동기화 (옵션)
 # OpenBao 경로: devops/{environment}
 # 예: OBJECT_STORAGE_ACCESS_KEY, OBJECT_STORAGE_SECRET_KEY, OBJECT_STORAGE_ENDPOINT ...

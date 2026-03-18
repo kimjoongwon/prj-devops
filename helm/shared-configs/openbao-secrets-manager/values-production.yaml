@@ -119,6 +119,19 @@ idpWeb:
     remoteRef:
       key: "idp-web/production"
 
+# pgAdmin 로그인 Secret 동기화
+pgadmin:
+  enabled: true
+  externalSecret:
+    name: "pgadmin-auth-secrets-production"
+    refreshInterval: "1h"
+    target:
+      name: "pgadmin-auth-secrets"
+      creationPolicy: "Owner"
+  production:
+    remoteRef:
+      key: "pgadmin/production"
+
 # OpenBao token configuration
 # 토큰은 ./scripts/openbao/create-token.sh 스크립트로 Kubernetes Secret 생성
 openbao:
