@@ -1,23 +1,23 @@
 {{/*
 Create app name (use Release Name for consistency)
 */}}
-{{- define "plate-db-admin.name" -}}
+{{- define "pgadmin.name" -}}
 {{- .Release.Name }}
 {{- end }}
 
 {{/*
 Create chart name and version as used by the chart label.
 */}}
-{{- define "plate-db-admin.chart" -}}
+{{- define "pgadmin.chart" -}}
 {{- printf "%s-%s" .Chart.Name .Chart.Version | replace "+" "_" | trunc 63 | trimSuffix "-" }}
 {{- end }}
 
 {{/*
 Common labels
 */}}
-{{- define "plate-db-admin.labels" -}}
-helm.sh/chart: {{ include "plate-db-admin.chart" . }}
-{{ include "plate-db-admin.selectorLabels" . }}
+{{- define "pgadmin.labels" -}}
+helm.sh/chart: {{ include "pgadmin.chart" . }}
+{{ include "pgadmin.selectorLabels" . }}
 {{- if .Chart.AppVersion }}
 app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
 {{- end }}
@@ -28,6 +28,6 @@ app.kubernetes.io/component: database-admin
 {{/*
 Selector labels
 */}}
-{{- define "plate-db-admin.selectorLabels" -}}
-app.kubernetes.io/name: {{ include "plate-db-admin.name" . }}
+{{- define "pgadmin.selectorLabels" -}}
+app.kubernetes.io/name: {{ include "pgadmin.name" . }}
 {{- end }}

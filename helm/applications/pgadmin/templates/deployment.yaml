@@ -1,31 +1,31 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "plate-db-admin.name" . }}
+  name: {{ include "pgadmin.name" . }}
   labels:
-    {{- include "plate-db-admin.labels" . | nindent 4 }}
+    {{- include "pgadmin.labels" . | nindent 4 }}
 spec:
   replicas: {{ .Values.replicaCount }}
   selector:
     matchLabels:
-      {{- include "plate-db-admin.selectorLabels" . | nindent 6 }}
+      {{- include "pgadmin.selectorLabels" . | nindent 6 }}
   template:
     metadata:
       labels:
-        {{- include "plate-db-admin.labels" . | nindent 8 }}
+        {{- include "pgadmin.labels" . | nindent 8 }}
       annotations: {}
     spec:
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
       containers:
-        - name: {{ include "plate-db-admin.name" . }}
-          image: "{{ index .Values "plate-db-admin" "image" "repository" }}:{{ index .Values "plate-db-admin" "image" "tag" | default .Chart.AppVersion }}"
-          imagePullPolicy: {{ index .Values "plate-db-admin" "image" "pullPolicy" }}
+        - name: {{ include "pgadmin.name" . }}
+          image: "{{ index .Values "pgadmin" "image" "repository" }}:{{ index .Values "pgadmin" "image" "tag" | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ index .Values "pgadmin" "image" "pullPolicy" }}
           securityContext:
             {{- toYaml .Values.containerSecurityContext | nindent 12 }}
           ports:
             - name: http
-              containerPort: {{ index .Values "plate-db-admin" "port" }}
+              containerPort: {{ index .Values "pgadmin" "port" }}
               protocol: TCP
           env:
             - name: PGADMIN_DEFAULT_EMAIL
@@ -56,7 +56,7 @@ spec:
             timeoutSeconds: {{ .Values.probes.readiness.timeoutSeconds }}
           {{- end }}
           resources:
-            {{- toYaml (index .Values "plate-db-admin" "resources") | nindent 12 }}
+            {{- toYaml (index .Values "pgadmin" "resources") | nindent 12 }}
           volumeMounts:
             - name: data
               mountPath: {{ .Values.persistence.mountPath }}
@@ -67,7 +67,7 @@ spec:
       volumes:
         - name: servers
           configMap:
-            name: {{ include "plate-db-admin.name" . }}-servers
+            name: {{ include "pgadmin.name" . }}-servers
         - name: data
           persistentVolumeClaim:
-            claimName: {{ include "plate-db-admin.name" . }}-data
+            claimName: {{ include "pgadmin.name" . }}-data

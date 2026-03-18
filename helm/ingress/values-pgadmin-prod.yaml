@@ -1,12 +1,12 @@
 # pgAdmin 전용 Ingress 설정 (Production)
 
-appName: plate-db-admin
+appName: pgadmin
 
 services: {}
 
 ingress:
   enabled: true
-  name: "db-admin-ingress"
+  name: "pgadmin-ingress"
   className: "nginx"
   annotations:
     cert-manager.io/cluster-issuer: "letsencrypt-prod"
@@ -19,7 +19,7 @@ ingress:
           pathType: Prefix
           backend:
             service:
-              name: plate-db-admin-prod
+              name: pgadmin-prod
               port:
                 number: 80
   tls:

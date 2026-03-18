@@ -1,9 +1,9 @@
-# Plate DB Admin Ingress - Production 환경 ArgoCD Application
+# pgAdmin Ingress - Production 환경 ArgoCD Application
 
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: plate-db-admin-ingress-prod
+  name: pgadmin-ingress-prod
   namespace: argocd
   annotations:
     argocd.argoproj.io/sync-wave: "3"
@@ -11,7 +11,7 @@ metadata:
     - resources-finalizer.argocd.argoproj.io
   labels:
     app.kubernetes.io/name: ingress
-    app.kubernetes.io/instance: plate-db-admin
+    app.kubernetes.io/instance: pgadmin
     environment: production
 spec:
   project: default
@@ -22,7 +22,7 @@ spec:
     targetRevision: main
     helm:
       valueFiles:
-        - values-db-admin-prod.yaml
+        - values-pgadmin-prod.yaml
 
   destination:
     server: https://kubernetes.default.svc

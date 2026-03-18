@@ -2,7 +2,7 @@
 
 replicaCount: 1
 
-plate-db-admin:
+pgadmin:
   image:
     repository: dpage/pgadmin4
     tag: "latest"

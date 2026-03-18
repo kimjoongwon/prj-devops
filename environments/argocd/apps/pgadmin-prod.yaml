@@ -1,16 +1,16 @@
-# Plate DB Admin - Production 환경 ArgoCD Application
+# pgAdmin - Production 환경 ArgoCD Application
 
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: plate-db-admin-prod
+  name: pgadmin-prod
   namespace: argocd
   annotations:
     argocd.argoproj.io/sync-wave: "2"
   finalizers:
     - resources-finalizer.argocd.argoproj.io
   labels:
-    app.kubernetes.io/name: plate-db-admin
+    app.kubernetes.io/name: pgadmin
     app.kubernetes.io/instance: production
     environment: production
 spec:
@@ -18,7 +18,7 @@ spec:
 
   source:
     repoURL: https://github.com/kimjoongwon/prj-devops.git
-    path: helm/applications/plate-db-admin
+    path: helm/applications/pgadmin
     targetRevision: main
     helm:
       valueFiles:

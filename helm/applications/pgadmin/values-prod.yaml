@@ -2,7 +2,7 @@
 
 replicaCount: 1
 
-plate-db-admin:
+pgadmin:
   resources:
     limits:
       cpu: 300m
