@@ -2,8 +2,8 @@ apiVersion: v2
 name: pgadmin
 description: pgAdmin 웹 대시보드용 Helm 차트
 type: application
-version: 0.1.0
-appVersion: "latest"
+version: 0.1.1
+appVersion: "9.13"
 keywords:
   - postgres
   - pgadmin

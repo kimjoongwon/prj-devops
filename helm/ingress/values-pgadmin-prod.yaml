@@ -23,6 +23,6 @@ ingress:
               port:
                 number: 80
   tls:
-    - secretName: web-prod-tls
+    - secretName: db-prod-tls
       hosts:
         - db.cocdev.co.kr

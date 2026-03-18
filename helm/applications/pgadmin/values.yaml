@@ -5,9 +5,9 @@ replicaCount: 1
 pgadmin:
   image:
     repository: dpage/pgadmin4
-    tag: "latest"
+    tag: "9.13"
     pullPolicy: IfNotPresent
-  port: 80
+  port: 5050
   resources:
     limits:
       cpu: 300m
@@ -19,7 +19,7 @@ pgadmin:
 service:
   type: ClusterIP
   port: 80
-  targetPort: 80
+  targetPort: 5050
 
 auth:
   email: admin@cocdev.co.kr
@@ -55,6 +55,11 @@ containerSecurityContext:
   runAsGroup: 5050
 
 probes:
+  startup:
+    enabled: true
+    failureThreshold: 30
+    periodSeconds: 10
+    timeoutSeconds: 5
   liveness:
     enabled: true
     initialDelaySeconds: 30
