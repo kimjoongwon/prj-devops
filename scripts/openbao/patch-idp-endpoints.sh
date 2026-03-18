@@ -49,7 +49,9 @@ IDP_WEB_PATH="secret/idp-web/${ENVIRONMENT}"
 IDP_ORIGIN="https://${IDP_HOST}"
 CALLBACK_URL="https://${APP_HOST}/api/v1/auth/callback"
 JWKS_URL="${IDP_ORIGIN}/oidc/jwks"
-OIDC_CLIENT_ID="${OIDC_CLIENT_ID:-prj-core-admin}"
+OIDC_CLIENT_ID="${OIDC_CLIENT_ID:-admin-web}"
+OIDC_IDP_CONSOLE_CLIENT_ID="${OIDC_IDP_CONSOLE_CLIENT_ID:-idp-web}"
+OIDC_IDP_CONSOLE_REDIRECT_URI="${OIDC_IDP_CONSOLE_REDIRECT_URI:-${IDP_ORIGIN}/api/v1/auth/callback}"
 
 secret_value() {
   local path="$1"
@@ -181,6 +183,11 @@ upsert_secret() {
     return 0
   fi
 
+  if [[ "${MODE}" == "dry-run" ]]; then
+    print_action vault kv patch "${path}" "$@"
+    return 0
+  fi
+
   if ! command -v vault >/dev/null 2>&1; then
     echo "❌ vault CLI not found. Set VAULT_TOKEN for HTTP API mode." >&2
     exit 1
@@ -219,8 +226,12 @@ upsert_secret "${IDP_API_PATH}" \
   BACKEND_DOMAIN "${IDP_ORIGIN}" \
   OIDC_ISSUER "${IDP_ORIGIN}" \
   IDP_CLIENT_URL "${IDP_ORIGIN}" \
+  OIDC_CLIENT_ID "${OIDC_CLIENT_ID}" \
+  OIDC_CLIENT_SECRET "${CURRENT_OIDC_CLIENT_SECRET}" \
   OIDC_JWKS_URI "${JWKS_URL}" \
-  OIDC_REDIRECT_URI "${CALLBACK_URL}"
+  OIDC_REDIRECT_URI "${CALLBACK_URL}" \
+  OIDC_IDP_CONSOLE_CLIENT_ID "${OIDC_IDP_CONSOLE_CLIENT_ID}" \
+  OIDC_IDP_CONSOLE_REDIRECT_URI "${OIDC_IDP_CONSOLE_REDIRECT_URI}"
 
 upsert_secret "${IDP_WEB_PATH}" \
   APP_NAME "idp-web" \

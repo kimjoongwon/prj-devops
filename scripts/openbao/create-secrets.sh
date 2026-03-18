@@ -62,8 +62,9 @@ else
   NODE_ENV="production"
 fi
 
-OIDC_CLIENT_ID="prj-core-admin"
+OIDC_CLIENT_ID="admin-web"
 OIDC_CLIENT_SECRET="CHANGE_ME_$(openssl rand -hex 24)"
+OIDC_IDP_CONSOLE_CLIENT_ID="idp-web"
 
 echo ""
 echo "🔧 인프라 공통 시크릿 생성 중..."
@@ -160,6 +161,8 @@ vault kv put "secret/idp-api/$ENV" \
   OIDC_CLIENT_ID="$OIDC_CLIENT_ID" \
   OIDC_CLIENT_SECRET="$OIDC_CLIENT_SECRET" \
   OIDC_REDIRECT_URI="$CORE_ADMIN_CALLBACK_URL" \
+  OIDC_IDP_CONSOLE_CLIENT_ID="$OIDC_IDP_CONSOLE_CLIENT_ID" \
+  OIDC_IDP_CONSOLE_REDIRECT_URI="$IDP_DOMAIN/api/v1/auth/callback" \
   OIDC_JWKS_URI="$IDP_DOMAIN/oidc/jwks" \
   IDP_CLIENT_URL="$IDP_DOMAIN"
 
@@ -240,7 +243,9 @@ echo "  DIRECT_URL=<실제_DIRECT_URL> \\"
 echo "  REDIS_HOST=<실제_REDIS_HOST> \\"
 echo "  REDIS_PASSWORD=<실제_REDIS_PASSWORD> \\"
 echo "  OIDC_COOKIE_SECRET=<32자이상_시크릿> \\"
-echo "  OIDC_CLIENT_SECRET=<실제_CLIENT_SECRET>"
+echo "  OIDC_CLIENT_SECRET=<실제_CLIENT_SECRET> \\"
+echo "  OIDC_IDP_CONSOLE_CLIENT_ID=idp-web \\"
+echo "  OIDC_IDP_CONSOLE_REDIRECT_URI=$IDP_DOMAIN/api/v1/auth/callback"
 echo ""
 echo "# IDP Web 시크릿 업데이트"
 echo "vault kv patch secret/idp-web/$ENV \\"
