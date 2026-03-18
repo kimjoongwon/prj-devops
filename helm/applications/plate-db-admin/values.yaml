@@ -1,0 +1,67 @@
+# pgAdmin 웹 대시보드 기본 값
+
+replicaCount: 1
+
+plate-db-admin:
+  image:
+    repository: dpage/pgadmin4
+    tag: "latest"
+    pullPolicy: IfNotPresent
+  port: 80
+  resources:
+    limits:
+      cpu: 300m
+      memory: 512Mi
+    requests:
+      cpu: 100m
+      memory: 256Mi
+
+service:
+  type: ClusterIP
+  port: 80
+  targetPort: 80
+
+auth:
+  email: admin@cocdev.co.kr
+  # 운영 클러스터의 기존 PostgreSQL 인증 Secret 이름 기준
+  existingSecret: core-db-secrets
+  passwordKey: POSTGRES_PASSWORD
+
+server:
+  name: Core Production DB
+  group: CocDev
+  # 운영 클러스터의 기존 PostgreSQL Service 이름 기준
+  host: core-db-prod
+  port: 5432
+  maintenanceDb: postgres
+  username: postgres
+  sslMode: require
+  connectTimeout: 10
+
+persistence:
+  enabled: true
+  storageClass: openebs-hostpath
+  accessModes:
+    - ReadWriteOnce
+  size: 1Gi
+  mountPath: /var/lib/pgadmin
+
+podSecurityContext:
+  fsGroup: 5050
+
+containerSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 5050
+  runAsGroup: 5050
+
+probes:
+  liveness:
+    enabled: true
+    initialDelaySeconds: 30
+    periodSeconds: 10
+    timeoutSeconds: 5
+  readiness:
+    enabled: true
+    initialDelaySeconds: 10
+    periodSeconds: 5
+    timeoutSeconds: 3

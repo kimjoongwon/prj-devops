@@ -1,0 +1,15 @@
+# Production 환경 설정
+
+replicaCount: 1
+
+plate-db-admin:
+  resources:
+    limits:
+      cpu: 300m
+      memory: 512Mi
+    requests:
+      cpu: 100m
+      memory: 256Mi
+
+persistence:
+  size: 1Gi

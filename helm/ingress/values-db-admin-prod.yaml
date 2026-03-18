@@ -1,0 +1,28 @@
+# pgAdmin 전용 Ingress 설정 (Production)
+
+appName: plate-db-admin
+
+services: {}
+
+ingress:
+  enabled: true
+  name: "db-admin-ingress"
+  className: "nginx"
+  annotations:
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    ingress.kubernetes.io/ssl-redirect: "false"
+    acme.cert-manager.io/http01-edit-in-place: "true"
+  hosts:
+    - host: db.cocdev.co.kr
+      paths:
+        - path: /
+          pathType: Prefix
+          backend:
+            service:
+              name: plate-db-admin-prod
+              port:
+                number: 80
+  tls:
+    - secretName: web-prod-tls
+      hosts:
+        - db.cocdev.co.kr

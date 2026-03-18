@@ -1,0 +1,55 @@
+# Plate DB Admin Ingress - Production 환경 ArgoCD Application
+
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: plate-db-admin-ingress-prod
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "3"
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+  labels:
+    app.kubernetes.io/name: ingress
+    app.kubernetes.io/instance: plate-db-admin
+    environment: production
+spec:
+  project: default
+
+  source:
+    repoURL: https://github.com/kimjoongwon/prj-devops.git
+    path: helm/ingress
+    targetRevision: main
+    helm:
+      valueFiles:
+        - values-db-admin-prod.yaml
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: plate-prod
+
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+
+    syncOptions:
+      - CreateNamespace=true
+      - ApplyOutOfSyncOnly=true
+
+    retry:
+      limit: 3
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m
+
+  revisionHistoryLimit: 10
+
+  info:
+    - name: "Environment"
+      value: "Production"
+    - name: "Domain"
+      value: "db.cocdev.co.kr"
+    - name: "Description"
+      value: "pgAdmin Ingress - Production Environment"
