@@ -5,7 +5,7 @@ replicaCount: 1
 idp-api:
   image:
     repository: harbor.cocdev.co.kr/prod/idp-api
-    tag: "16"
+    tag: "3"
     pullPolicy: IfNotPresent
   port: 3007
   resources:
