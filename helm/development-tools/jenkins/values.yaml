@@ -342,8 +342,7 @@ controller:
   # -- Traffic Policy of for the agentListener service
   agentListenerExternalTrafficPolicy:
   # -- Allowed inbound IP for the agentListener service
-  agentListenerLoadBalancerSourceRanges:
-    - 0.0.0.0/0
+  agentListenerLoadBalancerSourceRanges: []
   # -- Disabled agent protocols
   disabledAgentProtocols:
     - JNLP-connect
@@ -384,8 +383,7 @@ controller:
   # LoadBalancerSourcesRange is a list of allowed CIDR values, which are combined with ServicePort to
   # set allowed inbound rules on the security group assigned to the controller load balancer
   # -- Allowed inbound IP addresses
-  loadBalancerSourceRanges:
-    - 0.0.0.0/0
+  loadBalancerSourceRanges: []
 
   # -- Optionally assign a known public LB IP
   loadBalancerIP:
@@ -768,7 +766,7 @@ controller:
     # -- Ingress annotations
     annotations:
       cert-manager.io/cluster-issuer: "letsencrypt-prod"
-      ingress.kubernetes.io/ssl-redirect: "false"
+      ingress.kubernetes.io/ssl-redirect: "true"
       acme.cert-manager.io/http01-edit-in-place: "true"
       # kubernetes.io/ingress.class: nginx
       # kubernetes.io/tls-acme: "true"
@@ -1398,11 +1396,11 @@ serviceAccount:
 
 serviceAccountAgent:
   # -- Configures if an agent ServiceAccount should be created
-  create: false
+  create: true
 
   # If not set and create is true, a name is generated using the fullname template
   # -- The name of the agent ServiceAccount to be used by access-controlled resources
-  name:
+  name: jenkins-agent
   # -- Configures annotations for the agent ServiceAccount
   annotations: {}
   # -- Configures extra labels for the agent ServiceAccount
@@ -1410,7 +1408,7 @@ serviceAccountAgent:
   # -- Agent ServiceAccount image pull secret
   imagePullSecretName:
   # -- Auto-mount ServiceAccount token
-  automountServiceAccountToken: true
+  automountServiceAccountToken: false
 
 # -- Checks if any deprecated values are used
 checkDeprecation: true

@@ -42,7 +42,7 @@ expose:
     annotations:
       # note different ingress controllers may require a different ssl-redirect annotation
       # for Envoy, use ingress.kubernetes.io/force-ssl-redirect: "true" and remove the nginx lines below
-      ingress.kubernetes.io/ssl-redirect: "false"
+      ingress.kubernetes.io/ssl-redirect: "true"
       nginx.org/client-max-body-size: "1000m"
       nginx.ingress.kubernetes.io/ssl-redirect: "true"
       cert-manager.io/cluster-issuer: "letsencrypt-prod"
@@ -268,12 +268,11 @@ persistence:
       #chunksize: 10M
       #rootdirectory: rootdirectory
 
-# The initial password of Harbor admin. Change it from portal after launching Harbor
-# or give an existing secret for it
-# key in secret is given via (default to HARBOR_ADMIN_PASSWORD)
-# existingSecretAdminPassword:
+# Git에 관리자 비밀번호를 두지 않습니다.
+# 신규 설치/업그레이드 전 `harbor-admin` secret에 `HARBOR_ADMIN_PASSWORD` 키를 준비해야 합니다.
+existingSecretAdminPassword: harbor-admin
 existingSecretAdminPasswordKey: HARBOR_ADMIN_PASSWORD
-harborAdminPassword: "Harbor12345"
+harborAdminPassword: ""
 
 # The internal TLS used for harbor components secure communicating. In order to enable https
 # in each component tls cert files need to provided in advance.
@@ -918,8 +917,9 @@ database:
     # - name: wait
     #   image: busybox
     #   command: [ 'sh', '-c', "sleep 20" ]
-    # The initial superuser password for internal database
-    password: "changeit"
+    # The internal database password is reused from the existing harbor-database Secret on upgrade.
+    # 신규 설치 시에는 Secret을 미리 만들거나 값을 오버라이드해야 합니다.
+    password: ""
     # The size limit for Shared memory, pgSQL use it for shared_buffer
     # More details see:
     # https://github.com/goharbor/harbor/issues/15034

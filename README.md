@@ -24,6 +24,7 @@ GitOps 기반의 Kubernetes 배포 인프라로, Helm과 ArgoCD를 활용한 선
 - 운영 가이드: `docs/argocd-prod-only-webhook-manual.md`
 - Jenkins 연계 가이드: `docs/jenkins-gitops-image-bump.md`
 - Jenkinsfile 예시: `scripts/jenkins/Jenkinsfile.gitops-prod-example.groovy`
+- 도구 chart 소스 정책: `helm/development-tools/README.md`
 
 ## ⚠️ 현재 운영 제약 (2026-03-17)
 
@@ -46,16 +47,16 @@ prj-devops/
 │   │   ├── metallb/               # 로드 밸런서
 │   │   └── nfs-provisioner/       # 스토리지 프로비저너
 │   ├── development-tools/         # 계층 2: 개발 및 운영 도구
-│   │   ├── argocd/                # GitOps 도구
-│   │   ├── harbor/                # 컨테이너 레지스트리
-│   │   ├── grafana/               # 모니터링 대시보드
-│   │   ├── prometheus/            # 메트릭 수집
-│   │   ├── promtail/              # 로그 수집 에이전트
-│   │   ├── fluentd/               # 로그 수집
-│   │   ├── jenkins/               # CI/CD
-│   │   ├── openbao/               # 시크릿 관리
-│   │   ├── openebs/               # 스토리지 오케스트레이션
-│   │   └── kubernetes-dashboard/  # 클러스터 관리 UI
+│   │   ├── README.md              # upstream chart/values 관리 기준
+│   │   ├── grafana/               # GitOps로 관리하는 Grafana 차트
+│   │   ├── otel-collector/        # GitOps로 관리하는 OTel Collector 차트
+│   │   ├── tempo/                 # GitOps로 관리하는 Tempo 차트
+│   │   ├── argocd/                # upstream Argo CD values only
+│   │   ├── harbor/                # upstream Harbor values only
+│   │   ├── jenkins/               # upstream Jenkins values only
+│   │   ├── openbao/               # upstream OpenBao values only
+│   │   ├── openebs/               # upstream OpenEBS values only
+│   │   └── prometheus/            # upstream Prometheus values only
 │   ├── applications/              # 계층 3: Plate 애플리케이션
 │   │   ├── core-api/          # Core API 백엔드
 │   │   │   ├── Chart.yaml
@@ -211,8 +212,8 @@ prj-devops/
 
 배포 순서:
 
-1. **Cluster Services**: cert-manager, MetalLB, NFS 프로비저너
-2. **Development Tools**: ArgoCD, Harbor, OpenBao, Prometheus, Grafana 등
+1. **Cluster Services**: cert-manager, MetalLB
+2. **Development Tools**: Grafana/Tempo/OTel은 GitOps, 나머지 운영 도구는 upstream chart + repo values 조합으로 관리
 
 ### 2. 애플리케이션 배포
 
@@ -304,25 +305,28 @@ OpenBao 경로 원칙:
 
 ### deploy-libraries.sh
 
-인프라 및 개발 도구를 계층 순서대로 배포:
+클러스터 공통 부트스트랩(cert-manager, Jenkins, MetalLB)을 배포:
 
-- **1계층 (Cluster Services)**: cert-manager, MetalLB, NFS Provisioner
-- **2계층 (Development Tools)**: ArgoCD, Harbor, Kubernetes Dashboard
+- **1계층 (Cluster Services)**: cert-manager, MetalLB
+- **2계층 (Development Tools)**: Jenkins
 
 관리 원칙:
 
-- 설정값은 각 차트 디렉토리의 `values.yaml`로 형상 관리 (예: `helm/cluster-services/*/values.yaml`, `helm/development-tools/*/values.yaml`)
-- 배포는 `./scripts/deploy-libraries.sh` 또는 Helm CLI(`helm upgrade --install`)로 수행
+- 로컬 chart가 꼭 필요한 경우만 repo에 유지합니다. 현재 `grafana`, `otel-collector`, `tempo`만 해당합니다.
+- upstream chart를 쓰는 도구는 repo에 chart 전체를 vendor하지 않고 `values.yaml`만 유지합니다.
+- 부트스트랩 배포는 `./scripts/deploy-libraries.sh` 또는 Helm CLI(`helm upgrade --install <repo/chart> -f values.yaml`)로 수행합니다.
 
 ### Cluster Services & Development Tools 운영 원칙
 
-- 차트 값 관리: 각 차트 디렉토리의 `values.yaml`에 저장하고 Git에 커밋하여 형상 관리합니다
+- 차트 값 관리:
+  - 로컬 chart: `helm/<영역>/<차트>/values*.yaml`
+  - upstream chart: `helm/development-tools/<도구>/values.yaml`
 - 배포 방식: 스크립트(`./scripts/deploy-libraries.sh`) 또는 Helm CLI(`helm upgrade --install`)로 수행합니다
 - 변경 절차:
   - `values.yaml` 수정 → Pull Request/리뷰 → 스테이징 적용 → 프로덕션 적용
 - 권장 검사:
-  - 린트: `helm lint helm/development-tools/<차트>` 또는 `helm lint helm/cluster-services/<차트>`
-  - 렌더 확인: `helm template helm/development-tools/<차트> -f values.yaml`
+  - 로컬 chart 린트: `helm lint helm/development-tools/<차트>`
+  - upstream chart 렌더 확인: `helm template <release> <repo/chart> --version <version> -f helm/development-tools/<도구>/values.yaml`
 
 ### Applications 운영 원칙
 
@@ -370,6 +374,8 @@ OpenBao 경로 원칙:
 - (옵션) NetworkPolicy로 트래픽 제한
 - 관리자 인터페이스 IP 제한(확장 시 적용)
 - SSL/TLS 종료 및 강제 HTTPS
+- 운영 도구 관리자 비밀번호는 Git에 커밋하지 않고 기존 Secret 또는 운영 시 주입값으로 관리
+- Jenkins agent는 전용 ServiceAccount를 사용하고 토큰 자동 마운트를 기본 비활성화
 
 ### 인증서 관리
 
@@ -415,7 +421,9 @@ kubectl get pods -A
 - Plate 애플리케이션: 각 차트 디렉토리의 환경별 파일을 사용합니다
   - 스테이징: `helm/applications/<서비스>/values-stg.yaml` (예: `core-api/values-stg.yaml`, `admin-web/values-stg.yaml`, `spring-api/values-stg.yaml`)
   - 프로덕션: `helm/applications/<서비스>/values-prod.yaml` (예: `core-api/values-prod.yaml`, `admin-web/values-prod.yaml`, `spring-api/values-prod.yaml`, `idp-api/values-prod.yaml`, `idp-web/values-prod.yaml`)
-- 인프라/도구(클러스터 서비스, 개발 도구): 각 차트 디렉토리의 `values.yaml`로 형상 관리합니다. 예: `helm/cluster-services/cert-manager/values.yaml`, `helm/development-tools/harbor/values.yaml`
+- 인프라/도구:
+  - 로컬 chart: `helm/cluster-services/*/values.yaml`, `helm/development-tools/grafana/values.yaml`
+  - upstream chart values: `helm/development-tools/<도구>/values.yaml`
 
 ## 🚨 Safety & Best Practices
 
@@ -517,7 +525,7 @@ spec:
       - CreateNamespace=true
 ```
 
-참고: Cluster Services(예: cert-manager, MetalLB)와 Development Tools(예: Harbor, Grafana)는 Helm 차트의 `values.yaml`로 형상 관리하며, 스크립트 또는 Helm CLI로 배포합니다.
+참고: Cluster Services는 로컬 chart로 관리하고, Development Tools는 `grafana/tempo/otel-collector`만 로컬 chart를 유지합니다. 그 외 운영 도구는 upstream chart + repo `values.yaml` 조합으로 관리합니다.
 
 ### 장점 요약
 

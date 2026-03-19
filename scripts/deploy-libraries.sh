@@ -1,9 +1,12 @@
 #!/bin/bash
 
-# 라이브러리 배포 스크립트
-# 이 스크립트는 모든 라이브러리 컴포넌트들(Jenkins, Cert-Manager, MetalLB)을 배포합니다
+# 클러스터 공통 도구 배포 스크립트
+# 현재는 cert-manager, Jenkins, MetalLB 부트스트랩만 담당합니다.
 
 set -e
+
+SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
+PROJECT_ROOT=$(cd "$SCRIPT_DIR/.." && pwd)
 
 # 출력용 색상 정의
 RED='\033[0;31m'
@@ -29,6 +32,16 @@ check_helm() {
     if ! command -v helm &> /dev/null; then
         log_error "Helm is not installed. Please install Helm first."
         exit 1
+    fi
+}
+
+ensure_repo() {
+    local name="$1"
+    local url="$2"
+
+    if ! helm repo list | awk 'NR > 1 { print $1 }' | grep -Fxq "$name"; then
+        log_info "Adding Helm repo: $name"
+        helm repo add "$name" "$url"
     fi
 }
 
@@ -62,9 +75,9 @@ deploy_cert_manager() {
     kubectl wait --for=condition=ready pod -l app.kubernetes.io/name=cert-manager -n cert-manager --timeout=300s
     
     # cert-manager 설정 적용
-    helm upgrade --install cert-manager-config ./helm/cluster-services/cert-manager \
+    helm upgrade --install cert-manager-config "$PROJECT_ROOT/helm/cluster-services/cert-manager" \
         --namespace cert-manager \
-        --values ./environments/shared/common-values.yaml
+        --values "$PROJECT_ROOT/helm/cluster-services/cert-manager/values.yaml"
     
     log_info "cert-manager deployed successfully"
 }
@@ -72,11 +85,15 @@ deploy_cert_manager() {
 # Jenkins 배포
 deploy_jenkins() {
     log_info "Deploying Jenkins..."
-    
-    helm upgrade --install jenkins ./helm/development-tools/jenkins \
+
+    ensure_repo jenkinsci https://charts.jenkins.io
+    helm repo update jenkinsci
+
+    helm upgrade --install jenkins jenkinsci/jenkins \
         --namespace jenkins \
         --create-namespace \
-        --values ./environments/shared/common-values.yaml
+        --version 5.8.86 \
+        --values "$PROJECT_ROOT/helm/development-tools/jenkins/values.yaml"
     
     log_info "Jenkins deployed successfully"
 }
@@ -96,7 +113,7 @@ deploy_metallb() {
     
     # Apply MetalLB configuration
     log_info "Applying MetalLB configuration..."
-    kubectl apply -f ./helm/cluster-services/metallb/
+    kubectl apply -f "$PROJECT_ROOT/helm/cluster-services/metallb/"
     
     log_info "MetalLB deployed successfully"
 }

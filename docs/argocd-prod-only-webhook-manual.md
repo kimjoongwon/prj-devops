@@ -93,9 +93,13 @@ kubectl -n argocd rollout status deployment argocd-server --timeout=180s
 `kubectl patch`만 하면 다음 Helm 업그레이드 시 값이 덮일 수 있습니다. 아래 명령으로 릴리스 값에도 반영합니다.
 
 ```bash
-helm upgrade argocd ./helm/development-tools/argocd \
+helm repo add argo https://argoproj.github.io/argo-helm
+helm repo update argo
+
+helm upgrade argocd argo/argo-cd \
   -n argocd \
-  --reuse-values \
+  --version 8.3.1 \
+  -f ./helm/development-tools/argocd/values.yaml \
   --set-string configs.secret.githubSecret="$WEBHOOK_SECRET" \
   --wait --timeout 5m
 ```
