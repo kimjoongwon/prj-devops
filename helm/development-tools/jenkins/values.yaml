@@ -409,7 +409,7 @@ controller:
     - kubernetes:4371.vb_33b_086d54a_1
     - workflow-aggregator:608.v67378e9d3db_1
     - git:5.7.0
-    - configuration-as-code:1985.vdda_32d0c4ea_b_
+    - configuration-as-code:2006.v001a_2ca_6b_574
 
   # If set to false, Jenkins will download the minimum required version of all dependencies.
   # -- Download the minimum required version or latest version of all dependencies
@@ -419,7 +419,8 @@ controller:
   installLatestSpecifiedPlugins: false
 
   # -- List of plugins to install in addition to those listed in controller.installPlugins
-  additionalPlugins: []
+  additionalPlugins:
+    - job-dsl
 
   # Without this; whenever the controller gets restarted (Evicted, etc.) it will fetch plugin updates that have the potential to cause breakage.
   # Note that for this to work, `persistence.enabled` needs to be set to `true`
@@ -452,57 +453,7 @@ controller:
   #  - "new groovy.json.JsonSlurperClassic"
 
   # -- Map of groovy init scripts to be executed during Jenkins controller start
-  initScripts:
-    gitops-prod-image-bump: |-
-      import hudson.plugins.git.BranchSpec
-      import hudson.plugins.git.GitSCM
-      import hudson.plugins.git.UserRemoteConfig
-      import jenkins.model.Jenkins
-      import org.jenkinsci.plugins.workflow.cps.CpsScmFlowDefinition
-      import org.jenkinsci.plugins.workflow.job.WorkflowJob
-
-      def jenkins = Jenkins.instance
-      def jobName = 'gitops-prod-image-bump'
-      def repoUrl = 'https://github.com/kimjoongwon/prj-core.git'
-      def branch = '*/main'
-      def credentialsId = 'github-app-credential'
-      def scriptPath = 'devops/Jenkinsfile.gitops-update'
-
-      def scm = new GitSCM(
-        [new UserRemoteConfig(repoUrl, null, null, credentialsId)],
-        [new BranchSpec(branch)],
-        false,
-        [],
-        null,
-        null,
-        []
-      )
-
-      def definition = new CpsScmFlowDefinition(scm, scriptPath)
-      definition.setLightweight(true)
-
-      def existing = jenkins.getItem(jobName)
-      WorkflowJob job
-
-      if (existing == null) {
-        job = jenkins.createProject(WorkflowJob, jobName)
-      } else if (existing instanceof WorkflowJob) {
-        job = existing
-      } else {
-        throw new IllegalStateException("Item '${jobName}' exists but is not a WorkflowJob.")
-      }
-
-      job.setDefinition(definition)
-      job.setDescription('Updates prj-devops values-prod.yaml image tags after Harbor push completes.')
-      job.save()
-
-      def envProp = jenkins.globalNodeProperties.getAll(hudson.slaves.EnvironmentVariablesNodeProperty.class).find { true }
-      if (envProp == null) {
-        envProp = new hudson.slaves.EnvironmentVariablesNodeProperty()
-        jenkins.globalNodeProperties.add(envProp)
-      }
-      envProp.envVars.put('GITOPS_UPDATE_JOB', '/gitops-prod-image-bump')
-      jenkins.save()
+  initScripts: {}
   #  test: |-
   #    print 'adding global pipeline libraries, register properties, bootstrap jobs...'
   # -- Name of the existing ConfigMap that contains init scripts
@@ -567,7 +518,28 @@ controller:
     configUrls: []
     # - https://acme.org/jenkins.yaml
     # -- List of Jenkins Config as Code scripts
-    configScripts: {}
+    configScripts:
+      gitops-prod-image-bump-job: |
+        jobs:
+          - script: >
+              pipelineJob('gitops-prod-image-bump') {
+                description('Updates prj-devops values-prod.yaml image tags after Harbor push completes.')
+                definition {
+                  cpsScm {
+                    lightweight(true)
+                    scm {
+                      git {
+                        remote {
+                          url('https://github.com/kimjoongwon/prj-core.git')
+                          credentials('github-app-credential')
+                        }
+                        branch('*/main')
+                      }
+                    }
+                    scriptPath('devops/Jenkinsfile.gitops-update')
+                  }
+                }
+              }
     #  welcome-message: |
     #    jenkins:
     #      systemMessage: Welcome to our CI\CD server. This Jenkins is configured and managed 'as code'.

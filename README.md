@@ -337,6 +337,7 @@ OpenBao 경로 원칙:
   - 스테이징: `values-stg.yaml` 수정 → PR/리뷰 → ArgoCD 동기화로 적용 → 검증
   - 프로덕션: 검증 완료 후 `values-prod.yaml` 반영 → ArgoCD 동기화로 적용
   - CI 자동 반영: Jenkins 빌드/Harbor push 성공 → `scripts/jenkins/update-gitops-image-tag.sh`로 `values-prod.yaml` 태그 자동 커밋/푸시
+  - Jenkins의 `gitops-prod-image-bump` 잡은 `helm/development-tools/jenkins/values.yaml` 의 `JCasC + Job DSL`로 형상 관리
   - 템플릿(templates/\*.yaml) 변경 시 반드시 린트/렌더 확인 수행
 - 권장 검사:
   - 린트: `helm lint helm/applications/<서비스>`

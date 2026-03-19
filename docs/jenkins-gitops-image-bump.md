@@ -37,7 +37,7 @@
 아래 파일을 기준으로 사용하세요:
 
 - `scripts/jenkins/Jenkinsfile.gitops-prod-example.groovy`
-- Jenkins bootstrap: `helm/development-tools/jenkins/values.yaml` 의 `controller.initScripts.gitops-prod-image-bump`
+- Jenkins job 선언: `helm/development-tools/jenkins/values.yaml` 의 `controller.JCasC.configScripts.gitops-prod-image-bump-job`
 
 핵심 동작:
 - 프로덕션 빌드는 이미지에 `${BUILD_NUMBER}` 같은 immutable tag만 push
@@ -46,9 +46,8 @@
 - `ci(gitops): bump <app> image to <tag>` 커밋 후 `main` push
 
 운영 반영:
-- Jenkins에 `gitops-prod-image-bump` 잡이 없으면 Helm values의 init script로 자동 생성할 수 있습니다.
-- 기존 앱 잡이 상대 경로 대신 루트 job을 호출하도록 전역 `GITOPS_UPDATE_JOB=/gitops-prod-image-bump` 환경변수를 함께 설정합니다.
-- 반영은 Jenkins Helm 릴리스 재적용(`helm upgrade --install`) 또는 Jenkins 재기동이 필요합니다.
+- Jenkins는 `JCasC + Job DSL`로 `gitops-prod-image-bump` 잡을 선언합니다. 잡 정의 자체가 `prj-devops`에 포함되므로 Jenkins 재배포 시 동일 상태로 수렴합니다.
+- 반영은 Jenkins Helm 릴리스 재적용(`helm upgrade --install`)이 필요합니다. `configAutoReload`가 켜져 있어도 Job DSL 플러그인 추가는 컨트롤러 재시작이 선행돼야 합니다.
 
 ## 로컬 테스트 예시
 
