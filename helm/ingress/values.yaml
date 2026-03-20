@@ -8,7 +8,7 @@ appName: plate
 # Service names (actual service names in the cluster)
 services: # 실제 Kubernetes Service 이름과 포트 매핑 (ArgoCD Release 명 기준)
   frontend:
-    name: "admin-web-prod" # 기본 진입 서비스
+    name: "proposal-web-prod" # 기본 진입 서비스
     port: 80
   backend:
     name: "core-api-prod"
@@ -31,7 +31,15 @@ ingress:
   hosts:
     - host: cocdev.co.kr # 메인 도메인 (A 레코드 -> Ingress Controller LB)
       paths:
-        # /storybook prefix -> Storybook 정적 서비스
+        # /story prefix -> Storybook 정적 서비스
+        - path: /story
+          pathType: Prefix
+          backend:
+            service:
+              name: tool-storybook-prod
+              port:
+                number: 80
+        # /storybook legacy prefix -> Storybook 정적 서비스
         - path: /storybook
           pathType: Prefix
           backend:
