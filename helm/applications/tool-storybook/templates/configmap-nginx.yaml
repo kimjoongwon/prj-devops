@@ -1,0 +1,40 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "tool-storybook.name" . }}-nginx
+  labels:
+    {{- include "tool-storybook.labels" . | nindent 4 }}
+data:
+  default.conf: |
+    server {
+        listen 3009;
+        server_name _;
+        root /usr/share/nginx/html;
+        absolute_redirect off;
+
+        location = /story {
+            return 308 /story/;
+        }
+
+        location = /storybook {
+            return 308 /story/;
+        }
+
+        location /story/ {
+            rewrite ^/story/(.*)$ /$1 break;
+            try_files $uri @storybook_index;
+        }
+
+        location /storybook/ {
+            rewrite ^/storybook/(.*)$ /$1 break;
+            try_files $uri @storybook_index;
+        }
+
+        location @storybook_index {
+            try_files /index.html =404;
+        }
+
+        location / {
+            return 404;
+        }
+    }
