@@ -1,5 +1,5 @@
 # Ingress - Staging 환경 ArgoCD Application
-# Ingress 컨트롤러를 배포하여 proposal-web, admin-web, core-api, spring-api 라우팅 처리
+# Ingress 컨트롤러를 배포하여 /proposal, admin-web, core-api, spring-api 라우팅 처리
 
 apiVersion: argoproj.io/v1alpha1
 kind: Application
@@ -69,4 +69,4 @@ spec:
     - name: "Domain"
       value: "stg.cocdev.co.kr, idp-stg.cocdev.co.kr"
     - name: "Description"
-      value: "스테이징 환경 인그레스 - proposal-web 루트 진입, admin-web/core-api/spring-api/idp-web/idp-api 라우팅 처리"
+      value: "스테이징 환경 인그레스 - /proposal -> proposal-web, /와 /admin -> admin-web, core-api/spring-api/idp-web/idp-api 라우팅 처리"

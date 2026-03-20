@@ -8,7 +8,7 @@ appName: plate
 # Service names (actual service names in the cluster)
 services: # 실제 Kubernetes Service 이름과 포트 매핑 (ArgoCD Release 명 기준)
   frontend:
-    name: "proposal-web-prod" # 기본 진입 서비스
+    name: "admin-web-prod" # 기본 진입 서비스
     port: 80
   backend:
     name: "core-api-prod"
@@ -45,6 +45,14 @@ ingress:
           backend:
             service:
               name: tool-storybook-prod
+              port:
+                number: 80
+        # /proposal prefix -> proposal landing
+        - path: /proposal
+          pathType: Prefix
+          backend:
+            service:
+              name: proposal-web-prod
               port:
                 number: 80
         # 기본 진입 경로

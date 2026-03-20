@@ -8,7 +8,7 @@ appName: plate
 # Service names (actual service names in the cluster)
 services:                 # ArgoCD 릴리스명 기준 Service 오브젝트 이름 매핑
   frontend:
-    name: "proposal-web-stg"
+    name: "admin-web-stg"
     port: 80
   backend:
     name: "core-api-stg"
@@ -31,6 +31,14 @@ ingress:
   hosts:
     - host: stg.cocdev.co.kr
       paths:
+        # /proposal prefix -> proposal landing
+        - path: /proposal
+          pathType: Prefix
+          backend:
+            service:
+              name: proposal-web-stg
+              port:
+                number: 80
         # 전체 루트 -> 기본 진입 서비스
         - path: /
           pathType: Prefix
