@@ -1,0 +1,56 @@
+# Proposal Web - Production 환경 ArgoCD Application
+
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: proposal-web-prod
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+  labels:
+    app.kubernetes.io/name: proposal-web
+    app.kubernetes.io/instance: production
+    environment: production
+spec:
+  project: default
+
+  # Git 소스 설정
+  source:
+    repoURL: https://github.com/kimjoongwon/prj-devops.git
+    path: helm/applications/proposal-web
+    targetRevision: main
+    helm:
+      valueFiles:
+        - values-prod.yaml
+
+  # 배포 대상 클러스터 및 네임스페이스
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: plate-prod
+
+  # 동기화 정책
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+
+    syncOptions:
+      - CreateNamespace=true
+      - ApplyOutOfSyncOnly=true
+
+    retry:
+      limit: 3
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m
+
+  revisionHistoryLimit: 10
+
+  info:
+    - name: "Environment"
+      value: "Production"
+    - name: "Domain"
+      value: "cocdev.co.kr"
+    - name: "Description"
+      value: "Proposal Web - Production Environment (Next.js public landing)"

@@ -31,6 +31,8 @@ GitOps 기반의 Kubernetes 배포 인프라로, Helm과 ArgoCD를 활용한 선
 - staging child manifest는 repo에 존재하더라도 기본 운영 경로에서는 apply되지 않습니다.
 - Staging IDP는 `idp-stg.cocdev.co.kr` DNS와 OpenBao 시크릿 patch가 끝나야 정상 동작합니다.
 - IDP 앱 정상화 선행 조건:
+  - Harbor에 `harbor.cocdev.co.kr/prod/proposal-web:latest`
+  - Harbor에 `harbor.cocdev.co.kr/stg/proposal-web:latest`
   - Harbor에 `harbor.cocdev.co.kr/prod/idp-api:latest`
   - Harbor에 `harbor.cocdev.co.kr/prod/idp-web:latest`
   - Harbor에 `harbor.cocdev.co.kr/stg/idp-api:latest`
@@ -65,6 +67,12 @@ prj-devops/
 │   │   │   ├── values-prod.yaml   # 프로덕션 오버라이드
 │   │   │   └── templates/
 │   │   ├── admin-web/             # Admin 웹 프론트엔드
+│   │   │   ├── Chart.yaml
+│   │   │   ├── values.yaml
+│   │   │   ├── values-stg.yaml
+│   │   │   ├── values-prod.yaml
+│   │   │   └── templates/
+│   │   ├── proposal-web/          # 퍼블릭 제안 웹 프론트엔드
 │   │   │   ├── Chart.yaml
 │   │   │   ├── values.yaml
 │   │   │   ├── values-stg.yaml
@@ -120,6 +128,8 @@ prj-devops/
 │           ├── core-api-prod.yaml
 │           ├── admin-web-stg.yaml
 │           ├── admin-web-prod.yaml
+│           ├── proposal-web-stg.yaml
+│           ├── proposal-web-prod.yaml
 │           ├── spring-api-stg.yaml
 │           ├── spring-api-prod.yaml
 │           ├── plate-llm-stg.yaml
@@ -161,7 +171,7 @@ prj-devops/
 **애플리케이션 차트** (`helm/applications/`):
 
 - 차트명 = 디렉토리명 = 릴리스명 = 컨테이너명
-  - 예: `core-api`, `admin-web`, `spring-api`, `idp-api`, `idp-web`, `plate-llm`
+  - 예: `core-api`, `admin-web`, `proposal-web`, `spring-api`, `idp-api`, `idp-web`, `plate-llm`
 - 헬퍼 템플릿 단순화: `.Release.Name` 직접 사용
 - imagePullSecrets: Harbor 인증을 위한 `harbor-docker-secret` 포함
 - Ingress: 별도 차트에서 중앙 관리 (`helm/ingress`)
@@ -391,7 +401,7 @@ OpenBao 경로 원칙:
 
 ```bash
 # 프로덕션 상태 확인
-kubectl -n argocd get applications frontend-web-apps idp-api-prod idp-web-prod admin-web-prod core-api-prod plate-ingress-prod openbao-secrets-manager-prod
+kubectl -n argocd get applications frontend-web-apps proposal-web-prod idp-api-prod idp-web-prod admin-web-prod core-api-prod plate-ingress-prod openbao-secrets-manager-prod
 
 # ArgoCD를 통한 확인
 kubectl get applications -n argocd
@@ -420,8 +430,8 @@ kubectl get pods -A
 ### 환경별 Values 파일
 
 - Plate 애플리케이션: 각 차트 디렉토리의 환경별 파일을 사용합니다
-  - 스테이징: `helm/applications/<서비스>/values-stg.yaml` (예: `core-api/values-stg.yaml`, `admin-web/values-stg.yaml`, `spring-api/values-stg.yaml`)
-  - 프로덕션: `helm/applications/<서비스>/values-prod.yaml` (예: `core-api/values-prod.yaml`, `admin-web/values-prod.yaml`, `spring-api/values-prod.yaml`, `idp-api/values-prod.yaml`, `idp-web/values-prod.yaml`)
+  - 스테이징: `helm/applications/<서비스>/values-stg.yaml` (예: `core-api/values-stg.yaml`, `admin-web/values-stg.yaml`, `proposal-web/values-stg.yaml`, `spring-api/values-stg.yaml`)
+  - 프로덕션: `helm/applications/<서비스>/values-prod.yaml` (예: `core-api/values-prod.yaml`, `admin-web/values-prod.yaml`, `proposal-web/values-prod.yaml`, `spring-api/values-prod.yaml`, `idp-api/values-prod.yaml`, `idp-web/values-prod.yaml`)
 - 인프라/도구:
   - 로컬 chart: `helm/cluster-services/*/values.yaml`, `helm/development-tools/grafana/values.yaml`
   - upstream chart values: `helm/development-tools/<도구>/values.yaml`
@@ -534,7 +544,7 @@ spec:
 - **경로 일관성**: 모든 차트를 `helm/` 트리 하위에 배치 → ArgoCD 설정 단순화
 - **환경별 설정 관리**: `environments/` 디렉토리에서 스테이징/프로덕션 values 중앙 관리
 - **GitOps 통합**: ArgoCD를 통한 선언적 배포 및 자동 동기화
-- **멀티 애플리케이션 지원**: core-api, admin-web, spring-api, plate-llm, plate-cache, idp-api, idp-web 통합 관리
+- **멀티 애플리케이션 지원**: core-api, admin-web, proposal-web, spring-api, plate-llm, plate-cache, idp-api, idp-web 통합 관리
 
 ### ArgoCD Application 구조
 

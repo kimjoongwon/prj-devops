@@ -8,7 +8,7 @@ appName: plate
 # Service names (actual service names in the cluster)
 services:                 # ArgoCD 릴리스명 기준 Service 오브젝트 이름 매핑
   frontend:
-    name: "admin-web-stg"
+    name: "proposal-web-stg"
     port: 80
   backend:
     name: "core-api-stg"

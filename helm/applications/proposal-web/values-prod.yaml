@@ -1,0 +1,28 @@
+# Production environment values for Proposal Web
+# Override from values.yaml for production environment
+
+replicaCount: 1
+
+# Production 이미지 저장소 (Harbor registry)
+# 이미지 규칙: harbor.cocdev.co.kr/{환경}/{앱이름}
+proposal-web:
+  image:
+    repository: harbor.cocdev.co.kr/prod/proposal-web
+    tag: "1"
+    pullPolicy: IfNotPresent  # Production은 캐시된 이미지 사용
+  port: 3011
+  resources:
+    limits:
+      cpu: 500m
+      memory: 512Mi
+    requests:
+      cpu: 100m
+      memory: 256Mi
+
+appSecrets:
+  enabled: false
+  secretName: ""
+
+extraEnv:
+  - name: OTEL_SERVICE_NAME
+    value: proposal-web-prod

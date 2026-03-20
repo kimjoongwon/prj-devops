@@ -22,6 +22,7 @@ kubectl -n argocd get application frontend-web-apps
 ```
 
 ## 현재 prod-only 하위 앱(2026-03-08 기준)
+- `proposal-web-prod`
 - `admin-web-prod`, `core-api-prod`, `spring-api-prod`
 - `idp-web-prod`, `idp-api-prod`
 - `plate-ingress-prod`, `openbao-secrets-manager-prod`, `openbao-cluster-secrets-manager`

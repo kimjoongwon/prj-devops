@@ -1,0 +1,45 @@
+# Proposal Web Deployment 템플릿
+# Next.js 퍼블릭 랜딩 애플리케이션(port 3011)을 Kubernetes 클러스터에 배포
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "proposal-web.name" . }}
+  labels:
+    {{- include "proposal-web.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "proposal-web.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "proposal-web.labels" . | nindent 8 }}
+      annotations: {}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: {{ include "proposal-web.name" . }}
+          image: "{{ index .Values "proposal-web" "image" "repository" }}:{{ index .Values "proposal-web" "image" "tag" | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ index .Values "proposal-web" "image" "pullPolicy" }}
+          ports:
+            - name: http
+              containerPort: {{ index .Values "proposal-web" "port" }}
+              protocol: TCP
+          {{- with .Values.extraEnv }}
+          env:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- if .Values.appSecrets.enabled }}
+          # envFrom으로 전체 Secret을 환경변수로 주입
+          # OpenBao KV(proposal-web/staging 또는 proposal-web/production)에서 자동 동기화
+          envFrom:
+            - secretRef:
+                name: {{ .Values.appSecrets.secretName }}
+          {{- end }}
+          resources:
+            {{- toYaml (index .Values "proposal-web" "resources") | nindent 12 }}

@@ -24,7 +24,7 @@ Usage:
   ${SCRIPT_NAME} --app <name> --tag <image_tag> [options]
 
 Required:
-  --app <name>                 App name (idp-api|idp-web|core-api|admin-web|spring-api|tool-storybook)
+  --app <name>                 App name (idp-api|idp-web|core-api|admin-web|proposal-web|spring-api|tool-storybook)
   --tag <image_tag>            New image tag to set
 
 Options:
@@ -153,6 +153,10 @@ case "${APP_NAME}" in
     VALUES_REL_PATH="helm/applications/admin-web/values-prod.yaml"
     APP_YAML_KEY="admin-web"
     ;;
+  proposal-web)
+    VALUES_REL_PATH="helm/applications/proposal-web/values-prod.yaml"
+    APP_YAML_KEY="proposal-web"
+    ;;
   spring-api)
     VALUES_REL_PATH="helm/applications/spring-api/values-prod.yaml"
     APP_YAML_KEY="spring-api"
@@ -162,7 +166,7 @@ case "${APP_NAME}" in
     APP_YAML_KEY="tool-storybook"
     ;;
   *)
-    fail "Unsupported app '${APP_NAME}'. Allowed: idp-api, idp-web, core-api, admin-web, spring-api, tool-storybook"
+    fail "Unsupported app '${APP_NAME}'. Allowed: idp-api, idp-web, core-api, admin-web, proposal-web, spring-api, tool-storybook"
     ;;
 esac
 

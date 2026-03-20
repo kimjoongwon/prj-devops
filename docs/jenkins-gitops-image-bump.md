@@ -14,6 +14,7 @@
 - `idp-web`
 - `core-api`
 - `admin-web`
+- `proposal-web`
 - `spring-api`
 
 ## 스크립트
