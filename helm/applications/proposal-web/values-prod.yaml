@@ -8,7 +8,7 @@ replicaCount: 1
 proposal-web:
   image:
     repository: harbor.cocdev.co.kr/prod/proposal-web
-    tag: "1"
+    tag: "6"
     pullPolicy: IfNotPresent  # Production은 캐시된 이미지 사용
   port: 3011
   resources:
