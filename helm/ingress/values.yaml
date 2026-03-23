@@ -119,6 +119,13 @@ ingress:
     - host: idp.cocdev.co.kr # IDP 전용 도메인
       paths:
         - path: /api
+          pathType: Exact
+          backend:
+            service:
+              name: idp-api-prod
+              port:
+                number: 80
+        - path: /api/
           pathType: Prefix
           backend:
             service:
@@ -126,6 +133,13 @@ ingress:
               port:
                 number: 80
         - path: /oidc
+          pathType: Exact
+          backend:
+            service:
+              name: idp-api-prod
+              port:
+                number: 80
+        - path: /oidc/
           pathType: Prefix
           backend:
             service:

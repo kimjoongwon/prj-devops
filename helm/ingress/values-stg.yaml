@@ -113,6 +113,13 @@ ingress:
     - host: idp-stg.cocdev.co.kr
       paths:
         - path: /api
+          pathType: Exact
+          backend:
+            service:
+              name: idp-api-stg
+              port:
+                number: 80
+        - path: /api/
           pathType: Prefix
           backend:
             service:
@@ -120,6 +127,13 @@ ingress:
               port:
                 number: 80
         - path: /oidc
+          pathType: Exact
+          backend:
+            service:
+              name: idp-api-stg
+              port:
+                number: 80
+        - path: /oidc/
           pathType: Prefix
           backend:
             service:
