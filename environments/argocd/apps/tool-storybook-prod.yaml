@@ -48,6 +48,6 @@ spec:
     - name: "Environment"
       value: "Production"
     - name: "Domain"
-      value: "cocdev.co.kr/storybook"
+      value: "cocdev.co.kr/story"
     - name: "Description"
       value: "Tool Storybook - Production Environment"

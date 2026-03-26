@@ -86,10 +86,12 @@ else
   NODE_ENV="production"
 fi
 
-OIDC_ADMIN_CLIENT_ID="admin-web"
-OIDC_ADMIN_CLIENT_SECRET="CHANGE_ME_$(openssl rand -hex 24)"
-OIDC_IDP_WEB_CLIENT_ID="idp-web"
-OIDC_IDP_WEB_CLIENT_SECRET="CHANGE_ME_$(openssl rand -hex 24)"
+OIDC_ADMIN_CLIENT_ID="${OIDC_ADMIN_CLIENT_ID:-admin-web}"
+OIDC_ADMIN_CLIENT_SECRET="${OIDC_ADMIN_CLIENT_SECRET:-CHANGE_ME_$(openssl rand -hex 24)}"
+OIDC_STORYBOOK_CLIENT_ID="${OIDC_STORYBOOK_CLIENT_ID:-storybook}"
+OIDC_STORYBOOK_CLIENT_SECRET="${OIDC_STORYBOOK_CLIENT_SECRET:-CHANGE_ME_$(openssl rand -hex 24)}"
+OIDC_IDP_WEB_CLIENT_ID="${OIDC_IDP_WEB_CLIENT_ID:-idp-web}"
+OIDC_IDP_WEB_CLIENT_SECRET="${OIDC_IDP_WEB_CLIENT_SECRET:-CHANGE_ME_$(openssl rand -hex 24)}"
 OIDC_JWKS_KEYS="${OIDC_JWKS_KEYS:-$(generate_oidc_jwks_keys)}"
 
 echo ""
@@ -127,6 +129,7 @@ vault kv put "secret/core-api/$ENV" \
   NODE_ENV="$NODE_ENV" \
   SMTP_HOST=smtp.gmail.com \
   SMTP_PORT=587 \
+  SMTP_SECURE=false \
   SMTP_USERNAME="CHANGE_ME_SMTP_USER" \
   SMTP_PASSWORD="CHANGE_ME_SMTP_PASS" \
   SMTP_SENDER="noreply@cocdev.co.kr" \
@@ -175,6 +178,7 @@ vault kv put "secret/idp-api/$ENV" \
   CORS_ENABLED=true \
   SMTP_HOST=smtp.gmail.com \
   SMTP_PORT=587 \
+  SMTP_SECURE=false \
   SMTP_USERNAME="CHANGE_ME_SMTP_USER" \
   SMTP_PASSWORD="CHANGE_ME_SMTP_PASS" \
   SMTP_SENDER="noreply@cocdev.co.kr" \
@@ -188,6 +192,8 @@ vault kv put "secret/idp-api/$ENV" \
   OIDC_STORYBOOK_BASE_URL="$STORYBOOK_BASE_URL" \
   OIDC_ADMIN_CLIENT_ID="$OIDC_ADMIN_CLIENT_ID" \
   OIDC_ADMIN_CLIENT_SECRET="$OIDC_ADMIN_CLIENT_SECRET" \
+  OIDC_STORYBOOK_CLIENT_ID="$OIDC_STORYBOOK_CLIENT_ID" \
+  OIDC_STORYBOOK_CLIENT_SECRET="$OIDC_STORYBOOK_CLIENT_SECRET" \
   OIDC_IDP_WEB_CLIENT_ID="$OIDC_IDP_WEB_CLIENT_ID" \
   OIDC_IDP_WEB_CLIENT_SECRET="$OIDC_IDP_WEB_CLIENT_SECRET" \
   OIDC_IDP_WEB_REDIRECT_URI="$IDP_DOMAIN/api/v1/auth/callback" \
@@ -266,6 +272,7 @@ echo "  OBJECT_STORAGE_API_TOKEN=<실제_API_토큰>"
 echo ""
 echo "# SMTP 자격증명 업데이트"
 echo "vault kv patch secret/core-api/$ENV \\"
+echo "  SMTP_SECURE=<true|false> \\"
 echo "  SMTP_USERNAME=<실제_사용자명> \\"
 echo "  SMTP_PASSWORD=<실제_비밀번호>"
 echo ""
@@ -285,6 +292,9 @@ echo "  DATABASE_URL=<실제_DB_URL> \\"
 echo "  DIRECT_URL=<실제_DIRECT_URL> \\"
 echo "  REDIS_HOST=<실제_REDIS_HOST> \\"
 echo "  REDIS_PASSWORD=<실제_REDIS_PASSWORD> \\"
+echo "  SMTP_SECURE=<true|false> \\"
+echo "  SMTP_USERNAME=<실제_사용자명> \\"
+echo "  SMTP_PASSWORD=<실제_비밀번호> \\"
 echo "  OIDC_COOKIE_SECRET=<32자이상_시크릿> \\"
 echo "  OIDC_ADMIN_CLIENT_SECRET=<실제_ADMIN_CLIENT_SECRET> \\"
 echo "  OIDC_IDP_WEB_CLIENT_ID=idp-web \\"
