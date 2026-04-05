@@ -8,7 +8,7 @@ replicaCount: 1
 core-api:
   image:
     repository: harbor.cocdev.co.kr/prod/core-api
-    tag: "19"
+    tag: "20"
     pullPolicy: Always
   port: 3006
   resources:
