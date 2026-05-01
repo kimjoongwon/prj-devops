@@ -8,7 +8,7 @@ replicaCount: 1
 admin-web:
   image:
     repository: harbor.cocdev.co.kr/prod/admin-web
-    tag: "50"
+    tag: "51"
     pullPolicy: IfNotPresent  # Production은 캐시된 이미지 사용
   port: 3000
   resources:
