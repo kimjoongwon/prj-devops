@@ -189,3 +189,27 @@ done
   Access에 막히므로 `OPENBAO_ADDR=http://openbao.openbao.svc.cluster.local:8200`로
   오버라이드하거나 클러스터 내부에서 실행한다.
 - 관리도구 5종(Jenkins/ArgoCD/Grafana/Harbor/pgAdmin) 비밀번호는 2026-09-18 통일 완료.
+
+## 5. 노드의 Harbor 이미지 풀은 LAN 직결로 (2026-09-19 추가)
+
+Cloudflare Tunnel 경유 레지스트리 풀은 레이어가 재압축되며
+`failed size validation` 오류로 실패할 수 있다(실제 발생). 따라서
+**전 노드의 /etc/hosts에 아래 항목이 반드시 있어야 한다** (VM 재생성 시 소실 주의):
+
+```
+192.168.0.20 harbor.onjitda.com
+```
+
+전 노드 적용 (서버 192.168.0.97에서):
+
+```bash
+cd ~/prj-vagrant-k8s
+for m in control-plane node-01 node-02; do
+  vagrant ssh "$m" -c 'grep -q harbor.onjitda.com /etc/hosts || \
+    echo "192.168.0.20 harbor.onjitda.com" | sudo tee -a /etc/hosts'
+done
+```
+
+ingress의 habor-tls 인증서(cert-manager DNS-01 발급, SAN harbor.onjitda.com)가
+유효하므로 https 직결 풀이 정상 동작한다. LAN 직결 시 풀 속도도 수 배 빠르다
+(실측 280MB 이미지 1.6초).
