@@ -168,10 +168,11 @@ done
 
 ---
 
-## 3. 권장 후속 조치
+## 3. 후속 조치 (2026-09-18 기준)
 
-1. **Harbor 어드민 비밀번호 교체** — 현재 차트 기본값 사용 중
-2. **Cloudflare Access 적용** — argocd/harbor/jenkins/openbao/db 호스트를 이메일 OTP로 보호
-3. OpenBao Unseal Key / Root Token을 비밀번호 관리자로 이관
-4. `spring-api-prod` 이미지 빌드/푸시 또는 기존 아티팩트 복사
-5. (선택) `www.onjitda.com` → 루트 리다이렉트 ingress 규칙 추가 (현재 404)
+1. **Cloudflare Access 적용 완료 (2026-09-18)** — 관리 도구 7호스트(argocd/harbor/jenkins/grafana/prometheus/openbao/db.onjitda.com)가 이메일 OTP로 보호됨. 팀 도메인: `onjitda.cloudflareaccess.com`, 허용 이메일 정책. 도구 접속 시 이메일 인증(24시간 세션) 후 서비스 로그인 화면에 도달한다.
+2. **Harbor 어드민 비밀번호 교체** — 현재 차트 기본값 사용 중
+3. **유출 이력 있는 비밀번호 교체** — Jenkins/ArgoCD/pgAdmin 비밀번호가 GitHub 프로필 README에 공개된 적 있음(이력에서는 삭제 완료). Access 경비실이 있어도 교체 권장
+4. OpenBao Unseal Key / Root Token을 비밀번호 관리자로 이관
+5. `spring-api-prod` 이미지 빌드/푸시 또는 기존 아티팩트 복사
+6. (선택) `www.onjitda.com` → 루트 리다이렉트 ingress 규칙 추가 (현재 404)
