@@ -16,6 +16,7 @@ GitOps 기반의 Kubernetes 배포 인프라로, Helm과 ArgoCD를 활용한 선
 
 ## 📌 현재 운영 모드 (2026-03-17)
 
+- **도메인: 2026-09-18부터 `onjitda.com` (Cloudflare Tunnel)로 전환** 완료. 구 도메인(cocdev.co.kr)은 만료 전이라도 미해석 상태이며 전환 기간 없음. 복구/운영 절차: `docs/onjitda-recovery-runbook.md`
 - Production Parent Application: `frontend-web-apps` (`argocd` namespace)
 - Staging 매니페스트는 `environments/argocd/apps/*-stg.yaml`에만 유지하며, 별도 Parent Application은 운영하지 않습니다.
 - Git 경로: `environments/argocd/apps`
@@ -233,7 +234,27 @@ prj-devops/
    ```
 
 3. **Cloudflare DNS CNAME 레코드**: 각 서비스 호스트(`onjitda.com`, `idp.`, `stg.`, `idp-stg.`, `argocd.`, `harbor.`, `jenkins.`, `grafana.`, `prometheus.`, `openbao.`, `db.onjitda.com`)를 `<tunnel-id>.cfargotunnel.com`으로 CNAME(proxy) 연결한다.
-4. **터널 Public Hostname 라우팅**: 위 호스트들을 ingress-nginx 서비스(예: `http://192.168.0.20:80`)로 전달하도록 Cloudflare에서 설정한다.
+4. **터널 Public Hostname 라우팅**: 위 호스트들을 `https://192.168.0.20:443`(ingress-nginx LB)로 전달한다. 이때 반드시 아래 설정을 함께 지정한다(2026-09-18 검증값):
+   - origin: `https://192.168.0.20:443` — HTTP(:80) origin은 ingress의 ssl-redirect와 리다이렉트 루프를 일으킨다
+   - `noTLSVerify: true` + `originServerName: onjitda.com` — IP origin은 SNI가 비어 `tls: unrecognized name`으로 거부된다
+5. **Harbor 어드민 시크릿 사전 생성** (`helm/development-tools/harbor/values.yaml`의 `existingSecretAdminPassword: harbor-admin` 참조). 없으면 helm upgrade 후 harbor-core 파드가 `CreateContainerConfigError`로 기동 실패한다:
+
+   ```bash
+   kubectl -n harbor create secret generic harbor-admin \
+     --from-literal=HARBOR_ADMIN_PASSWORD=<harbor admin 비밀번호>
+   ```
+
+### 클러스터 재시작 후 복구 (필수 절차)
+
+VM/서버 재부팅 후에는 OpenBao가 봉인 상태로 기동하여 ExternalSecret 전체가 실패한다. 복구 절차는 [docs/onjitda-recovery-runbook.md](docs/onjitda-recovery-runbook.md) 참조. 핵심만 요약하면:
+
+```bash
+# 1) VM 기동 (서버 192.168.0.97에서)
+cd ~/prj-vagrant-k8s && vagrant up
+
+# 2) OpenBao 봉인 해제 (Unseal Key는 안전한 곳에 보관)
+kubectl exec -n openbao openbao-0 -- bao operator unseal <UNSEAL_KEY>
+```
 
 ### 1. 인프라 및 도구 배포
 
