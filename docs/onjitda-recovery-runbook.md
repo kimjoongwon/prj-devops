@@ -176,3 +176,16 @@ done
 4. OpenBao Unseal Key / Root Token을 비밀번호 관리자로 이관
 5. `spring-api-prod` 이미지 빌드/푸시 또는 기존 아티팩트 복사
 6. (선택) `www.onjitda.com` → 루트 리다이렉트 ingress 규칙 추가 (현재 404)
+
+## 4. Cloudflare Access 운영 시 주의 (2026-09-18 추가)
+
+- 관리 도구 7호스트(argocd/harbor/jenkins/grafana/prometheus/openbao/db.onjitda.com)는
+  Access 이메일 OTP 뒤에 있다. 허용 이메일: `Wallydevplan@gmail.com`, 세션 24시간.
+- **ExternalSecret 스토어는 클러스터 내부 주소를 사용해야 한다**
+  (`http://openbao.openbao.svc.cluster.local:8200`). 공개 주소
+  `https://openbao.onjitda.com`를 스토어에 쓰면 Access 로그인 벽에 막혀
+  스토어 검증이 실패한다(2026-09-18 발생 → `02f942e`로 해결).
+- OpenBao 관리 스크립트(`scripts/openbao/*`) 실행 시 공개 주소 기본값이
+  Access에 막히므로 `OPENBAO_ADDR=http://openbao.openbao.svc.cluster.local:8200`로
+  오버라이드하거나 클러스터 내부에서 실행한다.
+- 관리도구 5종(Jenkins/ArgoCD/Grafana/Harbor/pgAdmin) 비밀번호는 2026-09-18 통일 완료.
