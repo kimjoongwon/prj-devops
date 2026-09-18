@@ -3,7 +3,7 @@
 
 # OpenBao 서버 설정
 openbao:
-  server: "https://openbao.onjitda.com"
+  server: "http://openbao.openbao.svc.cluster.local:8200"
   path: "secret"
   version: "v2"
   auth:
