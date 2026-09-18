@@ -24,7 +24,7 @@ if [ -z "$VAULT_ADDR" ]; then
     echo -e "${RED}❌ VAULT_ADDR 환경 변수가 설정되지 않았습니다${NC}"
     echo
     echo "다음 명령어로 설정하세요:"
-    echo "  export VAULT_ADDR=https://openbao.cocdev.co.kr"
+    echo "  export VAULT_ADDR=https://openbao.onjitda.com"
     echo "  또는"
     echo "  export VAULT_ADDR=http://localhost:8200"
     exit 1

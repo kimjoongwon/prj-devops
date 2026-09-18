@@ -4,7 +4,7 @@ replicaCount: 1
 
 idp-api:
   image:
-    repository: harbor.cocdev.co.kr/stg/idp-api
+    repository: harbor.onjitda.com/stg/idp-api
     tag: "latest"
     pullPolicy: Always
   port: 3007

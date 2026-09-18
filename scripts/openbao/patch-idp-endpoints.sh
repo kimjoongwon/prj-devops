@@ -1,7 +1,7 @@
 #!/bin/bash
 set -euo pipefail
 
-OPENBAO_ADDR="${OPENBAO_ADDR:-https://openbao.cocdev.co.kr}"
+OPENBAO_ADDR="${OPENBAO_ADDR:-https://openbao.onjitda.com}"
 ENVIRONMENT="${1:-staging}"
 MODE="${2:-apply}"
 
@@ -14,7 +14,7 @@ Examples:
   ./scripts/openbao/patch-idp-endpoints.sh production apply
 
 Environment variables:
-  OPENBAO_ADDR   OpenBao address (default: https://openbao.cocdev.co.kr)
+  OPENBAO_ADDR   OpenBao address (default: https://openbao.onjitda.com)
   VAULT_TOKEN    OpenBao token for HTTP API mode
 EOF
 }
@@ -32,13 +32,13 @@ if [[ "${MODE}" != "apply" && "${MODE}" != "dry-run" ]]; then
 fi
 
 if [[ "${ENVIRONMENT}" == "staging" ]]; then
-  APP_HOST="stg.cocdev.co.kr"
-  IDP_HOST="idp-stg.cocdev.co.kr"
+  APP_HOST="stg.onjitda.com"
+  IDP_HOST="idp-stg.onjitda.com"
   CORE_API_INTERNAL_URL="http://core-api-stg:3006"
   IDP_API_INTERNAL_URL="http://idp-api-stg"
 else
-  APP_HOST="cocdev.co.kr"
-  IDP_HOST="idp.cocdev.co.kr"
+  APP_HOST="onjitda.com"
+  IDP_HOST="idp.onjitda.com"
   CORE_API_INTERNAL_URL="http://core-api-prod:3006"
   IDP_API_INTERNAL_URL="http://idp-api-prod"
 fi

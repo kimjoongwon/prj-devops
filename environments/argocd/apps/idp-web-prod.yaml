@@ -48,6 +48,6 @@ spec:
     - name: "Environment"
       value: "Production"
     - name: "Domain"
-      value: "idp.cocdev.co.kr"
+      value: "idp.onjitda.com"
     - name: "Description"
       value: "IDP Web - Production Environment"

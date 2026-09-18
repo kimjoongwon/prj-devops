@@ -432,7 +432,7 @@ server:
     # configure the ingress to point to the OpenBao active service.
     activeService: true
     hosts:
-      - host: openbao.cocdev.co.kr
+      - host: openbao.onjitda.com
         paths: ["/"]
     ## Extra paths to prepend to the host configuration. This is useful when working with annotation based services.
     extraPaths: []
@@ -445,7 +445,7 @@ server:
     tls:
       - secretName: openbao-tls-cert
         hosts:
-          - openbao.cocdev.co.kr
+          - openbao.onjitda.com
 
   # hostAliases is a list of aliases to be added to /etc/hosts. Specified as a YAML list.
   hostAliases: []

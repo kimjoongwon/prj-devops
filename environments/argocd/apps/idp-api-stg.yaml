@@ -48,6 +48,6 @@ spec:
     - name: "Environment"
       value: "Staging"
     - name: "Domain"
-      value: "idp-stg.cocdev.co.kr (api/oidc)"
+      value: "idp-stg.onjitda.com (api/oidc)"
     - name: "Description"
       value: "IDP API - Staging Environment"

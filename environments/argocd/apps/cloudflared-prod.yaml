@@ -1,55 +1,47 @@
-# pgAdmin Ingress - Production 환경 ArgoCD Application
+# Cloudflared (Cloudflare Tunnel) - Production 환경 ArgoCD Application
+# 사전 조건: cloudflared namespace에 cloudflared-tunnel-token 시크릿이 있어야 한다.
 
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: pgadmin-ingress-prod
+  name: cloudflared-prod
   namespace: argocd
-  annotations:
-    argocd.argoproj.io/sync-wave: "3"
   finalizers:
     - resources-finalizer.argocd.argoproj.io
   labels:
-    app.kubernetes.io/name: ingress
-    app.kubernetes.io/instance: pgadmin
+    app.kubernetes.io/name: cloudflared
+    app.kubernetes.io/instance: production
     environment: production
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
 spec:
   project: default
-
   source:
     repoURL: https://github.com/kimjoongwon/prj-devops.git
-    path: helm/ingress
+    path: helm/development-tools/cloudflared
     targetRevision: main
     helm:
       valueFiles:
-        - values-pgadmin-prod.yaml
-
+        - values.yaml
   destination:
     server: https://kubernetes.default.svc
-    namespace: plate-prod
-
+    namespace: cloudflared
   syncPolicy:
     automated:
       prune: true
       selfHeal: true
-
     syncOptions:
       - CreateNamespace=true
       - ApplyOutOfSyncOnly=true
-
     retry:
-      limit: 3
+      limit: 5
       backoff:
         duration: 5s
         factor: 2
         maxDuration: 3m
-
-  revisionHistoryLimit: 10
-
+  revisionHistoryLimit: 5
   info:
     - name: "Environment"
       value: "Production"
-    - name: "Domain"
-      value: "db.onjitda.com"
     - name: "Description"
-      value: "pgAdmin Ingress - Production Environment"
+      value: "Cloudflare Tunnel connector for onjitda.com"

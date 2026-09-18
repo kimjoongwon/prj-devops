@@ -60,6 +60,6 @@ spec:
     - name: "Environment"
       value: "Production"
     - name: "Domain"
-      value: "cocdev.co.kr/spring"
+      value: "onjitda.com/spring"
     - name: "Description"
       value: "Spring API - Production Environment"

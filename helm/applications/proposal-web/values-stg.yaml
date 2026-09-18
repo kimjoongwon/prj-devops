@@ -4,10 +4,10 @@
 replicaCount: 1
 
 # Staging 이미지 저장소 (Harbor registry)
-# 이미지 규칙: harbor.cocdev.co.kr/{환경}/{앱이름}
+# 이미지 규칙: harbor.onjitda.com/{환경}/{앱이름}
 proposal-web:
   image:
-    repository: harbor.cocdev.co.kr/stg/proposal-web
+    repository: harbor.onjitda.com/stg/proposal-web
     tag: "latest"
     pullPolicy: Always  # Staging은 항상 최신 이미지 가져옴
   port: 3011

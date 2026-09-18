@@ -22,7 +22,7 @@ service:
   targetPort: 5050
 
 auth:
-  email: admin@cocdev.co.kr
+  email: admin@onjitda.com
   # 운영 PostgreSQL 인증 Secret 이름
   existingSecret: plate-db-secrets
   passwordKey: POSTGRES_PASSWORD

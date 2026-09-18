@@ -13,7 +13,7 @@ BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
 # Harbor 설정
-HARBOR_URL="harbor.cocdev.co.kr"
+HARBOR_URL="harbor.onjitda.com"
 HARBOR_USER="admin"
 HARBOR_PASSWORD="Harbor12345"
 HARBOR_PROJECT="server-stg"  # 올바른 프로젝트 경로

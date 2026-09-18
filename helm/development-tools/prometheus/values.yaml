@@ -405,7 +405,7 @@ server:
     ## Must be provided if Ingress is enabled
     ##
     hosts:
-      - prometheus.cocdev.co.kr
+      - prometheus.onjitda.com
     #   - prometheus.domain.com
     #   - domain.com/prometheus
 
@@ -427,7 +427,7 @@ server:
     tls:
       - secretName: prometheus-server-tls
         hosts:
-          - prometheus.cocdev.co.kr
+          - prometheus.onjitda.com
 
   ## route (map) allows configuration of HTTPRoute resources
   ## Requires Gateway API resources and suitable controller installed within the cluster

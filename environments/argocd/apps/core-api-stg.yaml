@@ -58,6 +58,6 @@ spec:
     - name: "Environment"
       value: "Staging"
     - name: "Domain"
-      value: "cocdev.co.kr/api (staging)"
+      value: "onjitda.com/api (staging)"
     - name: "Description"
       value: "Core API - Staging Environment"

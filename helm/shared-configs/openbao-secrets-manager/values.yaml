@@ -12,7 +12,7 @@ global:
 # OpenBao configuration
 openbao:
   # OpenBao server URL
-  server: "https://openbao.cocdev.co.kr"
+  server: "https://openbao.onjitda.com"
   # Secret engine path
   path: "secret"
   # API version

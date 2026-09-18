@@ -4,10 +4,10 @@
 replicaCount: 1
 
 # Production 이미지 저장소 (Harbor registry)
-# 이미지 규칙: harbor.cocdev.co.kr/{환경}/{앱이름}
+# 이미지 규칙: harbor.onjitda.com/{환경}/{앱이름}
 core-api:
   image:
-    repository: harbor.cocdev.co.kr/prod/core-api
+    repository: harbor.onjitda.com/prod/core-api
     tag: "21"
     pullPolicy: Always
   port: 3006

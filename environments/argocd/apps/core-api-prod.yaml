@@ -58,6 +58,6 @@ spec:
     - name: "Environment"
       value: "Production"
     - name: "Domain"
-      value: "cocdev.co.kr/api, www.cocdev.co.kr/api"
+      value: "onjitda.com/api, www.onjitda.com/api"
     - name: "Description"
       value: "Core API - Production Environment"

@@ -7,7 +7,7 @@ replicaCount: 1
 # core-api 애플리케이션 설정
 core-api:
   image:
-    repository: harbor.cocdev.co.kr/stg/core-api
+    repository: harbor.onjitda.com/stg/core-api
     tag: "latest"
     pullPolicy: IfNotPresent
   port: 3006

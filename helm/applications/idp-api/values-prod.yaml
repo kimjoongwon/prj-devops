@@ -4,7 +4,7 @@ replicaCount: 1
 
 idp-api:
   image:
-    repository: harbor.cocdev.co.kr/prod/idp-api
+    repository: harbor.onjitda.com/prod/idp-api
     tag: "22"
     pullPolicy: IfNotPresent
   port: 3007
@@ -35,10 +35,10 @@ extraEnv:
   - name: APP_PORT
     value: "3007"
   - name: OIDC_ISSUER
-    value: https://idp.cocdev.co.kr
+    value: https://idp.onjitda.com
   - name: IDP_CLIENT_URL
-    value: https://idp.cocdev.co.kr
+    value: https://idp.onjitda.com
   - name: OIDC_ADMIN_BASE_URL
-    value: https://cocdev.co.kr
+    value: https://onjitda.com
   - name: OTEL_SERVICE_NAME
     value: idp-api-prod

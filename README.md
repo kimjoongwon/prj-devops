@@ -29,14 +29,14 @@ GitOps 기반의 Kubernetes 배포 인프라로, Helm과 ArgoCD를 활용한 선
 ## ⚠️ 현재 운영 제약 (2026-03-17)
 
 - staging child manifest는 repo에 존재하더라도 기본 운영 경로에서는 apply되지 않습니다.
-- Staging IDP는 `idp-stg.cocdev.co.kr` DNS와 OpenBao 시크릿 patch가 끝나야 정상 동작합니다.
+- Staging IDP는 `idp-stg.onjitda.com` DNS와 OpenBao 시크릿 patch가 끝나야 정상 동작합니다.
 - IDP 앱 정상화 선행 조건:
-  - Harbor에 `harbor.cocdev.co.kr/prod/proposal-web:latest`
-  - Harbor에 `harbor.cocdev.co.kr/stg/proposal-web:latest`
-  - Harbor에 `harbor.cocdev.co.kr/prod/idp-api:latest`
-  - Harbor에 `harbor.cocdev.co.kr/prod/idp-web:latest`
-  - Harbor에 `harbor.cocdev.co.kr/stg/idp-api:latest`
-  - Harbor에 `harbor.cocdev.co.kr/stg/idp-web:latest`
+  - Harbor에 `harbor.onjitda.com/prod/proposal-web:latest`
+  - Harbor에 `harbor.onjitda.com/stg/proposal-web:latest`
+  - Harbor에 `harbor.onjitda.com/prod/idp-api:latest`
+  - Harbor에 `harbor.onjitda.com/prod/idp-web:latest`
+  - Harbor에 `harbor.onjitda.com/stg/idp-api:latest`
+  - Harbor에 `harbor.onjitda.com/stg/idp-web:latest`
 - 이미지 미존재 시 `ImagePullBackOff`가 발생하며 ArgoCD 앱은 `Synced`여도 `Healthy`가 되지 않습니다.
 
 ## 📁 프로젝트 구조
@@ -213,6 +213,28 @@ prj-devops/
 - kubectl 설정 완료
 - Git 접근 권한
 
+### 도메인/터널 사전 조건 (onjitda.com)
+
+외부 접근은 Cloudflare Tunnel(remotely-managed)로 제공한다. 클러스터 배포 전 아래 시크릿과 DNS가 준비되어야 한다.
+
+1. **cert-manager DNS-01용 Cloudflare API 토큰 시크릿** (ClusterIssuer가 `cert-manager` namespace에서 참조):
+
+   ```bash
+   kubectl -n cert-manager create secret generic cloudflare-dns01-api-token \
+     --from-literal=api-token=<onjitda.com Zone DNS:Edit 권한 토큰>
+   ```
+
+2. **cloudflared 터널 토큰 시크릿** (Cloudflare Zero Trust에서 터널 생성 후 발급되는 토큰):
+
+   ```bash
+   kubectl create namespace cloudflared
+   kubectl -n cloudflared create secret generic cloudflared-tunnel-token \
+     --from-literal=token=<tunnel token>
+   ```
+
+3. **Cloudflare DNS CNAME 레코드**: 각 서비스 호스트(`onjitda.com`, `idp.`, `stg.`, `idp-stg.`, `argocd.`, `harbor.`, `jenkins.`, `grafana.`, `prometheus.`, `openbao.`, `db.onjitda.com`)를 `<tunnel-id>.cfargotunnel.com`으로 CNAME(proxy) 연결한다.
+4. **터널 Public Hostname 라우팅**: 위 호스트들을 ingress-nginx 서비스(예: `http://192.168.0.20:80`)로 전달하도록 Cloudflare에서 설정한다.
+
 ### 1. 인프라 및 도구 배포
 
 ```bash
@@ -271,7 +293,7 @@ kubectl -n plate-stg get pods | rg 'idp-(api|web)-stg'
 
 ### Staging (개발/테스트)
 
-- **Domain**: `stg.cocdev.co.kr`
+- **Domain**: `stg.onjitda.com`
 - **Namespace**: 서비스별 분리
 - **Certificate**: Let's Encrypt Staging
 - **Auto-scaling**: 활성화
@@ -279,7 +301,7 @@ kubectl -n plate-stg get pods | rg 'idp-(api|web)-stg'
 
 ### Production
 
-- **Domain**: `cocdev.co.kr`, `www.cocdev.co.kr`
+- **Domain**: `onjitda.com`, `www.onjitda.com`
 - **Namespace**: 서비스별 분리
 - **Certificate**: Let's Encrypt Production
 - **Auto-scaling**: 활성화
@@ -414,10 +436,10 @@ kubectl get pods -A
 
 배포 완료 후 접근 URL:
 
-- **Staging**: https://stg.cocdev.co.kr
-- **Staging IDP**: https://idp-stg.cocdev.co.kr
-- **Production**: https://cocdev.co.kr 또는 https://www.cocdev.co.kr
-- **Production IDP**: https://idp.cocdev.co.kr
+- **Staging**: https://stg.onjitda.com
+- **Staging IDP**: https://idp-stg.onjitda.com
+- **Production**: https://onjitda.com 또는 https://www.onjitda.com
+- **Production IDP**: https://idp.onjitda.com
 
 ## 🗂️ File Organization
 

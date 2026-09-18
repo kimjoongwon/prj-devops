@@ -51,6 +51,6 @@ spec:
     - name: "Environment"
       value: "Production"
     - name: "Domain"
-      value: "cocdev.co.kr"
+      value: "onjitda.com"
     - name: "Description"
       value: "Proposal Web - Production Environment (Next.js public landing)"

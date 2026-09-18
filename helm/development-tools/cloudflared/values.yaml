@@ -1,0 +1,38 @@
+# Cloudflare Tunnel (remotely-managed) 커넥터
+#
+# 터널 라우팅(각 호스트 -> ingress-nginx)은 Cloudflare Zero Trust 대시보드 또는
+# API에서 Public Hostname으로 관리한다. 이 차트는 터널 연결만 담당한다.
+#
+# 사전 조건:
+#   1. Cloudflare에서 터널 생성 후 토큰 확보
+#   2. 토큰 시크릿 생성:
+#      kubectl create namespace cloudflared
+#      kubectl -n cloudflared create secret generic cloudflared-tunnel-token \
+#        --from-literal=token=<tunnel token>
+
+replicaCount: 1
+
+image:
+  repository: cloudflare/cloudflared
+  tag: "2025.8.0"
+  pullPolicy: IfNotPresent
+
+tunnel:
+  existingSecret: cloudflared-tunnel-token
+  secretKey: token
+
+metrics:
+  enabled: true
+  port: 20241
+
+resources:
+  requests:
+    cpu: 50m
+    memory: 64Mi
+  limits:
+    cpu: 200m
+    memory: 128Mi
+
+nodeSelector: {}
+tolerations: []
+affinity: {}

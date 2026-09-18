@@ -58,7 +58,7 @@ pipeline {
               --workdir "${PWD}/${GITOPS_DIR}" \
               --branch "${GITOPS_BRANCH}" \
               --git-user-name "jenkins-bot" \
-              --git-user-email "jenkins-bot@cocdev.co.kr" \
+              --git-user-email "jenkins-bot@onjitda.com" \
               --push-retries 3
           '''
         }

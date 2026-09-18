@@ -58,6 +58,6 @@ spec:
     - name: "Environment"
       value: "Staging"
     - name: "Domain"
-      value: "stg.cocdev.co.kr/spring"
+      value: "stg.onjitda.com/spring"
     - name: "Description"
       value: "Spring API - Staging Environment"

@@ -51,6 +51,6 @@ spec:
     - name: "Environment"
       value: "Production"
     - name: "Domain"
-      value: "admin.cocdev.co.kr"
+      value: "admin.onjitda.com"
     - name: "Description"
       value: "Admin Web - Production Environment (Next.js)"

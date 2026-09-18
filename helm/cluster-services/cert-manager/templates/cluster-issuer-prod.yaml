@@ -14,7 +14,7 @@ spec:
     # Name of a secret used to store the ACME account private key
     privateKeySecretRef:
       name: {{ .Values.clusterIssuer.production.privateKeySecretRef.name }}
-    # Enable the HTTP-01 challenge provider
+    # ACME challenge solvers (Cloudflare DNS-01)
     solvers:
       {{- toYaml .Values.clusterIssuer.production.solvers | nindent 6 }}
 {{- end }}

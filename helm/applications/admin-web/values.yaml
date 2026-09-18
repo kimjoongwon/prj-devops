@@ -7,7 +7,7 @@ replicaCount: 1
 # admin-web 애플리케이션 설정
 admin-web:
   image:
-    repository: harbor.cocdev.co.kr/stg/admin-web
+    repository: harbor.onjitda.com/stg/admin-web
     tag: "latest"
     pullPolicy: IfNotPresent
   # Next.js 기본 포트

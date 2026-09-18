@@ -5,7 +5,7 @@ replicaCount: 1
 
 # LLM server configuration (staging) - Using Harbor registry
 image:
-  repository: harbor.cocdev.co.kr/stg-llm/server
+  repository: harbor.onjitda.com/stg-llm/server
   pullPolicy: Always # Always pull for staging to get latest builds
   tag: "latest"
 
@@ -15,7 +15,7 @@ service:
   port: 80
   targetPort: 8000
 
-# Ingress configuration for llm.cocdev.co.kr
+# Ingress configuration for llm.onjitda.com
 ingress:
   enabled: true
   className: "nginx"
@@ -24,14 +24,14 @@ ingress:
     ingress.kubernetes.io/ssl-redirect: "false"
     acme.cert-manager.io/http01-edit-in-place: "true"
   hosts:
-    - host: llm.cocdev.co.kr
+    - host: llm.onjitda.com
       paths:
         - path: /
           pathType: Prefix
   tls:
     - secretName: llm-tls
       hosts:
-        - llm.cocdev.co.kr
+        - llm.onjitda.com
 
 resources:
   limits:

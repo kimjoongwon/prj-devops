@@ -50,6 +50,6 @@ spec:
     - name: "Environment"
       value: "Production"
     - name: "Domain"
-      value: "db.cocdev.co.kr"
+      value: "db.onjitda.com"
     - name: "Description"
       value: "pgAdmin Dashboard - Production Environment"

@@ -751,14 +751,14 @@ controller:
     path:
     # configures the hostname e.g. jenkins.example.com
     # -- Ingress hostname
-    hostName: jenkins.cocdev.co.kr
+    hostName: jenkins.onjitda.com
     # -- Hostname to serve assets from
     resourceRootUrl:
     # -- Ingress TLS configuration
     tls:
       - secretName: jenkins-tls
         hosts:
-          - jenkins.cocdev.co.kr
+          - jenkins.onjitda.com
 
   # often you want to have your controller all locked down and private,
   # but you still want to get webhooks from your SCM

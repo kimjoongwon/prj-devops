@@ -48,6 +48,6 @@ spec:
     - name: "Environment"
       value: "Staging"
     - name: "Domain"
-      value: "idp-stg.cocdev.co.kr"
+      value: "idp-stg.onjitda.com"
     - name: "Description"
       value: "IDP Web - Staging Environment"

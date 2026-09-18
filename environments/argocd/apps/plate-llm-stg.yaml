@@ -60,6 +60,6 @@ spec:
     - name: "Environment"
       value: "Staging"
     - name: "Domain"
-      value: "llm.cocdev.co.kr"
+      value: "llm.onjitda.com"
     - name: "Description"
       value: "Plate LLM Service - LangChain based LLM service"

@@ -300,7 +300,7 @@ ingress:
   pathType: Prefix
 
   hosts:
-    - grafana.cocdev.co.kr
+    - grafana.onjitda.com
   ## Extra paths to prepend to every host configuration. This is useful when working with annotation based services.
   extraPaths: []
   # - path: /*
@@ -319,7 +319,7 @@ ingress:
   tls:
     - secretName: grafana-tls
       hosts:
-        - grafana.cocdev.co.kr
+        - grafana.onjitda.com
 
 # -- BETA: Configure the gateway routes for the chart here.
 # More routes can be added by adding a dictionary key like the 'main' route.

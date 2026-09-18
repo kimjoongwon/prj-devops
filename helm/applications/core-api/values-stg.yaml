@@ -4,10 +4,10 @@
 replicaCount: 1
 
 # Staging 이미지 저장소 (Harbor registry)
-# 이미지 규칙: harbor.cocdev.co.kr/{환경}/{앱이름}
+# 이미지 규칙: harbor.onjitda.com/{환경}/{앱이름}
 core-api:
   image:
-    repository: harbor.cocdev.co.kr/stg/core-api
+    repository: harbor.onjitda.com/stg/core-api
     tag: "latest"
     pullPolicy: Always  # Always pull for latest builds in staging
   port: 3006

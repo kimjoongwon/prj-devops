@@ -127,8 +127,8 @@ for ns in "${NAMESPACES[@]}"; do
             echo -e "    ${RED}예상 타입: kubernetes.io/dockerconfigjson, 실제: $SECRET_TYPE${NC}"
         fi
         
-        # Secret 내용 검증 (harbor.cocdev.co.kr 포함 여부)
-        if kubectl get secret harbor-docker-secret -n "$ns" -o jsonpath='{.data.\.dockerconfigjson}' | base64 -d | grep -q "harbor.cocdev.co.kr"; then
+        # Secret 내용 검증 (harbor.onjitda.com 포함 여부)
+        if kubectl get secret harbor-docker-secret -n "$ns" -o jsonpath='{.data.\.dockerconfigjson}' | base64 -d | grep -q "harbor.onjitda.com"; then
             check_result "Harbor 레지스트리 URL 확인" "pass"
         else
             check_result "Harbor 레지스트리 URL 확인" "fail"
@@ -145,7 +145,7 @@ echo -e "${YELLOW}🐳 Harbor 이미지 Pull 테스트${NC}"
 
 # 테스트용 Pod 생성 및 확인
 TEST_POD="harbor-auth-test-$(date +%s)"
-TEST_IMAGE="harbor.cocdev.co.kr/harbor/stg-server/server:48"
+TEST_IMAGE="harbor.onjitda.com/harbor/stg-server/server:48"
 
 echo "테스트 Pod: $TEST_POD"
 echo "테스트 이미지: $TEST_IMAGE"

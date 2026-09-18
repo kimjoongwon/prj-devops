@@ -28,7 +28,7 @@ expose:
       secretName: "habor-tls"
   ingress:
     hosts:
-      core: harbor.cocdev.co.kr
+      core: harbor.onjitda.com
     # set to the type of ingress controller if it has specific requirements.
     # leave as `default` for most ingress controllers.
     # set to `gce` if using the GCE ingress controller
@@ -110,7 +110,7 @@ expose:
 # the IP address of k8s node
 #
 # If Harbor is deployed behind the proxy, set it as the URL of proxy
-externalURL: https://harbor.cocdev.co.kr
+externalURL: https://harbor.onjitda.com
 
 # The persistence is enabled by default and a default StorageClass
 # is needed in the k8s cluster to provision volumes dynamically.

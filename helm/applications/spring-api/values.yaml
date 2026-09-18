@@ -7,7 +7,7 @@ replicaCount: 1
 # spring-api 애플리케이션 설정
 spring-api:
   image:
-    repository: harbor.cocdev.co.kr/stg/spring-api
+    repository: harbor.onjitda.com/stg/spring-api
     tag: "latest"
     pullPolicy: IfNotPresent
   port: 8080

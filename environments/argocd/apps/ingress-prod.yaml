@@ -78,6 +78,6 @@ spec:
     - name: "Environment"
       value: "Production"
     - name: "Domain"
-      value: "cocdev.co.kr"
+      value: "onjitda.com"
     - name: "Description"
       value: "프로덕션 환경 인그레스 - /proposal -> proposal-web, /와 /admin -> admin-web, core-api/spring-api/idp-web/idp-api/tool-storybook 라우팅 처리"

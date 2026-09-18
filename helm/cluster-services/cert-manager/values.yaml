@@ -7,29 +7,40 @@ cert-manager:
   installCRDs: true
 
 # ClusterIssuer configurations
+#
+# DNS-01(Cloudflare) 방식으로 발급한다. Cloudflare Tunnel 경로에서는
+# HTTP-01의 ACME 검증 트래픽이 ingress에 도달하지 않으므로 DNS-01을 쓴다.
+#
+# 사전 조건 - cert-manager namespace에 Cloudflare API 토큰 시크릿 필요:
+#   kubectl -n cert-manager create secret generic cloudflare-dns01-api-token \
+#     --from-literal=api-token=<onjitda.com Zone DNS:Edit 권한 토큰>
 clusterIssuer:
   # Production Let's Encrypt ClusterIssuer
   production:
     enabled: true
     name: letsencrypt-prod
     server: https://acme-v02.api.letsencrypt.org/directory
-    email: admin@example.com
+    email: dev@onjitda.com
     privateKeySecretRef:
       name: letsencrypt-prod
     solvers:
-      - http01:
-          ingress:
-            class: nginx
-            
-  # Staging Let's Encrypt ClusterIssuer  
+      - dns01:
+          cloudflare:
+            apiTokenSecretRef:
+              name: cloudflare-dns01-api-token
+              key: api-token
+
+  # Staging Let's Encrypt ClusterIssuer
   staging:
     enabled: true
     name: letsencrypt-staging
     server: https://acme-staging-v02.api.letsencrypt.org/directory
-    email: admin@example.com
+    email: dev@onjitda.com
     privateKeySecretRef:
       name: letsencrypt-staging
     solvers:
-      - http01:
-          ingress:
-            class: nginx
+      - dns01:
+          cloudflare:
+            apiTokenSecretRef:
+              name: cloudflare-dns01-api-token
+              key: api-token

@@ -13,7 +13,7 @@ ingress:
     ingress.kubernetes.io/ssl-redirect: "false"
     acme.cert-manager.io/http01-edit-in-place: "true"
   hosts:
-    - host: db.cocdev.co.kr
+    - host: db.onjitda.com
       paths:
         - path: /
           pathType: Prefix
@@ -25,4 +25,4 @@ ingress:
   tls:
     - secretName: db-prod-tls
       hosts:
-        - db.cocdev.co.kr
+        - db.onjitda.com

@@ -6,7 +6,7 @@ replicaCount: 1 # 기본 복제본 수
 
 # LLM 서버 컨테이너 설정 (Harbor 레지스트리)
 image:
-  repository: harbor.cocdev.co.kr/stg-llm/server # Harbor LLM 이미지
+  repository: harbor.onjitda.com/stg-llm/server # Harbor LLM 이미지
   pullPolicy: IfNotPresent
   tag: "latest" # 환경별로 버전 태그 지정 권장
 

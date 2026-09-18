@@ -4,7 +4,7 @@ replicaCount: 1
 
 tool-storybook:
   image:
-    repository: harbor.cocdev.co.kr/prod/tool-storybook
+    repository: harbor.onjitda.com/prod/tool-storybook
     tag: "22"
     pullPolicy: IfNotPresent
   port: 3009

@@ -71,18 +71,18 @@ fi
 
 # 서버 환경 변수 기본값 설정
 if [[ "$ENV" == "staging" ]]; then
-  FRONTEND_DOMAIN="https://stg.cocdev.co.kr"
-  BACKEND_DOMAIN="https://stg.cocdev.co.kr"
-  IDP_DOMAIN="https://idp-stg.cocdev.co.kr"
-  ADMIN_BASE_URL="https://stg.cocdev.co.kr"
-  STORYBOOK_BASE_URL="https://stg.cocdev.co.kr/story"
+  FRONTEND_DOMAIN="https://stg.onjitda.com"
+  BACKEND_DOMAIN="https://stg.onjitda.com"
+  IDP_DOMAIN="https://idp-stg.onjitda.com"
+  ADMIN_BASE_URL="https://stg.onjitda.com"
+  STORYBOOK_BASE_URL="https://stg.onjitda.com/story"
   NODE_ENV="staging"
 else
-  FRONTEND_DOMAIN="https://cocdev.co.kr"
-  BACKEND_DOMAIN="https://cocdev.co.kr"
-  IDP_DOMAIN="https://idp.cocdev.co.kr"
-  ADMIN_BASE_URL="https://cocdev.co.kr"
-  STORYBOOK_BASE_URL="https://cocdev.co.kr/story"
+  FRONTEND_DOMAIN="https://onjitda.com"
+  BACKEND_DOMAIN="https://onjitda.com"
+  IDP_DOMAIN="https://idp.onjitda.com"
+  ADMIN_BASE_URL="https://onjitda.com"
+  STORYBOOK_BASE_URL="https://onjitda.com/story"
   NODE_ENV="production"
 fi
 
@@ -120,7 +120,7 @@ fi
 vault kv put "secret/core-api/$ENV" \
   APP_PORT=3000 \
   APP_NAME=core-api \
-  APP_ADMIN_EMAIL="admin@cocdev.co.kr" \
+  APP_ADMIN_EMAIL="admin@onjitda.com" \
   API_PREFIX=/api \
   APP_FALLBACK_LANGUAGE=ko \
   APP_HEADER_LANGUAGE=x-custom-lang \
@@ -132,7 +132,7 @@ vault kv put "secret/core-api/$ENV" \
   SMTP_SECURE=false \
   SMTP_USERNAME="CHANGE_ME_SMTP_USER" \
   SMTP_PASSWORD="CHANGE_ME_SMTP_PASS" \
-  SMTP_SENDER="noreply@cocdev.co.kr" \
+  SMTP_SENDER="noreply@onjitda.com" \
   AUTH_JWT_SECRET="CHANGE_ME_$(openssl rand -hex 32)" \
   AUTH_JWT_TOKEN_EXPIRES_IN=3600 \
   AUTH_JWT_TOKEN_REFRESH_IN=86400 \
@@ -164,7 +164,7 @@ vault kv put "secret/idp-api/$ENV" \
   APP_NAME=idp \
   APP_PORT=3007 \
   NODE_ENV="$NODE_ENV" \
-  APP_ADMIN_EMAIL="admin@cocdev.co.kr" \
+  APP_ADMIN_EMAIL="admin@onjitda.com" \
   API_PREFIX=api \
   APP_FALLBACK_LANGUAGE=ko \
   APP_HEADER_LANGUAGE=x-custom-lang \
@@ -181,7 +181,7 @@ vault kv put "secret/idp-api/$ENV" \
   SMTP_SECURE=false \
   SMTP_USERNAME="CHANGE_ME_SMTP_USER" \
   SMTP_PASSWORD="CHANGE_ME_SMTP_PASS" \
-  SMTP_SENDER="noreply@cocdev.co.kr" \
+  SMTP_SENDER="noreply@onjitda.com" \
   AUTH_JWT_SECRET="CHANGE_ME_$(openssl rand -hex 32)" \
   AUTH_JWT_TOKEN_EXPIRES_IN=1h \
   AUTH_JWT_TOKEN_REFRESH_IN=7d \
@@ -233,12 +233,12 @@ echo ""
 
 # Docker config JSON 생성
 HARBOR_AUTH=$(echo -n "$HARBOR_USERNAME:$HARBOR_PASSWORD" | base64)
-DOCKER_CONFIG="{\"auths\":{\"harbor.cocdev.co.kr\":{\"username\":\"$HARBOR_USERNAME\",\"password\":\"$HARBOR_PASSWORD\",\"auth\":\"$HARBOR_AUTH\"}}}"
+DOCKER_CONFIG="{\"auths\":{\"harbor.onjitda.com\":{\"username\":\"$HARBOR_USERNAME\",\"password\":\"$HARBOR_PASSWORD\",\"auth\":\"$HARBOR_AUTH\"}}}"
 
 echo ""
 echo "🔧 Harbor 시크릿 생성 중..."
 vault kv put "secret/harbor/$ENV" \
-  registry="harbor.cocdev.co.kr" \
+  registry="harbor.onjitda.com" \
   username="$HARBOR_USERNAME" \
   password="$HARBOR_PASSWORD" \
   .dockerconfigjson="$DOCKER_CONFIG"

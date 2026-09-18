@@ -51,6 +51,6 @@ spec:
     - name: "Environment"
       value: "Staging"
     - name: "Domain"
-      value: "admin.stg.cocdev.co.kr"
+      value: "admin.stg.onjitda.com"
     - name: "Description"
       value: "Admin Web - Staging Environment (Next.js)"

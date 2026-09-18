@@ -3,7 +3,7 @@
 
 # OpenBao 서버 설정
 openbao:
-  server: "https://openbao.cocdev.co.kr"
+  server: "https://openbao.onjitda.com"
   path: "secret"
   version: "v2"
   auth:

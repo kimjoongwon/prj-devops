@@ -7,7 +7,7 @@ replicaCount: 1
 # proposal-web 애플리케이션 설정
 proposal-web:
   image:
-    repository: harbor.cocdev.co.kr/stg/proposal-web
+    repository: harbor.onjitda.com/stg/proposal-web
     tag: "latest"
     pullPolicy: IfNotPresent
   # Next.js 기본 포트
