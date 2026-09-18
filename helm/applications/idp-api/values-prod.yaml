@@ -36,7 +36,7 @@ extraEnv:
     value: "3007"
   - name: OIDC_ISSUER
     value: https://idp.onjitda.com
-  - name: IDP_CLIENT_URL
+  - name: OIDC_INTERACTION_BASE_URL
     value: https://idp.onjitda.com
   - name: OIDC_ADMIN_BASE_URL
     value: https://onjitda.com
