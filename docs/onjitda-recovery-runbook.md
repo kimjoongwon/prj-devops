@@ -213,3 +213,16 @@ done
 ingress의 habor-tls 인증서(cert-manager DNS-01 발급, SAN harbor.onjitda.com)가
 유효하므로 https 직결 풀이 정상 동작한다. LAN 직결 시 풀 속도도 수 배 빠르다
 (실측 280MB 이미지 1.6초).
+
+## 6. IDP 재건 및 identity DB v2 재구축 (2026-09-19)
+
+- apps/idp 재건(prj-core): 얇은 발급자(idp-api) + 로그인 UI(idp-web).
+  이미지 idp-api:23, idp-web:27 (Jenkins 잡 idp-api-build / idp-web-build).
+- identity prisma v2 baseline은 "빈 DB용 전체 스키마"다. 기존 DB 위에 얹지 못하므로
+  prod DB는 백업 후 스키라 초기화 -> migrate deploy(3건) -> data-migrate.ts 시드로 재구축했다.
+  백업: 관리 PC ~/plate_prod_backup_20260919.sql
+- 시드 부트스트랩 환경변수(LOCAL_BOOTSTRAP_ADMIN_*)는 OpenBao
+  secret/idp-api/production 에 등록되어 있어 재구축 시 자동 시드된다.
+- GitOps 태그 bump는 Jenkins bump 잡 대신 스크립트 직접 실행으로 대체 가능:
+  bash scripts/jenkins/update-gitops-image-tag.sh --app <앱> --tag <번호> \
+    --git-user-name jenkins-bot --git-user-email jenkins-bot@onjitda.com
