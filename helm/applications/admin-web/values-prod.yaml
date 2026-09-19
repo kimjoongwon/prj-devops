@@ -8,7 +8,7 @@ replicaCount: 1
 admin-web:
   image:
     repository: harbor.onjitda.com/prod/admin-web
-    tag: "51"
+    tag: "5"
     pullPolicy: IfNotPresent  # Production은 캐시된 이미지 사용
   port: 3000
   resources:
