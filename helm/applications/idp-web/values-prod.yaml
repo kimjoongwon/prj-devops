@@ -5,7 +5,7 @@ replicaCount: 1
 idp-web:
   image:
     repository: harbor.onjitda.com/prod/idp-web
-    tag: "26"
+    tag: "27"
     pullPolicy: IfNotPresent
   port: 3008
   resources:
