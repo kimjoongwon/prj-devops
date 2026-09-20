@@ -37,6 +37,11 @@ podSecurityContext:
 securityContext:
   runAsNonRoot: true
   runAsUser: 1000
+  # rootlesskit이 user namespace·mount propagation에 필요하다.
+  # 기본 RuntimeDefault seccomp가 clone/unshare를 차단하면
+  # "failed to share mount point: /: permission denied"로 크래시한다.
+  seccompProfile:
+    type: Unconfined
 
 registryConfig:
   # kubectl create secret docker-registry 로 생성한 시크릿 이름
