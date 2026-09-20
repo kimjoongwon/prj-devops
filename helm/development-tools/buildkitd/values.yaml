@@ -37,9 +37,12 @@ podSecurityContext:
 securityContext:
   runAsNonRoot: true
   runAsUser: 1000
-  # rootlesskit이 user namespace·mount propagation에 필요하다.
-  # 기본 RuntimeDefault seccomp가 clone/unshare를 차단하면
-  # "failed to share mount point: /: permission denied"로 크래시한다.
+  # rootlesskit이 마운트 전파("/" rshared화)에 CAP_SYS_ADMIN이 필요하다.
+  # 특권 없이는 "failed to share mount point: /: permission denied"로 크래시하며,
+  # sysbox 런타임이 없는 이 클러스터에서는 privileged 부여가 유일한 동작 경로다.
+  # 데몬 프로세스는 여전히 UID 1000으로 실행되고, 기존 podman 빌더(privileged)와
+  # 같은 특권 수준이다.
+  privileged: true
   seccompProfile:
     type: Unconfined
 
