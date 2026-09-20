@@ -75,6 +75,10 @@ affinity: {}
 
 # buildkitd 데몬 설정 (/etc/buildkit/buildkitd.toml 으로 마운트된다)
 config: |
+  # Jenkins 파일럿(buildctl)은 TCP로, readiness 프로브는 컨테이너 내 unix 소켓로 접속한다.
+  [grpc]
+    address = ["unix:///run/user/1000/buildkit/buildkitd.sock", "tcp://0.0.0.0:1234"]
+
   # OCI worker만 사용하고 containerd worker는 끈다.
   [worker.oci]
     enabled = true
