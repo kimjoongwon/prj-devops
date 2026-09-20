@@ -20,22 +20,20 @@ core-api:
       memory: 512Mi
   probes:
     startup:
-      httpGet:
-        path: /api-json
+      # /api-json은 신규 빌드에서 prod 비활성화(404)되어 포트 리스닝으로 기동 판정
+      tcpSocket:
         port: http
       periodSeconds: 10
       timeoutSeconds: 3
       failureThreshold: 18
     readiness:
-      httpGet:
-        path: /api-json
+      tcpSocket:
         port: http
       periodSeconds: 10
       timeoutSeconds: 3
       failureThreshold: 3
     liveness:
-      httpGet:
-        path: /api-json
+      tcpSocket:
         port: http
       periodSeconds: 20
       timeoutSeconds: 3
