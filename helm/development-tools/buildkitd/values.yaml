@@ -1,0 +1,82 @@
+# 젠킨스 빌드의 BuildKit 데몬 (rootless buildkitd)
+#
+# 용도:
+#   - Jenkins 빌드가 buildctl 원격 빌드로 이 데몬을 사용해
+#     RUN --mount=type=cache 캐시를 PVC에 영속화해 빌드 속도를 높인다.
+#   - 파일럿 대상: tool-storybook (prj-core devops/Jenkinsfile.tool-storybook.buildkit)
+#   - 운영 절차/롤백: docs/jenkins-build-speed-runbook.md
+#
+# 사전 조건 (실제 자격증명은 이 저장소에 커밋하지 않는다):
+#   Harbor 로봇 계정으로 registry 인증 시크릿을 아래 명령으로 생성한다.
+#   Deployment는 이 시크릿의 .dockerconfigjson 키를 config.json으로 매핑해
+#   /home/user/.docker/config.json 에 마운트한다. 시크릿이 없으면 pod가 시작되지 않는다.
+#
+#     kubectl -n devops-tools create secret docker-registry buildkit-registry-config \
+#       --docker-server=harbor.onjitda.com \
+#       --docker-username='<harbor robot 계정명>' \
+#       --docker-password='<harbor robot secret>'
+
+replicaCount: 1
+
+image:
+  repository: docker.io/moby/buildkit
+  tag: v0.33.0-rootless
+  digest: sha256:80b15f0735e87bab7bf59ec4d695dfb4a7cfb25521cf56dc75d6f256285b63ef
+  pullPolicy: IfNotPresent
+
+# rootless 이미지는 기본적으로 비루트(UID 1000)로 동작한다.
+# BUILDKITD_FLAGS의 --oci-worker-no-process-sandbox는 컨테이너 런타임에서
+# user namespace를 지원하지 않는 클러스터에서 rootless OCI worker를 띄우는 플래그다.
+buildkitdFlags: "--oci-worker-no-process-sandbox"
+
+# PVC(buildkit-cache-pvc)를 rootless 실행 사용자(UID 1000)가 쓸 수 있도록
+# 파드 수준 fsGroup으로 볼륨 그룹 소유를 맞춘다.
+podSecurityContext:
+  fsGroup: 1000
+
+securityContext:
+  runAsNonRoot: true
+  runAsUser: 1000
+
+registryConfig:
+  # kubectl create secret docker-registry 로 생성한 시크릿 이름
+  existingSecret: buildkit-registry-config
+
+persistence:
+  enabled: true
+  name: buildkit-cache-pvc
+  storageClass: openebs-hostpath
+  accessMode: ReadWriteOnce
+  size: 50Gi
+  # 기존 PVC를 재사용할 때 지정 (지정하면 이 차트는 PVC를 만들지 않는다)
+  existingClaim: ""
+
+service:
+  type: ClusterIP
+  port: 1234
+
+resources:
+  requests:
+    memory: 2Gi
+  limits:
+    memory: 4Gi
+
+nodeSelector: {}
+tolerations: []
+affinity: {}
+
+# buildkitd 데몬 설정 (/etc/buildkit/buildkitd.toml 으로 마운트된다)
+config: |
+  # OCI worker만 사용하고 containerd worker는 끈다.
+  [worker.oci]
+    enabled = true
+    gc = true
+    gckeepstorage = "40GB"
+
+    # 7일(168h) 이상 사용하지 않았거나 캐시 총량이 40GB를 넘으면 가비지 컬렉션한다.
+    [[worker.oci.gcpolicy]]
+      keepDuration = "168h"
+      keepBytes = "40GB"
+
+  [worker.containerd]
+    enabled = false

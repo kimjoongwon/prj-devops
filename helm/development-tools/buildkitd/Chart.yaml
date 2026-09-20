@@ -1,0 +1,6 @@
+apiVersion: v2
+name: buildkitd
+description: Jenkins 빌드용 BuildKit 데몬 (rootless buildkitd, 영속 캐시)
+type: application
+version: 0.1.0
+appVersion: "v0.33.0-rootless"

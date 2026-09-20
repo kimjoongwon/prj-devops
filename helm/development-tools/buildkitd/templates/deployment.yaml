@@ -1,0 +1,76 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "buildkitd.fullname" . }}
+  labels:
+    {{- include "buildkitd.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ include "buildkitd.name" . }}
+      app.kubernetes.io/instance: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: {{ include "buildkitd.name" . }}
+        app.kubernetes.io/instance: {{ .Release.Name }}
+    spec:
+      {{- with .Values.podSecurityContext }}
+      securityContext:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: buildkitd
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}@{{ .Values.image.digest }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          args:
+            - --config
+            - /etc/buildkit/buildkitd.toml
+          env:
+            - name: BUILDKITD_FLAGS
+              value: {{ .Values.buildkitdFlags | quote }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          ports:
+            - name: grpc
+              containerPort: {{ .Values.service.port }}
+              protocol: TCP
+          readinessProbe:
+            exec:
+              command: ["buildctl", "debug", "workers"]
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          volumeMounts:
+            - name: buildkit-cache
+              mountPath: /var/lib/buildkit
+            - name: buildkit-config
+              mountPath: /etc/buildkit
+              readOnly: true
+            # buildkitd는 이 파일로 Harbor 인증을 처리한다.
+            # secret의 .dockerconfigjson 키를 config.json 파일명으로 매핑한다.
+            - name: registry-config
+              mountPath: /home/user/.docker/config.json
+              subPath: config.json
+              readOnly: true
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+      volumes:
+        - name: buildkit-cache
+          persistentVolumeClaim:
+            claimName: {{ .Values.persistence.existingClaim | default .Values.persistence.name }}
+        - name: buildkit-config
+          configMap:
+            name: {{ include "buildkitd.fullname" . }}-config
+        - name: registry-config
+          secret:
+            secretName: {{ .Values.registryConfig.existingSecret }}
+            items:
+              - key: .dockerconfigjson
+                path: config.json
+      nodeSelector:
+        {{- toYaml .Values.nodeSelector | nindent 8 }}
+      tolerations:
+        {{- toYaml .Values.tolerations | nindent 8 }}
+      affinity:
+        {{- toYaml .Values.affinity | nindent 8 }}

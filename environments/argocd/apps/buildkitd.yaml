@@ -1,0 +1,53 @@
+# BuildKit 데몬 - Jenkins 빌드 캐시용 rootless buildkitd
+#
+# 사전 조건: devops-tools 네임스페이스에 buildkit-registry-config 시크릿이 있어야 한다.
+# 시크릿 생성 명령은 helm/development-tools/buildkitd/values.yaml 상단 주석과
+# docs/jenkins-build-speed-runbook.md 를 참조한다. (자격증명은 Git에 커밋하지 않는다)
+
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: buildkitd
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"  # 클러스터 스토리지(openebs)가 준비된 뒤 배포
+  labels:
+    app.kubernetes.io/name: buildkitd
+spec:
+  project: default
+
+  source:
+    repoURL: https://github.com/kimjoongwon/prj-devops.git
+    path: helm/development-tools/buildkitd
+    targetRevision: main
+    helm:
+      valueFiles:
+        - values.yaml
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: devops-tools  # Jenkins agent pod와 같은 네임스페이스
+
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ApplyOutOfSyncOnly=true
+    retry:
+      limit: 5
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m
+
+  revisionHistoryLimit: 3
+
+  info:
+    - name: Purpose
+      value: "BuildKit daemon for Jenkins build cache (tool-storybook pilot)"
+    - name: Runbook
+      value: "docs/jenkins-build-speed-runbook.md"

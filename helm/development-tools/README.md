@@ -10,6 +10,7 @@
 - `grafana/`
 - `otel-collector/`
 - `tempo/`
+- `buildkitd/` — Jenkins 빌드 캐시용 rootless BuildKit 데몬 (운영: `docs/jenkins-build-speed-runbook.md`)
 
 ## Upstream chart values only
 
