@@ -26,7 +26,11 @@ command:
   - |
     set -e
     sed -i "s|globalThis\\['__dirname'\\].*|globalThis['__dirname'] = __dirname;|" /app/packages/be-prisma/dist/src/generated/client/client.js
-    exec node apps/idp/api/dist/main.js
+    # 앱이 /app/runtime의 자체 node_modules를 쓰므로 그 사본도 동일 패치 (없어도 기동은 계속)
+    sed -i "s|globalThis\\['__dirname'\\].*|globalThis['__dirname'] = __dirname;|" /app/runtime/node_modules/@cocrepo/prisma/dist/src/generated/client/client.js 2>/dev/null || true
+    # 러너가 마이그레이션 워크스페이스와 앱을 분리(/app/runtime)하면서 진입점 경로 변경
+    cd /app/runtime
+    exec node dist/main.js
 args: []
 
 extraEnv:

@@ -24,7 +24,18 @@ appSecrets:
   enabled: true
   secretName: app-env-secrets
 
-# 서비스별 APM 식별자
+# 서비스별 APM 식별자와 신규 runtime-security 계약 환경변수
 extraEnv:
   - name: OTEL_SERVICE_NAME
     value: core-api-prod
+  # app-env-secrets(OpenBao 동기화)에 없는 필수값 보충 — 포트/URL은 민감하지 않음
+  - name: REDIS_PORT
+    value: "6379"
+  - name: OIDC_INTERACTION_BASE_URL
+    value: https://idp.onjitda.com
+  # idp 서명 공개키는 idp 시크릿에서 이 키만 참조 (전체 secret 노출 없음)
+  - name: OIDC_JWKS_KEYS
+    valueFrom:
+      secretKeyRef:
+        name: idp-api-env-secrets
+        key: OIDC_JWKS_KEYS
