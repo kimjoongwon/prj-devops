@@ -14,14 +14,15 @@ pvc:
 
 # 외부 PR CI(Jenkinsfile.public-ci)의 pnpm 스토어 공유 캐시
 # 매 PR 콜드 install을 제거하기 위해 pnpm store 디렉터리를 PVC로 공유한다.
-# container-builder-pvc(RWO)와 달리 임의 노드에 스케줄되는 CI pod를 위해
-# ReadWriteMany(NFS StorageClass)가 필요하다.
+# public-ci 잡은 disableConcurrentBuilds()로 동시 실행이 없어 RWO로 충분하며,
+# nfs-client StorageClass는 이 클러스터에 존재하지 않아 openebs-hostpath를 쓴다.
+# (PV 노드에 스케줄이 고정되는 것은 감수 — 빌드 잡과 동일한 제약)
 pnpmStore:
   enabled: true
   name: pnpm-store-pvc
-  storageClass: "nfs-client"
+  storageClass: "openebs-hostpath"
   accessModes:
-    - ReadWriteMany
+    - ReadWriteOnce
   size: 20Gi
   annotations: {}
   labels: {}

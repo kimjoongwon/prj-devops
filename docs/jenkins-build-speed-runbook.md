@@ -21,7 +21,7 @@
 
 - Jenkins 컨트롤러와 agent pod는 `devops-tools` 네임스페이스에서 실행된다
   (`helm/development-tools/jenkins/values.yaml`의 `agent.namespace` 미설정 → 컨트롤러 네임스페이스 상속).
-- `container-builder-pvc`(RWO, openebs-hostpath), `pnpm-store-pvc`(RWX, nfs-client),
+- `container-builder-pvc`(RWO, openebs-hostpath), `pnpm-store-pvc`(RWO, openebs-hostpath),
   `buildkitd` 모두 `devops-tools` 네임스페이스에 둔다.
 - 실제 자격증명·시크릿 값은 어느 저장소에도 커밋하지 않는다. 시크릿은 런북의
   `kubectl create secret` 명령으로만 생성한다.
@@ -111,7 +111,8 @@
 ## 3. public-ci pnpm 캐시 (pnpm-store-pvc)
 
 배경: 외부 PR CI(`Jenkinsfile.public-ci`)는 매 PR 임의 노드에서 pod가 떠서 pnpm install이
-매번 콜드로 실행된다. `pnpm-store-pvc`(RWX, NFS `nfs-client`)로 pnpm 스토어를 공유해 이를 제거한다.
+매번 콜드로 실행된다. `pnpm-store-pvc`(RWO, openebs-hostpath)로 pnpm 스토어를 공유해 이를 제거한다.
+잡이 `disableConcurrentBuilds()`로 동시 실행이 없어 RWO로 충분하다.
 
 ### 절차
 
@@ -122,7 +123,7 @@
 
      ```bash
      kubectl -n devops-tools get pvc pnpm-store-pvc
-     # 기대: Bound / ReadWriteMany / nfs-client / 20Gi
+     # 기대: Bound / ReadWriteOnce / openebs-hostpath / 20Gi
      ```
 
 2. prj-core `Jenkinsfile.public-ci` 변경 반영: agent pod 정의에 `pnpm-store-pvc`를 마운트하고
