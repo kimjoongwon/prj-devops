@@ -33,9 +33,14 @@ extraEnv:
     value: "6379"
   - name: OIDC_INTERACTION_BASE_URL
     value: https://idp.onjitda.com
-  # idp 서명 공개키는 idp 시크릿에서 이 키만 참조 (전체 secret 노출 없음)
+  # idp 서명 공개키·쿠키 시크릿은 idp 시크릿에서 해당 키만 참조 (전체 secret 노출 없음)
   - name: OIDC_JWKS_KEYS
     valueFrom:
       secretKeyRef:
         name: idp-api-env-secrets
         key: OIDC_JWKS_KEYS
+  - name: OIDC_COOKIE_SECRET
+    valueFrom:
+      secretKeyRef:
+        name: idp-api-env-secrets
+        key: OIDC_COOKIE_SECRET
