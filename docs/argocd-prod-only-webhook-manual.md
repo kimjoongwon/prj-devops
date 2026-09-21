@@ -115,7 +115,8 @@ helm get values argocd -n argocd -o yaml | rg "githubSecret"
 GitHub 저장소에서:
 
 1. `Settings` -> `Webhooks` -> `Add webhook`
-2. `Payload URL`: `https://argocd.onjitda.com/api/webhook`
+2. `Payload URL`: `https://onjitda.com/api/webhook`
+   - **주의**: `https://argocd.onjitda.com/api/webhook`는 Cloudflare Access가 보호 중이라 302 로그인으로 거부됨(2026-09-21 확인). 우회 경로는 cocdev-ingress의 `/api/webhook`(Exact) → `argocd-webhook` Service(nginx 프록시) → argocd-server 체인으로 plate-prod에 구성되어 있음(`helm/ingress/values.yaml` + `values-argocd-webhook.yaml`)
 3. `Content type`: `application/json`
 4. `Secret`: `WEBHOOK_SECRET` 값 입력
 5. 이벤트: `Just the push event`
@@ -149,10 +150,7 @@ kubectl -n argocd logs deploy/argocd-server --since=5m | rg -i "Received push ev
 - 그래도 반영 안 됨:
   - 폴링(`timeout.reconciliation`, 2026-09-21부터 60s)으로는 반영되는지 먼저 확인
   - Ingress/방화벽에서 `argocd.onjitda.com/api/webhook` 접근 차단 여부 확인
-- **Cloudflare Access가 웹훅을 차단하는 경우 (2026-09-21 실제 발생)**:
-  - 증상: `curl -I https://argocd.onjitda.com/api/webhook`이 `302` + `location: https://onjitda.cloudflareaccess.com/...`, GitHub Recent Deliveries 실패. 도메인 전환(2026-09-18) 때 UI 보호용으로 걸린 Access가 `/api/webhook`까지 보호해 GitHub(세션 없음)가 로그인 페이지로 튕겨남
-  - 해결: Cloudflare Zero Trust → `Access` → `Applications` → `Add an application`(Self-hosted)
-    - Domain: `argocd.onjitda.com`, Path: `/api/webhook`
-    - Policy: Action **`Bypass`**, Include `Everyone`
-    - 경로가 더 구체적인 앱이 기존 host 전체 보호 정책보다 우선 적용됨. UI 로그인 보호는 유지되고 웹훅 경로만 통과
-  - 적용 후 GitHub Webhooks → Recent deliveries에서 `Redeliver`로 재확인
+- **Cloudflare Access가 웹훅을 차단하는 경우 (2026-09-21 실제 발생, 우회 경로로 해결 완료)**:
+  - 증상: `curl -I https://argocd.onjitda.com/api/webhook`이 `302` + `location: https://onjitda.cloudflareaccess.com/...`, GitHub Recent Deliveries 실패. 도메인 전환(2026-09-18) 때 UI 보호용으로 걸은 Access가 `/api/webhook`까지 보호해 GitHub(세션 없음)가 로그인 페이지로 튕겨남
+  - 현재 해결(구성됨): Access 미보호 공개 도메인 `onjitda.com`의 `/api/webhook`(Exact)을 nginx 프록시(`argocd-webhook` Service, plate-prod)로 경유시켜 argocd-server에 전달. Payload URL은 위 §4 참고. POST → 앱 refresh 실측 ~2초
+  - 대안(정석): Cloudflare Zero Trust → `Access` → `Applications` → `Add an application`(Self-hosted), Domain `argocd.onjitda.com` + Path `/api/webhook`, Policy Action **`Bypass`** + Include `Everyone`. 적용 시 원래 URL(`argocd.onjitda.com/api/webhook`)로 되돌릴 수 있음 — 그 경우 우회 프록시(`values-argocd-webhook.yaml`)와 ingress 경로는 제거 검토
