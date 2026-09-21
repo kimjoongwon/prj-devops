@@ -129,6 +129,7 @@ curl -I https://argocd.onjitda.com/api/webhook
 ```
 
 `400 Bad Request`가 나와도 엔드포인트가 살아있다면 정상입니다(서명 없는 요청이기 때문).
+`302`로 `onjitda.cloudflareaccess.com`에 리다이렉트되면 Cloudflare Access가 웹훅을 차단 중이라는 뜻이다 → [트러블슈팅](#6-트러블슈팅)의 Access bypass 항목 참고.
 
 2차 확인(실제 push):
 - `main` 브랜치에 커밋/푸시
@@ -143,8 +144,15 @@ kubectl -n argocd logs deploy/argocd-server --since=5m | rg -i "Received push ev
 ## 6. 트러블슈팅
 - Push 후 즉시 반영 안 됨:
   - GitHub webhook Recent Deliveries에서 HTTP 상태 확인
-  - ArgoCD `argocd-secret`의 `webhook.github.secret` 값 재확인
+  - ArgoCD `argocd-secret`의 `webhook.github.secret` 값 재확인 (미설정 시 서명 검증 생략 — 어느 secret이든 수락됨)
   - `argocd-server` 재시작 후 재시도
 - 그래도 반영 안 됨:
-  - 폴링(`timeout.reconciliation`, 기본 180s)으로는 반영되는지 먼저 확인
+  - 폴링(`timeout.reconciliation`, 2026-09-21부터 60s)으로는 반영되는지 먼저 확인
   - Ingress/방화벽에서 `argocd.onjitda.com/api/webhook` 접근 차단 여부 확인
+- **Cloudflare Access가 웹훅을 차단하는 경우 (2026-09-21 실제 발생)**:
+  - 증상: `curl -I https://argocd.onjitda.com/api/webhook`이 `302` + `location: https://onjitda.cloudflareaccess.com/...`, GitHub Recent Deliveries 실패. 도메인 전환(2026-09-18) 때 UI 보호용으로 걸린 Access가 `/api/webhook`까지 보호해 GitHub(세션 없음)가 로그인 페이지로 튕겨남
+  - 해결: Cloudflare Zero Trust → `Access` → `Applications` → `Add an application`(Self-hosted)
+    - Domain: `argocd.onjitda.com`, Path: `/api/webhook`
+    - Policy: Action **`Bypass`**, Include `Everyone`
+    - 경로가 더 구체적인 앱이 기존 host 전체 보호 정책보다 우선 적용됨. UI 로그인 보호는 유지되고 웹훅 경로만 통과
+  - 적용 후 GitHub Webhooks → Recent deliveries에서 `Redeliver`로 재확인
