@@ -1,5 +1,5 @@
 # ArgoCD GitHub Webhook Ingress - Production
-# Cloudflare Access 우회용: www.onjitda.com/api/webhook -> argocd-server (namespace argocd)
+# Cloudflare Access 우회용: onjitda.com/api/webhook -> argocd-server (namespace argocd)
 # 상세 사유/구조는 helm/ingress/values-argocd-webhook.yaml 주석 참고
 
 apiVersion: argoproj.io/v1alpha1

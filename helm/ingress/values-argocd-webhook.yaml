@@ -1,10 +1,14 @@
 # ArgoCD GitHub Webhook 전용 Ingress (values)
 # 목적: Cloudflare Access가 argocd.onjitda.com 전 경로를 보호하여 GitHub 웹훅(리다이렉트 미수행)이
-# 도달하지 못하는 문제를 우회. Access 보호가 없는 공개 호스트 www.onjitda.com의 /api/webhook 경로만
-# ArgoCD server로 라우팅한다. GitHub Payload URL: https://www.onjitda.com/api/webhook
+# 도달하지 못하는 문제를 우회. Access 보호가 없는 apex 도메인 onjitda.com의 /api/webhook(Exact)
+# 경로만 ArgoCD server로 라우팅한다. 기존 /api(Prefix -> core-api)보다 정확 매칭이 우선한다.
+# GitHub Payload URL: https://onjitda.com/api/webhook
 #
-# TLS: 방문자 구간은 Cloudflare 엣지 인증서(*.onjitda.com)로 종단되고 터널→nginx 구간은 검증하지
-# 않으므로 별도 인증서 발급 불요 (cert-manager 어노테이션 의도적으로 제거).
+# 주의: www.onjitda.com은 터널 public hostname 설정에서 Host 헤더가 정상 전달되지 않아
+# (2026-09-21 실측: nginx가 www 규칙에 매칭되지 않고 default 404) 사용 불가 — CF 대시보드 확인 필요.
+#
+# TLS: 방문자 구간은 Cloudflare 엣지 인증서로 종단되고 터널→nginx 구간은 검증하지 않으므로
+# 별도 인증서 발급 불요 (cert-manager 어노테이션 의도적으로 제거).
 # 노출 범위: /api/webhook Exact 1개 경로뿐 — ArgoCD UI/UI API는 여전히 Access 뒤에 있음.
 
 appName: argocd-webhook
@@ -21,7 +25,7 @@ ingress:
     cert-manager.io/cluster-issuer: null
     acme.cert-manager.io/http01-edit-in-place: null
   hosts:
-    - host: www.onjitda.com
+    - host: onjitda.com
       paths:
         - path: /api/webhook
           pathType: Exact
