@@ -92,6 +92,16 @@ ingress:
               name: idp-api-prod
               port:
                 number: 80
+        # ArgoCD GitHub 웹훅 — Cloudflare Access가 argocd.onjitda.com을 보호해 우회 경로로
+        # 노출 (Exact 매칭이 하단 /api Prefix보다 우선). 백엔드는 values-argocd-endpoint.yaml의
+        # Service/Endpoints(argocd-server ClusterIP)를 경유.
+        - path: /api/webhook
+          pathType: Exact
+          backend:
+            service:
+              name: argocd-webhook
+              port:
+                number: 80
         # API 경로 (백엔드 서비스로 프록시)
         - path: /api
           pathType: Prefix

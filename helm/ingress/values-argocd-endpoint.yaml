@@ -1,0 +1,7 @@
+# ArgoCD GitHub 웹훅 우회 엔드포인트 활성화 (ingress-prod 앱 전용)
+# 대상: argocd namespace argocd-server Service의 ClusterIP
+# 확인: kubectl -n argocd get svc argocd-server -o jsonpath='{.spec.clusterIP}'
+argocdWebhookEndpoint:
+  name: argocd-webhook
+  port: 80
+  targetIP: "10.106.248.52"
