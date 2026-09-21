@@ -21,7 +21,7 @@ GitOps 기반의 Kubernetes 배포 인프라로, Helm과 ArgoCD를 활용한 선
 - Staging 매니페스트는 `environments/argocd/apps/*-stg.yaml`에만 유지하며, 별도 Parent Application은 운영하지 않습니다.
 - Git 경로: `environments/argocd/apps`
 - Production 모드: `prod only` (`environments/argocd/app-of-apps.yaml`)
-- 변경 감지: GitHub Webhook + 폴링(`timeout.reconciliation: 180s`)
+- 변경 감지: GitHub Webhook + 폴링(`timeout.reconciliation: 60s`, 웹훅 끊김 시 감지 지연 상한)
 - 운영 가이드: `docs/argocd-prod-only-webhook-manual.md`
 - Jenkins 연계 가이드: `docs/jenkins-gitops-image-bump.md`
 - Jenkinsfile 예시: `scripts/jenkins/Jenkinsfile.gitops-prod-example.groovy`
@@ -200,7 +200,7 @@ prj-devops/
 **배포 흐름**:
 
 1. Git 저장소에 values 파일 수정 및 커밋
-2. ArgoCD가 변경 감지 (GitHub webhook 즉시 + 3분 폴링 백업)
+2. ArgoCD가 변경 감지 (GitHub webhook 즉시 + 1분 폴링 백업)
 3. Helm 템플릿 렌더링 및 매니페스트 생성
 4. Kubernetes 리소스 자동 적용
 5. 상태 동기화 및 헬스 체크

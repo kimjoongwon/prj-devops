@@ -200,8 +200,8 @@ configs:
     admin.enabled: true
 
     # -- Timeout to discover if a new manifests version got published to the repository
-    # GitHub webhook이 2026-09-18 도메인 전환(cocdev.co.kr→onjitda.com) 이후 미수신 상태라
-    # 폴링이 유일한 감지 수단. 웹훅 복구 전까지 최대 감지 지연을 1분으로 제한.
+    # 1차 감지는 GitHub webhook. 2026-09-18~21 도메인 전환 기간 웹훅이 조용히 끊겼던 이력이 있어
+    # 폴링 fallback을 60s로 유지해 재발 시 최대 감지 지연을 1분으로 제한.
     timeout.reconciliation: 60s
 
     # -- Timeout to refresh application data as well as target manifests cache
