@@ -35,6 +35,18 @@ spec:
             - name: http
               containerPort: {{ index .Values "idp-api" "port" }}
               protocol: TCP
+          {{- with index .Values "idp-api" "probes" "startup" }}
+          startupProbe:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with index .Values "idp-api" "probes" "readiness" }}
+          readinessProbe:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with index .Values "idp-api" "probes" "liveness" }}
+          livenessProbe:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
           {{- with .Values.extraEnv }}
           env:
             {{- toYaml . | nindent 12 }}

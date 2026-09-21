@@ -9,6 +9,20 @@ idp-api:
     tag: "latest"
     pullPolicy: IfNotPresent
   port: 3007
+  # 기동/준비 판정은 포트 리스닝으로 확인 (core-api와 동일한 tcpSocket 방식)
+  probes:
+    startup:
+      tcpSocket:
+        port: http
+      periodSeconds: 10
+      timeoutSeconds: 3
+      failureThreshold: 18
+    readiness:
+      tcpSocket:
+        port: http
+      periodSeconds: 10
+      timeoutSeconds: 3
+      failureThreshold: 3
   resources:
     limits:
       cpu: 500m
