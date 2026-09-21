@@ -26,7 +26,7 @@ spec:
       # 환경별 values 파일
       valueFiles:
         - values.yaml  # Production 기본 설정 파일
-        - values-argocd-endpoint.yaml  # ArgoCD 웹훅 우회 Service/Endpoints (argocd-webhook)
+        - values-argocd-webhook.yaml  # ArgoCD 웹훅 우회 프록시 (argocd-webhook)
       # Helm 파라미터 동적 오버라이드
       parameters:
         - name: appName

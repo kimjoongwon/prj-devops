@@ -1,0 +1,89 @@
+{{- if .Values.argocdWebhookProxy }}
+# ArgoCD GitHub 웹훅 우회용 초소형 프록시 (Cloudflare Access가 argocd.onjitda.com을
+# 보호해 GitHub 웹훅이 도달하지 못하는 문제 대응)
+#
+# cocdev-ingress(plate-prod)에서 argocd namespace의 argocd-server로 직접 백엔드를 지정할
+# 수 없고(컨트롤러가 Ingress와 같은 namespace만 참조), ArgoCD resource.exclusions 때문에
+# 정적 Endpoints 객체도 GitOps로 관리할 수 없어, 같은 namespace에 프록시 파드를 둔다.
+# 경로 라우팅은 values.yaml의 onjitda.com /api/webhook(Exact)이 이 Service로 향한다.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: argocd-webhook-proxy-conf
+  labels:
+    app.kubernetes.io/name: argocd-webhook
+    app.kubernetes.io/component: proxy
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+data:
+  default.conf: |
+    server {
+      listen 8080;
+      location / {
+        proxy_pass http://argocd-server.argocd.svc.cluster.local:80;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+      }
+    }
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: argocd-webhook-proxy
+  labels:
+    app.kubernetes.io/name: argocd-webhook
+    app.kubernetes.io/component: proxy
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: argocd-webhook
+      app.kubernetes.io/component: proxy
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: argocd-webhook
+        app.kubernetes.io/component: proxy
+    spec:
+      containers:
+        - name: nginx
+          image: {{ .Values.argocdWebhookProxy.image }}
+          ports:
+            - name: http
+              containerPort: 8080
+          volumeMounts:
+            - name: conf
+              mountPath: /etc/nginx/conf.d
+          readinessProbe:
+            tcpSocket:
+              port: http
+          resources:
+            limits:
+              cpu: 100m
+              memory: 64Mi
+            requests:
+              cpu: 10m
+              memory: 16Mi
+      volumes:
+        - name: conf
+          configMap:
+            name: argocd-webhook-proxy-conf
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.argocdWebhookProxy.serviceName }}
+  labels:
+    app.kubernetes.io/name: argocd-webhook
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: argocd-webhook
+    app.kubernetes.io/component: proxy
+  ports:
+    - name: http
+      port: 80
+      targetPort: http
+{{- end }}

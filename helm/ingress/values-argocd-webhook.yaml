@@ -1,0 +1,6 @@
+# ArgoCD GitHub 웹훅 우회 프록시 활성화 (plate-ingress-prod 앱 전용)
+# cocdev-ingress의 onjitda.com /api/webhook(Exact) -> argocd-webhook Service -> 이 프록시 ->
+# argocd namespace argocd-server. GitHub Payload URL: https://onjitda.com/api/webhook
+argocdWebhookProxy:
+  serviceName: argocd-webhook
+  image: nginx:1.27-alpine
