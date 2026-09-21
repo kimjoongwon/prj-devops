@@ -7,7 +7,9 @@
 ## 핵심 원칙
 - Jenkins는 **클러스터 직접 배포를 하지 않고**, GitOps 저장소 변경까지만 수행
 - ArgoCD가 Git 단일 진실 원천(SSOT)으로 배포를 담당
-- Production 이미지는 `latest` 대신 빌드 번호 같은 **immutable tag**를 사용하고, `values-prod.yaml`도 그 태그로만 갱신
+- Production 이미지 태그는 빌드 커밋 **SHA 앞 12자**를 사용한다 (`latest`, 빌드 번호 X)
+  - SHA 태그는 immutable하므로 Git 커밋 ↔ 이미지가 1:1 추적된다
+  - `values-prod.yaml`도 그 태그로만 갱신
 
 ## 지원 대상 앱 (prod)
 - `idp-api`
@@ -16,10 +18,18 @@
 - `admin-web`
 - `proposal-web`
 - `spring-api`
+- `tool-storybook`
 
 ## 스크립트
 - 경로: `scripts/jenkins/update-gitops-image-tag.sh`
 - Jenkinsfile 템플릿: `scripts/jenkins/Jenkinsfile.gitops-prod-example.groovy`
+- yq 요구사항(mikefarah yq v4.18+, python yq 불가): 에이전트에 yq가 없으면
+  `scripts/jenkins/install-yq.sh`가 핀된 버전(v4.53.6, sha256 검증)을 워크스페이스 `.tools/bin`에
+  자동 설치한다. `Jenkinsfile.gitops-update`(prj-core)가 이를 자동으로 호출하므로 별도 사전 설치 불필요.
+
+참고: SHA 태그는 커밋별로 불변이므로 **같은 커밋을 다시 빌드하면 태그가 같아 범프가 no-op** 처리된다.
+재배포가 필요하면 `gitops-prod-image-bump` 잡을 IMAGE_TAG 파라미터로 수동 실행하거나
+롤백 후 재빌드한다.
 
 필수 인자:
 - `--app <name>`
@@ -41,9 +51,9 @@
 - Jenkins job 선언: `helm/development-tools/jenkins/values.yaml` 의 `controller.JCasC.configScripts.gitops-prod-image-bump-job`
 
 핵심 동작:
-- 프로덕션 빌드는 이미지에 `${BUILD_NUMBER}` 같은 immutable tag만 push
+- 프로덕션 빌드는 이미지에 빌드 커밋 **SHA 앞 12자** immutable tag만 push
 - 이미지 빌드/푸시 후 `github-app-credential`로 `prj-devops`를 clone/push
-- `update-gitops-image-tag.sh` 호출로 `values-prod.yaml` 갱신
+- `update-gitops-image-tag.sh` 호출로 `values-prod.yaml` 갱신 (yq 기반)
 - `ci(gitops): bump <app> image to <tag>` 커밋 후 `main` push
 
 운영 반영:
@@ -64,3 +74,22 @@
 ## 실패/충돌 처리
 - 스크립트는 push 시 `pull --rebase` 후 재시도(`--push-retries`) 수행
 - 동시 업데이트로 충돌이 계속되면 job fail 처리 후 재실행 권장
+
+## 롤백
+롤백은 bump 커밋을 revert하는 방식으로 수행한다 (Git 되돌리기 = 롤백, ArgoCD가 자동 복구):
+
+```bash
+# 직전 버전으로 롤백 (dry-run으로 결과 미리보기)
+./scripts/rollback.sh --app core-api --dry-run
+
+# 실제 롤백: 최신 bump 커밋 revert + push
+./scripts/rollback.sh --app core-api
+
+# 2단계 롤백 (최신 bump 2개 revert)
+./scripts/rollback.sh --app core-api --steps 2
+```
+
+동작:
+- `ci(gitops): bump <app> image to <tag>` 커밋을 찾아 최신 것부터 revert 후 push
+- 안전장치: values-prod.yaml 현재 태그가 최신 bump 태그와 불일치하거나, bump 커밋이 다른 파일을 건드렸으면 중단 (강제는 `--force`)
+- SHA 태그 이미지는 Harbor에 그대로 남있으므로 리빌드 없이 즉시 재배포됨

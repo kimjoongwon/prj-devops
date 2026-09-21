@@ -3,6 +3,9 @@ set -euo pipefail
 
 # Update prj-devops Helm values image tag for a specific app, commit, and optionally push.
 # Intended to be called from Jenkins after Harbor image push succeeds.
+#
+# Requires mikefarah yq v4.18+ (python yq is NOT supported):
+#   https://github.com/mikefarah/yq
 
 SCRIPT_NAME="$(basename "$0")"
 
@@ -42,6 +45,9 @@ Options:
 Environment variable alternatives:
   APP_NAME, IMAGE_TAG, DEPLOY_ENV, REPO_URL, TARGET_BRANCH, GIT_USER_NAME, GIT_USER_EMAIL,
   PUSH_RETRIES, WORKDIR, DRY_RUN, SKIP_PUSH
+
+Requires:
+  mikefarah yq v4.18+ on PATH (https://github.com/mikefarah/yq)
 EOF
 }
 
@@ -62,6 +68,17 @@ normalize_bool() {
     false|0|no|n|"") echo "false" ;;
     *) fail "Invalid boolean value: $1" ;;
   esac
+}
+
+require_yq() {
+  if ! command -v yq >/dev/null 2>&1; then
+    fail "yq is required but not installed. Install mikefarah yq v4.18+: https://github.com/mikefarah/yq"
+  fi
+  local version
+  version="$(yq --version 2>/dev/null || true)"
+  if ! printf '%s' "${version}" | grep -Eqi 'mikefarah|v4\.(1[8-9]|[2-9][0-9])'; then
+    fail "Unsupported yq detected: ${version}. mikefarah yq v4.18+ is required (python yq is not supported)."
+  fi
 }
 
 while [[ $# -gt 0 ]]; do
@@ -126,6 +143,7 @@ done
 
 DRY_RUN="$(normalize_bool "${DRY_RUN}")"
 SKIP_PUSH="$(normalize_bool "${SKIP_PUSH}")"
+require_yq
 
 case "$(printf '%s' "${DEPLOY_ENV}" | tr '[:upper:]' '[:lower:]')" in
   prod|production)
@@ -197,59 +215,27 @@ git -C "${REPO_DIR}" config user.email "${GIT_USER_EMAIL}"
 extract_current_tag() {
   local file="$1"
   local app_key="$2"
-  awk -v app_key="$app_key" '
-    BEGIN { in_app = 0 }
-    $0 ~ "^" app_key ":[[:space:]]*$" { in_app = 1; next }
-    in_app && $0 ~ "^[^[:space:]#].*:[[:space:]]*$" { in_app = 0 }
-    in_app && $0 ~ "^[[:space:]]+tag:[[:space:]]*" {
-      line = $0
-      sub(/^[[:space:]]+tag:[[:space:]]*/, "", line)
-      sub(/[[:space:]]*(#.*)?$/, "", line)
-      gsub(/^"/, "", line)
-      gsub(/"$/, "", line)
-      print line
-      exit
-    }
-  ' "$file"
+  local tag
+  # App keys contain '-', so bracket notation is required in yq expressions
+  tag="$(yq eval ".[\"${app_key}\"].image.tag" "$file")"
+  # yq prints "null" when the path does not exist
+  if [[ -z "${tag}" || "${tag}" == "null" ]]; then
+    return 1
+  fi
+  printf '%s' "${tag}"
 }
 
 update_tag() {
   local file="$1"
   local app_key="$2"
   local tag="$3"
-  local tmp_file
-  tmp_file="$(mktemp)"
-
-  if ! awk -v app_key="$app_key" -v new_tag="$tag" '
-    BEGIN { in_app = 0; replaced = 0 }
-    {
-      line = $0
-      if (line ~ "^" app_key ":[[:space:]]*$") {
-        in_app = 1
-        print line
-        next
-      }
-      if (in_app && line ~ "^[^[:space:]#].*:[[:space:]]*$") {
-        in_app = 0
-      }
-      if (in_app && replaced == 0 && line ~ "^[[:space:]]+tag:[[:space:]]*\"?[^\"[:space:]]+\"?") {
-        sub(/tag:[[:space:]]*\"?[^\"[:space:]]+\"?/, "tag: \"" new_tag "\"", line)
-        replaced = 1
-      }
-      print line
-    }
-    END {
-      if (replaced == 0) {
-        exit 42
-      }
-    }
-  ' "$file" >"$tmp_file"; then
-    rm -f "$tmp_file"
-    return 1
-  fi
-
-  mv "$tmp_file" "$file"
-  return 0
+  local path expr
+  # App keys contain '-', so bracket notation is required in yq expressions.
+  # Keep the double-quoted style used by the values files so diffs stay minimal
+  # and all-digit tags are not re-serialized as bare (int-looking) scalars.
+  path=".[\"${app_key}\"].image.tag"
+  expr="(${path} = strenv(TAG)) | (${path} style=\"double\")"
+  TAG="$tag" yq eval -i "$expr" "$file"
 }
 
 CURRENT_TAG="$(extract_current_tag "${VALUES_FILE}" "${APP_YAML_KEY}")"

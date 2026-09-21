@@ -1,0 +1,5 @@
+# 로컬 도구/에이전트 산출물
+.video_agent/
+
+# macOS
+.DS_Store

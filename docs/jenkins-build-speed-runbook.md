@@ -207,7 +207,7 @@ kubectl -n devops-tools create secret docker-registry buildkit-registry-config \
 1. 동일 커밋으로 2회 연속 빌드한다.
 2. buildctl `--progress=plain` 로그에서 2회째 빌드에 `CACHED` 라인(RUN --mount=type=cache 대상 단계)이
    찍히는지, 단계별 소요 시간이 짧아지는지 비교한다.
-3. Harbor push 성공을 확인한다(프로젝트 `prod/tool-storybook`, 태그 = BUILD_NUMBER).
+3. Harbor push 성공을 확인한다(프로젝트 `prod/tool-storybook`, 태그 = 빌드 커밋 SHA 앞 12자).
 4. GitOps 갱신 → ArgoCD 동기화 후 tool-storybook 앱이 정상 기동하는지 확인한다.
 
 완료 판정: 2회째 빌드의 캐시 적중, Harbor push, 앱 기동이 모두 확인되면 파일럿 통과.

@@ -31,13 +31,13 @@ GitOps 기반의 Kubernetes 배포 인프라로, Helm과 ArgoCD를 활용한 선
 
 - staging child manifest는 repo에 존재하더라도 기본 운영 경로에서는 apply되지 않습니다.
 - Staging IDP는 `idp-stg.onjitda.com` DNS와 OpenBao 시크릿 patch가 끝나야 정상 동작합니다.
-- IDP 앱 정상화 선행 조건:
-  - Harbor에 `harbor.onjitda.com/prod/proposal-web:latest`
-  - Harbor에 `harbor.onjitda.com/stg/proposal-web:latest`
-  - Harbor에 `harbor.onjitda.com/prod/idp-api:latest`
-  - Harbor에 `harbor.onjitda.com/prod/idp-web:latest`
-  - Harbor에 `harbor.onjitda.com/stg/idp-api:latest`
-  - Harbor에 `harbor.onjitda.com/stg/idp-web:latest`
+- IDP 앱 정상화 선행 조건 — 아래 이미지가 각 앱 `values-prod.yaml`의 `image.tag`와 동일한 태그로 Harbor에 존재해야 함 (태그는 빌드 커밋 SHA 앞 12자 컨벤션):
+  - `harbor.onjitda.com/prod/proposal-web`
+  - `harbor.onjitda.com/stg/proposal-web`
+  - `harbor.onjitda.com/prod/idp-api`
+  - `harbor.onjitda.com/prod/idp-web`
+  - `harbor.onjitda.com/stg/idp-api`
+  - `harbor.onjitda.com/stg/idp-web`
 - 이미지 미존재 시 `ImagePullBackOff`가 발생하며 ArgoCD 앱은 `Synced`여도 `Healthy`가 되지 않습니다.
 
 ## 📁 프로젝트 구조
@@ -149,9 +149,14 @@ prj-devops/
     ├── deploy-libraries.sh       # 클러스터 서비스 및 도구 배포
     ├── deploy-stg.sh             # 스테이징 배포
     ├── deploy-prod.sh            # 프로덕션 배포
+    ├── rollback.sh               # 앱 이미지 롤백 (bump 커밋 revert)
     ├── deploy-harbor-auth.sh     # Harbor 인증 설정
     ├── verify-harbor-auth.sh     # Harbor 인증 검증
     ├── migrate-images-to-harbor.sh  # Harbor 이미지 마이그레이션
+    ├── jenkins/                  # Jenkins 연계 스크립트
+    │   ├── update-gitops-image-tag.sh  # values-prod.yaml 이미지 태그 범프 (yq)
+    │   ├── Jenkinsfile.gitops-prod-example.groovy  # 파이프라인 예시
+    │   └── cleanup-container-builder.sh
     └── openbao/                  # OpenBao 관리 스크립트
         ├── install-vault-cli.sh  # Vault CLI 설치
         ├── setup-esc.sh          # ESC(External Secrets) 설정
@@ -389,7 +394,8 @@ OpenBao 경로 원칙:
 - 변경 절차:
   - 스테이징: `values-stg.yaml` 수정 → PR/리뷰 → ArgoCD 동기화로 적용 → 검증
   - 프로덕션: 검증 완료 후 `values-prod.yaml` 반영 → ArgoCD 동기화로 적용
-  - CI 자동 반영: Jenkins 빌드/Harbor push 성공 → `scripts/jenkins/update-gitops-image-tag.sh`로 `values-prod.yaml` 태그 자동 커밋/푸시
+  - CI 자동 반영: Jenkins 빌드/Harbor push 성공 → `scripts/jenkins/update-gitops-image-tag.sh`(yq 기반)로 `values-prod.yaml` 태그 자동 커밋/푸시
+  - 이미지 태그 컨벤션: 빌드 커밋 **SHA 앞 12자** (immutable, Git 커밋과 1:1 추적). 범프 스크립트는 yq 기반이며 에이전트에 yq가 없으면 `scripts/jenkins/install-yq.sh`가 핀된 버전을 자동 설치
   - Jenkins의 `gitops-prod-image-bump` 잡은 `helm/development-tools/jenkins/values.yaml` 의 `JCasC + Job DSL`로 형상 관리
   - 템플릿(templates/\*.yaml) 변경 시 반드시 린트/렌더 확인 수행
 - 권장 검사:
@@ -397,7 +403,8 @@ OpenBao 경로 원칙:
   - 렌더 확인(스테이징): `helm template helm/applications/<서비스> -f helm/applications/<서비스>/values-stg.yaml`
   - 렌더 확인(프로덕션): `helm template helm/applications/<서비스> -f helm/applications/<서비스>/values-prod.yaml`
 - 롤백:
-  - Git에서 이전 커밋으로 되돌린 뒤 ArgoCD 재동기화(실제 상태는 Git이 단일 진실 원천)
+  - 앱 이미지 롤백: `./scripts/rollback.sh --app <앱명>` — 최신 bump 커밋(`ci(gitops): bump ...`)을 revert+push, ArgoCD가 자동 재배포 (먼저 `--dry-run`으로 결과 확인 권장)
+  - 그 외 변경: Git에서 이전 커밋으로 되돌린 뒤 ArgoCD 재동기화(실제 상태는 Git이 단일 진실 원천)
 
 ### deploy-stg.sh
 
@@ -612,6 +619,14 @@ spec:
 ---
 
 ## 📝 변경 이력
+
+### 2026-09-21
+
+- **이미지 태그 컨벤션 SHA-12 전환 + 롤백 헬퍼**:
+  - `update-gitops-image-tag.sh`의 awk YAML 치환을 yq로 교체 (하이픈 키 브래킷 표기, 따옴표 스타일 보존)
+  - `scripts/rollback.sh` 추가 — bump 커밋(`ci(gitops): bump ...`) revert 기반 롤백, `--steps N`/`--dry-run` 지원
+  - `scripts/jenkins/install-yq.sh` 추가 — 휘발성 Jenkins 에이전트용 yq 부트스트랩(v4.53.6, sha256 핀)
+  - prj-core 빌드 Jenkinsfile이 태그를 빌드 커밋 SHA 앞 12자로 생성하도록 전환
 
 ### 2025-12-12
 
