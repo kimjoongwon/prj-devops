@@ -59,7 +59,6 @@ echo "⚠️  실제 값으로 교체해야 하는 항목들:"
 echo "  - OBJECT_STORAGE_ACCESS_KEY, OBJECT_STORAGE_SECRET_KEY"
 echo "  - OBJECT_STORAGE_PROVIDER, OBJECT_STORAGE_ENDPOINT, OBJECT_STORAGE_API_TOKEN"
 echo "  - SMTP_USERNAME, SMTP_PASSWORD"
-echo "  - AUTH_JWT_SECRET"
 echo "  - DATABASE_URL, DIRECT_URL"
 echo ""
 read -p "계속하시겠습니까? (y/N): " -n 1 -r
@@ -133,10 +132,8 @@ vault kv put "secret/core-api/$ENV" \
   SMTP_USERNAME="CHANGE_ME_SMTP_USER" \
   SMTP_PASSWORD="CHANGE_ME_SMTP_PASS" \
   SMTP_SENDER="noreply@onjitda.com" \
-  AUTH_JWT_SECRET="CHANGE_ME_$(openssl rand -hex 32)" \
   AUTH_JWT_TOKEN_EXPIRES_IN=3600 \
   AUTH_JWT_TOKEN_REFRESH_IN=86400 \
-  AUTH_JWT_SALT_ROUNDS=10 \
   CORS_ENABLED=true \
   OTEL_EXPORTER_OTLP_ENDPOINT="http://otel-collector.grafana.svc.cluster.local:4317" \
   OTEL_EXPORTER_OTLP_PROTOCOL=grpc \
@@ -182,10 +179,8 @@ vault kv put "secret/idp-api/$ENV" \
   SMTP_USERNAME="CHANGE_ME_SMTP_USER" \
   SMTP_PASSWORD="CHANGE_ME_SMTP_PASS" \
   SMTP_SENDER="noreply@onjitda.com" \
-  AUTH_JWT_SECRET="CHANGE_ME_$(openssl rand -hex 32)" \
   AUTH_JWT_TOKEN_EXPIRES_IN=1h \
   AUTH_JWT_TOKEN_REFRESH_IN=7d \
-  AUTH_JWT_SALT_ROUNDS=10 \
   OIDC_ISSUER="$IDP_DOMAIN" \
   OIDC_COOKIE_SECRET="CHANGE_ME_$(openssl rand -hex 32)" \
   OIDC_ADMIN_BASE_URL="$ADMIN_BASE_URL" \
@@ -307,4 +302,3 @@ echo "  IDP_API_INTERNAL_URL=<idp_api_service_url>"
 echo ""
 echo "# JWT 시크릿 업데이트 (선택사항, 자동 생성됨)"
 echo "vault kv patch secret/core-api/$ENV \\"
-echo "  AUTH_JWT_SECRET=<실제_JWT_시크릿>"
