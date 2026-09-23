@@ -1,0 +1,39 @@
+replicaCount: 1
+
+image:
+  repository: grafana/loki
+  tag: "3.6.17"
+  pullPolicy: IfNotPresent
+
+service:
+  type: ClusterIP
+  httpPort: 3100
+  grpcPort: 9096
+
+persistence:
+  enabled: true
+  storageClass: openebs-hostpath
+  accessModes:
+    - ReadWriteOnce
+  size: 20Gi
+
+# 로그 보존 기간 (compactor가 주기적으로 삭제)
+retention: 336h
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 256Mi
+  limits:
+    cpu: 500m
+    memory: 1Gi
+
+prometheus:
+  podAnnotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/path: /metrics
+    prometheus.io/port: "3100"
+
+nodeSelector: {}
+tolerations: []
+affinity: {}

@@ -10,6 +10,8 @@
 - `grafana/`
 - `otel-collector/`
 - `tempo/`
+- `loki/` — 로그 집계 백엔드 (single binary, filesystem 저장소, tsdb/v13 스키마)
+- `alloy/` — 파드 로그 수집 에이전트 DaemonSet (stdout → Loki; Promtail 후속)
 - `buildkitd/` — Jenkins 빌드 캐시용 rootless BuildKit 데몬 (운영: `docs/jenkins-build-speed-runbook.md`)
 
 ## Upstream chart values only

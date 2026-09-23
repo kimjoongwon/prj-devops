@@ -1,0 +1,191 @@
+{
+  "title": "Container Logs (Loki)",
+  "uid": "container-logs",
+  "tags": ["loki", "logs"],
+  "timezone": "browser",
+  "editable": true,
+  "schemaVersion": 41,
+  "version": 1,
+  "refresh": "30s",
+  "time": { "from": "now-1h", "to": "now" },
+  "templating": {
+    "list": [
+      {
+        "name": "datasource",
+        "label": "Data source",
+        "type": "datasource",
+        "query": "loki",
+        "current": {},
+        "hide": 0,
+        "refresh": 1
+      },
+      {
+        "name": "namespace",
+        "label": "Namespace",
+        "type": "query",
+        "datasource": { "type": "loki", "uid": "${datasource}" },
+        "query": { "label": "namespace", "stream": "", "refId": "LokiVariableQueryEditor-VariableQuery", "type": 12 },
+        "refresh": 1,
+        "includeAll": true,
+        "multi": true,
+        "sort": 1,
+        "current": { "selected": true, "text": ["All"], "value": ["$__all"] },
+        "options": []
+      },
+      {
+        "name": "pod",
+        "label": "Pod",
+        "type": "query",
+        "datasource": { "type": "loki", "uid": "${datasource}" },
+        "query": { "label": "pod", "stream": "{namespace=~\"$namespace\"}", "refId": "LokiVariableQueryEditor-VariableQuery", "type": 12 },
+        "refresh": 1,
+        "includeAll": true,
+        "multi": true,
+        "sort": 1,
+        "current": { "selected": true, "text": ["All"], "value": ["$__all"] },
+        "options": []
+      },
+      {
+        "name": "container",
+        "label": "Container",
+        "type": "query",
+        "datasource": { "type": "loki", "uid": "${datasource}" },
+        "query": { "label": "container", "stream": "{namespace=~\"$namespace\", pod=~\"$pod\"}", "refId": "LokiVariableQueryEditor-VariableQuery", "type": 12 },
+        "refresh": 1,
+        "includeAll": true,
+        "multi": false,
+        "sort": 1,
+        "current": { "selected": true, "text": "All", "value": "$__all" },
+        "options": []
+      }
+    ]
+  },
+  "panels": [
+    {
+      "id": 1,
+      "type": "stat",
+      "title": "에러 로그 (최근 1시간)",
+      "datasource": { "type": "loki", "uid": "${datasource}" },
+      "gridPos": { "h": 6, "w": 6, "x": 0, "y": 0 },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 1 },
+              { "color": "red", "value": 50 }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "colorMode": "value",
+        "graphMode": "area",
+        "textMode": "auto"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "loki", "uid": "${datasource}" },
+          "expr": "sum(count_over_time({namespace=~\"$namespace\", pod=~\"$pod\", container=~\"$container\"} |~ `(?i)error|exception|fatal` [1h]))",
+          "queryType": "instant"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "type": "timeseries",
+      "title": "에러 로그 레이트 (namespace별)",
+      "datasource": { "type": "loki", "uid": "${datasource}" },
+      "gridPos": { "h": 6, "w": 18, "x": 6, "y": 0 },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ops",
+          "custom": {
+            "drawStyle": "line",
+            "lineWidth": 1,
+            "fillOpacity": 15,
+            "showPoints": "never",
+            "spanNulls": true
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": { "displayMode": "list", "placement": "bottom", "showLegend": true },
+        "tooltip": { "mode": "multi", "sort": "desc" }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "loki", "uid": "${datasource}" },
+          "expr": "sum by (namespace) (rate({namespace=~\"$namespace\", pod=~\"$pod\", container=~\"$container\"} |~ `(?i)error|exception|fatal` [$__interval]))",
+          "queryType": "range",
+          "legendFormat": "{{namespace}}"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "type": "timeseries",
+      "title": "로그 레이트 (container별)",
+      "datasource": { "type": "loki", "uid": "${datasource}" },
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 6 },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ops",
+          "custom": {
+            "drawStyle": "line",
+            "lineWidth": 1,
+            "fillOpacity": 8,
+            "showPoints": "never",
+            "spanNulls": true
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": { "displayMode": "list", "placement": "bottom", "showLegend": true },
+        "tooltip": { "mode": "multi", "sort": "desc" }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "loki", "uid": "${datasource}" },
+          "expr": "sum by (namespace, container) (rate({namespace=~\"$namespace\", pod=~\"$pod\", container=~\"$container\"} [$__interval]))",
+          "queryType": "range",
+          "legendFormat": "{{namespace}}/{{container}}"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "type": "logs",
+      "title": "컨테이너 로그",
+      "datasource": { "type": "loki", "uid": "${datasource}" },
+      "gridPos": { "h": 14, "w": 24, "x": 0, "y": 14 },
+      "options": {
+        "sortOrder": "Descending",
+        "showTime": true,
+        "wrapLogMessage": true,
+        "prettifyLogMessage": false,
+        "enableLogDetails": true,
+        "showLabels": false,
+        "showCommonLabels": false,
+        "dedupStrategy": "none"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "loki", "uid": "${datasource}" },
+          "expr": "{namespace=~\"$namespace\", pod=~\"$pod\", container=~\"$container\"}",
+          "queryType": "range"
+        }
+      ]
+    }
+  ]
+}

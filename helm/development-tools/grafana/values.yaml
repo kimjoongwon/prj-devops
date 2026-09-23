@@ -711,6 +711,10 @@ datasources:
           httpMethod: GET
           serviceMap:
             datasourceUid: prometheus
+          # 트레이스 → 로그 연동: 트레이스 ID로 Loki 로그 필터링
+          tracesToLogsV2:
+            datasourceUid: loki
+            filteredByTraceID: true
           tracesToMetrics:
             datasourceUid: prometheus
             tags:
@@ -725,6 +729,20 @@ datasources:
                 query: "(sum(rate(calls_total{pod=~\".+\",$$__tags, status_code=\"STATUS_CODE_ERROR\"}[5m])) or vector(0)) / clamp_min(sum(rate(calls_total{pod=~\".+\",$$__tags}[5m])), 0.001)"
               - name: "P95 latency"
                 query: "histogram_quantile(0.95, sum(rate(duration_milliseconds_bucket{pod=~\".+\",$$__tags}[5m])) by (le))"
+      - name: Loki
+        uid: loki
+        type: loki
+        access: proxy
+        url: http://loki.grafana.svc.cluster.local:3100
+        editable: true
+        jsonData:
+          maxLines: 2000
+          derivedFields:
+            # 로그 라인의 trace_id → Tempo 트레이스로 점프 (로그 → 트레이스 연동)
+            - name: TraceID
+              matcherRegex: 'trace_id[":= ]+([0-9a-fA-F]{16,32})'
+              url: '$${__value.raw}'
+              datasourceUid: tempo
 #  datasources.yaml:
 #    apiVersion: 1
 #    datasources:
@@ -873,6 +891,22 @@ dashboardProviders:
         editable: true
         options:
           path: /var/lib/grafana/dashboards/apm
+      - name: infra
+        orgId: 1
+        folder: Infrastructure
+        type: file
+        disableDeletion: false
+        editable: true
+        options:
+          path: /var/lib/grafana/dashboards/infra
+      - name: logs
+        orgId: 1
+        folder: Logs
+        type: file
+        disableDeletion: false
+        editable: true
+        options:
+          path: /var/lib/grafana/dashboards/logs
 
 ## Configure how curl fetches remote dashboards. The beginning dash is required.
 ## NOTE: This sets the default short flags for all dashboards, but these
@@ -898,6 +932,20 @@ dashboards:
       file: dashboards/spanmetrics-demo-18264-r1.json
     otel-collector-15983:
       file: dashboards/opentelemetry-collector-15983-r29.json
+    apm-trace-red-overview:
+      file: dashboards/apm-trace-red-overview.json
+  infra:
+    node-exporter-full-1860:
+      file: dashboards/node-exporter-full-1860.json
+    k8s-views-global-15757:
+      file: dashboards/k8s-views-global-15757.json
+    k8s-views-nodes-15759:
+      file: dashboards/k8s-views-nodes-15759.json
+    k8s-views-pods-15760:
+      file: dashboards/k8s-views-pods-15760.json
+  logs:
+    container-logs:
+      file: dashboards/container-logs-loki.json
 
 ## Reference to external ConfigMap per provider. Use provider name as key and ConfigMap name as value.
 ## A provider dashboards must be defined either by external ConfigMaps or in values.yaml, not in both.

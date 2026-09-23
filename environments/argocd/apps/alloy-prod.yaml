@@ -1,0 +1,48 @@
+# Grafana Alloy - Production 환경 ArgoCD Application
+# 모든 노드의 파드 로그를 수집해 Loki로 전송하는 DaemonSet
+
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: alloy-prod
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+  labels:
+    app.kubernetes.io/name: alloy
+    app.kubernetes.io/instance: production
+    environment: production
+  annotations:
+    # Loki(wave 0) 이후 배포
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/kimjoongwon/prj-devops.git
+    path: helm/development-tools/alloy
+    targetRevision: main
+    helm:
+      valueFiles:
+        - values.yaml
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: grafana
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ApplyOutOfSyncOnly=true
+    retry:
+      limit: 5
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m
+  revisionHistoryLimit: 5
+  info:
+    - name: "Environment"
+      value: "Production"
+    - name: "Description"
+      value: "Grafana Alloy log collector DaemonSet (pod logs → Loki)"

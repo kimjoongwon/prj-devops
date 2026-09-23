@@ -1,0 +1,88 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "alloy.fullname" . }}-config
+  labels:
+    {{- include "alloy.labels" . | nindent 4 }}
+data:
+  config.alloy: |
+    // 파드 stdout 로그 수집 → Loki 전송 파이프라인
+    // K8s API로 파드 메타데이터를 발견해 /var/log/pods/<ns>_<pod>_<uid>/<container>/*.log 매핑
+
+    discovery.kubernetes "pods" {
+      role = "pod"
+    }
+
+    discovery.relabel "pod_logs" {
+      targets = discovery.kubernetes.pods.targets
+
+      // 표준 라벨 스키마 (namespace/pod/container/app/node)
+      rule {
+        source_labels = ["__meta_kubernetes_namespace"]
+        target_label  = "namespace"
+      }
+      rule {
+        source_labels = ["__meta_kubernetes_pod_name"]
+        target_label  = "pod"
+      }
+      rule {
+        source_labels = ["__meta_kubernetes_pod_container_name"]
+        target_label  = "container"
+      }
+      rule {
+        source_labels = ["__meta_kubernetes_pod_label_app_kubernetes_io_name"]
+        target_label  = "app"
+      }
+      rule {
+        source_labels = ["__meta_kubernetes_pod_node_name"]
+        target_label  = "node"
+      }
+      rule {
+        source_labels = ["__meta_kubernetes_namespace", "__meta_kubernetes_pod_name"]
+        separator     = "/"
+        target_label  = "job"
+      }
+
+      // 실행 중이 아닌 파드(Pending/Completed 등)는 로그 파일만 남아 있어 제외
+      rule {
+        source_labels = ["__meta_kubernetes_pod_phase"]
+        regex         = "Pending|Succeeded|Failed|Completed"
+        action        = "drop"
+      }
+
+      // 실제 수집 대상 파일 경로 조합
+      rule {
+        source_labels = ["__meta_kubernetes_pod_uid", "__meta_kubernetes_pod_container_name"]
+        separator     = "/"
+        target_label  = "__path__"
+        replacement   = "/var/log/pods/*$1/*.log"
+      }
+    }
+
+    local.file_match "pod_logs" {
+      path_targets = discovery.relabel.pod_logs.output
+    }
+
+    loki.source.file "pod_logs" {
+      targets    = local.file_match.pod_logs.files
+      forward_to = [loki.process.pod_logs.receiver]
+    }
+
+    loki.process "pod_logs" {
+      // JSON 로그(pino 등)에서 level 추출 — JSON이 아니면 조용히 스킵
+      stage.json {
+        expressions = { level = "level" }
+      }
+      stage.labels {
+        values = { level = "" }
+      }
+      stage.crlf { }
+
+      forward_to = [loki.write.default.receiver]
+    }
+
+    loki.write "default" {
+      endpoint {
+        url = "{{ .Values.loki.url }}"
+      }
+    }

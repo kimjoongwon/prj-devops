@@ -1,0 +1,6 @@
+apiVersion: v2
+name: loki
+description: Grafana Loki single-binary chart for log aggregation
+type: application
+version: 0.1.0
+appVersion: "3.6.17"
