@@ -131,8 +131,8 @@ done
   `patch-idp-endpoints.sh production apply` 실행
 - 클러스터 잔여 정리: 고아 ACME order/certificaterequest, 미사용 TLS 시크릿(default ns 3종,
   plate-stg 1종), 미사용 configmap(fe-web-prod-config) 삭제
-- 알려진 미해결: `spring-api-prod` 이미지가 Harbor에 존재하지 않음(전환 전부터).
-  `stg/spring-server` 저장소에 이미지가 있으므로 동일 아티팩트 여부 확인 후 복사/빌드 필요.
+- `spring-api-prod`는 2026-09-23 폐기 결정으로 GitOps에서 완전 제거됨
+  (기존 미해결 과제였던 Harbor 이미지 누락 문제도 함께 해소)
 
 ### 2-4. 트러블슈팅 기록 (재발 방지용)
 
@@ -174,8 +174,7 @@ done
 2. **Harbor 어드민 비밀번호 교체** — 현재 차트 기본값 사용 중
 3. **유출 이력 있는 비밀번호 교체** — Jenkins/ArgoCD/pgAdmin 비밀번호가 GitHub 프로필 README에 공개된 적 있음(이력에서는 삭제 완료). Access 경비실이 있어도 교체 권장
 4. OpenBao Unseal Key / Root Token을 비밀번호 관리자로 이관
-5. `spring-api-prod` 이미지 빌드/푸시 또는 기존 아티팩트 복사
-6. (선택) `www.onjitda.com` → 루트 리다이렉트 ingress 규칙 추가 (현재 404)
+5. (선택) `www.onjitda.com` → 루트 리다이렉트 ingress 규칙 추가 (현재 404)
 
 ## 4. Cloudflare Access 운영 시 주의 (2026-09-18 추가)
 
@@ -214,7 +213,69 @@ ingress의 habor-tls 인증서(cert-manager DNS-01 발급, SAN harbor.onjitda.co
 유효하므로 https 직결 풀이 정상 동작한다. LAN 직결 시 풀 속도도 수 배 빠르다
 (실측 280MB 이미지 1.6초).
 
-## 6. IDP 재건 및 identity DB v2 재구축 (2026-09-19)
+## 6. k9s/kubectl 접속 — 상시 터널 (2026-09-23 자동화)
+
+관리 PC가 집 LAN(192.168.0.x) 밖에 있을 때는 API 서버(192.168.0.10:6443)로 직접
+닿지 않는다. 기존 Cloudflare Tunnel SSH(`ssh.onjitda.com`) 위에 로컬 포워드를 얹어
+우회한다. 클러스터가 살아 있는 한(= onjitda.com 응답) 이 경로로 항상 접속 가능.
+
+처음엔 수동 기동(`ssh -f -N` + 컨텍스트 전환)이었으나, 집/밖에 따라 절차가 갈리고
+컨텍스트가 어느 쪽인지 기억해야 해서 놓치면 `pnpm start`의 OpenBao port-forward까지
+함께 실패했다. 2026-09-23 말기에 터널을 LaunchAgent로 상시화하고 컨텍스트를
+`kubernetes-tunnel` 하나로 고정해 위치 구분을 제거했다.
+
+- 상시 터널: `~/Library/LaunchAgents/com.onjitda.k8s-api-tunnel.plist` — 로그인 시
+  `/usr/bin/ssh -N k8s-api-tunnel` 기동(RunAtLoad), 프로세스가 죽으면 launchd가
+  재시작(KeepAlive). ~/.ssh/config 엔트리의 `ExitOnForwardFailure`·`ServerAliveInterval
+  30 × 3`이 끊김을 감지해 exit하면 재시작으로 이어진다. 로그:
+  `~/Library/Logs/k8s-api-tunnel.log`.
+- 컨텍스트 `kubernetes-tunnel`(고정): `https://127.0.0.1:16443`, 인증은 기존
+  `kubernetes-admin` 클라이언트 인증서 그대로 사용. API 인증서 SAN에 127.0.0.1이
+  없어 이 컨텍스트만 `insecure-skip-tls-verify` — 전송 암호화는 SSH 터널이 담당.
+- 절전 후 끊김은 최대 ~90초 내 자동 복구(ServerAlive 감지 + KeepAlive 재시작).
+- 직결 컨텍스트 `kubernetes-admin@kubernetes`(192.168.0.10:6443)은 Cloudflare
+  장애 시 집 LAN 전용 비상 fallback으로 kubeconfig에 남겨둔다.
+
+재설치(다른 Mac) 시:
+
+```bash
+cat > ~/Library/LaunchAgents/com.onjitda.k8s-api-tunnel.plist <<'EOF'
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0.dtd" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>Label</key>
+	<string>com.onjitda.k8s-api-tunnel</string>
+	<key>ProgramArguments</key>
+	<array>
+		<string>/usr/bin/ssh</string>
+		<string>-N</string>
+		<string>k8s-api-tunnel</string>
+	</array>
+	<key>RunAtLoad</key>
+	<true/>
+	<key>KeepAlive</key>
+	<true/>
+	<key>LimitLoadToSessionType</key>
+	<string>Aqua</string>
+	<key>StandardOutPath</key>
+	<string>/Users/wallykim/Library/Logs/k8s-api-tunnel.log</string>
+	<key>StandardErrorPath</key>
+	<string>/Users/wallykim/Library/Logs/k8s-api-tunnel.log</string>
+</dict>
+</plist>
+EOF
+launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/com.onjitda.k8s-api-tunnel.plist
+```
+
+해제 시:
+
+```bash
+launchctl bootout gui/$(id -u)/com.onjitda.k8s-api-tunnel
+rm ~/Library/LaunchAgents/com.onjitda.k8s-api-tunnel.plist
+```
+
+## 7. IDP 재건 및 identity DB v2 재구축 (2026-09-19)
 
 - apps/idp 재건(prj-core): 얇은 발급자(idp-api) + 로그인 UI(idp-web).
   이미지 idp-api:23, idp-web:27 (Jenkins 잡 idp-api-build / idp-web-build).

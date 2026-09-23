@@ -33,7 +33,7 @@ redeploys the previous image. Rollback of N steps reverts the N newest
 "ci(gitops): bump <app> image to <tag>" commits.
 
 Required:
-  --app <name>                 App name (idp-api|idp-web|core-api|admin-web|proposal-web|spring-api|tool-storybook)
+  --app <name>                 App name (idp-api|idp-web|core-api|admin-web|proposal-web|tool-storybook)
 
 Options:
   --steps <n>                  Number of bump commits to revert (default: 1)
@@ -173,16 +173,12 @@ case "${APP_NAME}" in
     VALUES_REL_PATH="helm/applications/proposal-web/values-prod.yaml"
     APP_YAML_KEY="proposal-web"
     ;;
-  spring-api)
-    VALUES_REL_PATH="helm/applications/spring-api/values-prod.yaml"
-    APP_YAML_KEY="spring-api"
-    ;;
   tool-storybook)
     VALUES_REL_PATH="helm/applications/tool-storybook/values-prod.yaml"
     APP_YAML_KEY="tool-storybook"
     ;;
   *)
-    fail "Unsupported app '${APP_NAME}'. Allowed: idp-api, idp-web, core-api, admin-web, proposal-web, spring-api, tool-storybook"
+    fail "Unsupported app '${APP_NAME}'. Allowed: idp-api, idp-web, core-api, admin-web, proposal-web, tool-storybook"
     ;;
 esac
 

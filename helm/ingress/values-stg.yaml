@@ -16,9 +16,6 @@ services:                 # ArgoCD 릴리스명 기준 Service 오브젝트 이�
   admin:
     name: "admin-web-stg"
     port: 80
-  spring:
-    name: "spring-api-stg"
-    port: 80
 
 ingress:
   enabled: true
@@ -90,14 +87,6 @@ ingress:
           backend:
             service:
               name: admin
-              port:
-                number: 80
-        # /spring prefix -> Spring 백엔드
-        - path: /spring
-          pathType: Prefix
-          backend:
-            service:
-              name: spring
               port:
                 number: 80
     - host: llm.onjitda.com

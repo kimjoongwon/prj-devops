@@ -17,7 +17,6 @@
 - `core-api`
 - `admin-web`
 - `proposal-web`
-- `spring-api`
 - `tool-storybook`
 
 ## 스크립트

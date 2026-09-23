@@ -79,12 +79,6 @@ prj-devops/
 │   │   │   ├── values-stg.yaml
 │   │   │   ├── values-prod.yaml
 │   │   │   └── templates/
-│   │   ├── spring-api/            # Spring API 백엔드
-│   │   │   ├── Chart.yaml
-│   │   │   ├── values.yaml
-│   │   │   ├── values-stg.yaml
-│   │   │   ├── values-prod.yaml
-│   │   │   └── templates/
 │   │   ├── plate-llm/             # Plate LLM 서비스
 │   │   │   ├── Chart.yaml
 │   │   │   ├── values.yaml
@@ -131,8 +125,6 @@ prj-devops/
 │           ├── admin-web-prod.yaml
 │           ├── proposal-web-stg.yaml
 │           ├── proposal-web-prod.yaml
-│           ├── spring-api-stg.yaml
-│           ├── spring-api-prod.yaml
 │           ├── plate-llm-stg.yaml
 │           ├── idp-api-stg.yaml
 │           ├── idp-api-prod.yaml
@@ -177,7 +169,7 @@ prj-devops/
 **애플리케이션 차트** (`helm/applications/`):
 
 - 차트명 = 디렉토리명 = 릴리스명 = 컨테이너명
-  - 예: `core-api`, `admin-web`, `proposal-web`, `spring-api`, `idp-api`, `idp-web`, `plate-llm`
+  - 예: `core-api`, `admin-web`, `proposal-web`, `idp-api`, `idp-web`, `plate-llm`
 - 헬퍼 템플릿 단순화: `.Release.Name` 직접 사용
 - imagePullSecrets: Harbor 인증을 위한 `harbor-docker-secret` 포함
 - Ingress: 별도 차트에서 중앙 관리 (`helm/ingress`)
@@ -480,8 +472,8 @@ kubectl get pods -A
 ### 환경별 Values 파일
 
 - Plate 애플리케이션: 각 차트 디렉토리의 환경별 파일을 사용합니다
-  - 스테이징: `helm/applications/<서비스>/values-stg.yaml` (예: `core-api/values-stg.yaml`, `admin-web/values-stg.yaml`, `proposal-web/values-stg.yaml`, `spring-api/values-stg.yaml`)
-  - 프로덕션: `helm/applications/<서비스>/values-prod.yaml` (예: `core-api/values-prod.yaml`, `admin-web/values-prod.yaml`, `proposal-web/values-prod.yaml`, `spring-api/values-prod.yaml`, `idp-api/values-prod.yaml`, `idp-web/values-prod.yaml`)
+  - 스테이징: `helm/applications/<서비스>/values-stg.yaml` (예: `core-api/values-stg.yaml`, `admin-web/values-stg.yaml`, `proposal-web/values-stg.yaml`)
+  - 프로덕션: `helm/applications/<서비스>/values-prod.yaml` (예: `core-api/values-prod.yaml`, `admin-web/values-prod.yaml`, `proposal-web/values-prod.yaml`, `idp-api/values-prod.yaml`, `idp-web/values-prod.yaml`)
 - 인프라/도구:
   - 로컬 chart: `helm/cluster-services/*/values.yaml`, `helm/development-tools/grafana/values.yaml`
   - upstream chart values: `helm/development-tools/<도구>/values.yaml`
@@ -594,7 +586,7 @@ spec:
 - **경로 일관성**: 모든 차트를 `helm/` 트리 하위에 배치 → ArgoCD 설정 단순화
 - **환경별 설정 관리**: `environments/` 디렉토리에서 스테이징/프로덕션 values 중앙 관리
 - **GitOps 통합**: ArgoCD를 통한 선언적 배포 및 자동 동기화
-- **멀티 애플리케이션 지원**: core-api, admin-web, proposal-web, spring-api, plate-llm, plate-cache, idp-api, idp-web 통합 관리
+- **멀티 애플리케이션 지원**: core-api, admin-web, proposal-web, plate-llm, plate-cache, idp-api, idp-web 통합 관리
 
 ### ArgoCD Application 구조
 

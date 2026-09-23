@@ -5,14 +5,14 @@ set -euo pipefail
 #
 # Defaults:
 # - Environments: staging + production (or all with first arg)
-# - Source services: core-api,idp-api,spring-api
+# - Source services: core-api,idp-api
 # - Keys: OBJECT_STORAGE_ACCESS_KEY,OBJECT_STORAGE_SECRET_KEY,OBJECT_STORAGE_PROVIDER,OBJECT_STORAGE_REGION,OBJECT_STORAGE_BUCKET,OBJECT_STORAGE_ENDPOINT,OBJECT_STORAGE_API_TOKEN
 # - Remove keys from source after move: true
 # - Dry run: false
 
 KV_MOUNT="${KV_MOUNT:-secret}"
 TARGET_PREFIX="${TARGET_PREFIX:-devops}"
-SOURCE_SERVICES="${SOURCE_SERVICES:-core-api,idp-api,spring-api}"
+SOURCE_SERVICES="${SOURCE_SERVICES:-core-api,idp-api}"
 REMOVE_FROM_SOURCE="${REMOVE_FROM_SOURCE:-true}"
 DRY_RUN="${DRY_RUN:-false}"
 INFRA_KEYS="${INFRA_KEYS:-OBJECT_STORAGE_ACCESS_KEY,OBJECT_STORAGE_SECRET_KEY,OBJECT_STORAGE_PROVIDER,OBJECT_STORAGE_REGION,OBJECT_STORAGE_BUCKET,OBJECT_STORAGE_ENDPOINT,OBJECT_STORAGE_API_TOKEN}"
@@ -25,7 +25,7 @@ Usage:
 Environment variables:
   KV_MOUNT            KV mount name (default: secret)
   TARGET_PREFIX       Target prefix under KV mount (default: devops)
-  SOURCE_SERVICES     Comma-separated source services (default: core-api,idp-api,spring-api)
+  SOURCE_SERVICES     Comma-separated source services (default: core-api,idp-api)
   INFRA_KEYS          Comma-separated keys to move
   REMOVE_FROM_SOURCE  true|false (default: true)
   DRY_RUN             true|false (default: false)
