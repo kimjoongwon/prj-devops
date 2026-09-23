@@ -33,8 +33,6 @@ spec:
             - name: otel-ai
               mountPath: /otel-ai
             {{- end }}
-            - name: otel-ai
-              mountPath: /otel-ai
       {{- end }}
       containers:
         - name: {{ include "core-api.name" . }}
@@ -73,6 +71,11 @@ spec:
             - secretRef:
                 name: {{ .Values.infraSecrets.secretName }}
             {{- end }}
+          {{- end }}
+          {{- if and .Values.otel .Values.otel.enabled }}
+          volumeMounts:
+            - name: otel-ai
+              mountPath: /otel-ai
           {{- end }}
           resources:
             {{- toYaml (index .Values "core-api" "resources") | nindent 12 }}

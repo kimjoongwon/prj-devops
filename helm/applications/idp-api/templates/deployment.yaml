@@ -30,8 +30,6 @@ spec:
             - name: otel-ai
               mountPath: /otel-ai
             {{- end }}
-            - name: otel-ai
-              mountPath: /otel-ai
       {{- end }}
       containers:
         - name: {{ include "idp-api.name" . }}
@@ -77,6 +75,11 @@ spec:
             - secretRef:
                 name: {{ .Values.infraSecrets.secretName }}
             {{- end }}
+          {{- end }}
+          {{- if and .Values.otel .Values.otel.enabled }}
+          volumeMounts:
+            - name: otel-ai
+              mountPath: /otel-ai
           {{- end }}
           resources:
             {{- toYaml (index .Values "idp-api" "resources") | nindent 12 }}

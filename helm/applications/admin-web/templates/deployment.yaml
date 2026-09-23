@@ -33,8 +33,6 @@ spec:
             - name: otel-ai
               mountPath: /otel-ai
             {{- end }}
-            - name: otel-ai
-              mountPath: /otel-ai
       {{- end }}
       containers:
         - name: {{ include "admin-web.name" . }}
@@ -54,6 +52,11 @@ spec:
           envFrom:
             - secretRef:
                 name: {{ .Values.appSecrets.secretName }}
+          {{- end }}
+          {{- if and .Values.otel .Values.otel.enabled }}
+          volumeMounts:
+            - name: otel-ai
+              mountPath: /otel-ai
           {{- end }}
           resources:
             {{- toYaml (index .Values "admin-web" "resources") | nindent 12 }}
