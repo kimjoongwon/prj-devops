@@ -18,6 +18,8 @@ spec:
       annotations:
         {{- toYaml . | nindent 8 }}
       {{- end }}
+        # config 변경 시 파드 자동 롤아웃
+        checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
     spec:
       serviceAccountName: {{ include "alloy.fullname" . }}
       containers:
