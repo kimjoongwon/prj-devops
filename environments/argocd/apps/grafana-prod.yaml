@@ -33,6 +33,8 @@ spec:
     syncOptions:
       - CreateNamespace=true
       - ApplyOutOfSyncOnly=true
+      # 대시보드 ConfigMap이 256KiB last-applied 어노테이션 한계를 초과 → SSA로 우회
+      - ServerSideApply=true
     retry:
       limit: 5
       backoff:
