@@ -23,6 +23,16 @@ spec:
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
+      {{- if and .Values.otel .Values.otel.enabled }}
+      # PreSync 훅도 extraEnv(NODE_OPTIONS)를 공유하므로 동일하게 SDK 주입
+      initContainers:
+        - name: otel-autoinstrumentation
+          image: "{{ .Values.otel.image }}:{{ .Values.otel.imageTag }}"
+          command: ["sh", "-c", "cp -r /autoinstrumentation/. /otel-ai/"]
+          volumeMounts:
+            - name: otel-ai
+              mountPath: /otel-ai
+      {{- end }}
       containers:
         - name: schema-and-reference-data-migrator
           image: "{{ index .Values "idp-api" "image" "repository" }}:{{ index .Values "idp-api" "image" "tag" | default .Chart.AppVersion }}"
@@ -51,4 +61,14 @@ spec:
           {{- end }}
           resources:
             {{- toYaml .Values.migrationJob.resources | nindent 12 }}
+          {{- if and .Values.otel .Values.otel.enabled }}
+          volumeMounts:
+            - name: otel-ai
+              mountPath: /otel-ai
+          {{- end }}
 {{- end }}
+      {{- if and .Values.otel .Values.otel.enabled }}
+      volumes:
+        - name: otel-ai
+          emptyDir: {}
+      {{- end }}

@@ -40,5 +40,5 @@ extraEnv:
 # OTel nodejs 자동계측 주입 (init container로 SDK 탑재, NODE_OPTIONS로 로드)
 otel:
   enabled: true
-  image: harbor.onjitda.com/prod/autoinstrumentation-nodejs
+  image: otel/autoinstrumentation-nodejs
   imageTag: "0.78.0"
