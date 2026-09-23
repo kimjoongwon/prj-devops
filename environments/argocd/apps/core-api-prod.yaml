@@ -31,6 +31,14 @@ spec:
     namespace: plate-prod                   # 배포될 네임스페이스
 
   # 동기화 정책
+  # kubectl rollout restart 흔적(restartedAt)을 drift로 보지 않음 — 3-way merge가 제거 불가해
+  # 이 annotation이 남으면 앱이 영구 OutOfSync가 됨 (2026-09-23 정비)
+  ignoreDifferences:
+    - group: apps
+      kind: Deployment
+      jqPathExpressions:
+        - '.spec.template.metadata.annotations["kubectl.kubernetes.io/restartedAt"]'
+
   syncPolicy:
     # 자동 동기화 설정 (Git Push 시 자동 반영, 기본 폴링 주기 3분)
     automated:
