@@ -1,0 +1,6 @@
+apiVersion: v2
+name: postgres-exporter
+description: Prometheus postgres_exporter for plate-db-prod
+type: application
+version: 0.1.0
+appVersion: "v0.17.1"

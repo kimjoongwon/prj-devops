@@ -1,0 +1,6 @@
+apiVersion: v2
+name: redis-exporter
+description: Prometheus redis_exporter for the redis namespace release
+type: application
+version: 0.1.0
+appVersion: "v1.90.0"

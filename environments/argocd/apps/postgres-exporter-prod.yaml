@@ -1,0 +1,47 @@
+# Postgres Exporter - Production 환경 ArgoCD Application
+# ns plate-prod (app-env-secrets의 DATABASE_PASSWORD 재사용)
+
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: postgres-exporter-prod
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+  labels:
+    app.kubernetes.io/name: postgres-exporter
+    app.kubernetes.io/instance: production
+    environment: production
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/kimjoongwon/prj-devops.git
+    path: helm/development-tools/postgres-exporter
+    targetRevision: main
+    helm:
+      valueFiles:
+        - values.yaml
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: plate-prod
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ApplyOutOfSyncOnly=true
+    retry:
+      limit: 5
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m
+  revisionHistoryLimit: 5
+  info:
+    - name: "Environment"
+      value: "Production"
+    - name: "Description"
+      value: "postgres_exporter — plate-db-prod 메트릭 (커넥션/지연/DB 크기)"

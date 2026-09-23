@@ -1,0 +1,31 @@
+image:
+  repository: oliver006/redis_exporter
+  tag: "v1.90.0"
+  pullPolicy: IfNotPresent
+
+redis:
+  addr: redis://redis-master.redis.svc.cluster.local:6379
+  # bitnami redis helm release가 생성한 시크릿
+  existingSecret: redis
+  secretKey: redis-password
+
+service:
+  httpPort: 9121
+
+resources:
+  requests:
+    cpu: 20m
+    memory: 32Mi
+  limits:
+    cpu: 100m
+    memory: 128Mi
+
+prometheus:
+  podAnnotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/path: /metrics
+    prometheus.io/port: "9121"
+
+nodeSelector: {}
+tolerations: []
+affinity: {}

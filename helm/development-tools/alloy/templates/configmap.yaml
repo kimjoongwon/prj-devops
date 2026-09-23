@@ -85,3 +85,11 @@ data:
         url = "{{ .Values.loki.url }}"
       }
     }
+
+    // k8s 이벤트 수집 (파드 OOM/스케줄 실패/크래시 등 운영 이벤트)
+    // 라벨: {job="kubernetes-events", namespace=..., event_type=...}
+    loki.source.kubernetes_events "events" {
+      job_name   = "kubernetes-events"
+      log_format = "logfmt"
+      forward_to = [loki.write.default.receiver]
+    }

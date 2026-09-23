@@ -576,7 +576,9 @@ envValueFrom:
 
 ## The name of a secret in the same kubernetes namespace which contain values to be added to the environment
 ## This can be useful for auth tokens, etc. Value is templated.
-envFromSecret: ""
+envFromSecrets:
+  # ExternalSecret(grafana-smtp)가 OpenBao에서 SMTP 자격 즑속 주입
+  - name: grafana-smtp
 
 ## Sensible environment variables that will be rendered as new secret object
 ## This can be useful for auth tokens, etc.
@@ -766,7 +768,227 @@ datasources:
 ## ref: https://docs.grafana.com/alerting/set-up/provision-alerting-resources/file-provisioning/
 ##
 alerting:
-  {}
+  policies:
+    policies.yaml:
+      apiVersion: 1
+      policies:
+        - orgId: 1
+          receiver: email-notifications
+          group_by: [grafana_folder, alertname]
+          group_wait: 30s
+          group_interval: 5m
+          repeat_interval: 4h
+  contactPoints:
+    email.yaml:
+      apiVersion: 1
+      contactPoints:
+        - orgId: 1
+          name: email-notifications
+          receivers:
+            - uid: email-notify-1
+              type: email
+              settings:
+                addresses: support@onjitda.com
+                singleEmail: false
+              disableResolveMessage: false
+  rules:
+    platform-health.yaml:
+      apiVersion: 1
+      groups:
+        - orgId: 1
+          name: platform-health
+          folder: Platform Alerts
+          interval: 1m
+          rules:
+            - uid: node-memory-high
+              title: "노드 메모리 > 92% (10분 지속)"
+              condition: C
+              data:
+                - refId: A
+                  relativeTimeRange: {from: 600, to: 0}
+                  datasourceUid: prometheus
+                  model:
+                    editorMode: code
+                    expr: (1 - node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes) * 100 > 92
+                    instant: true
+                    intervalMs: 1000
+                    maxDataPoints: 43200
+                    range: false
+                    refId: A
+                - &greduce
+                  refId: B
+                  datasourceUid: __expr__
+                  model:
+                    conditions:
+                      - evaluator: {params: [], type: gt}
+                        operator: {type: and}
+                        query: {params: [B]}
+                        reducer: {params: [], type: last}
+                        type: query
+                    datasource: {type: __expr__, uid: __expr__}
+                    expression: A
+                    intervalMs: 1000
+                    maxDataPoints: 43200
+                    reducer: last
+                    refId: B
+                    settings: {mode: dropNN}
+                    type: reduce
+                - &gthreshold
+                  refId: C
+                  datasourceUid: __expr__
+                  model:
+                    conditions:
+                      - evaluator: {params: [0], type: gt}
+                        operator: {type: and}
+                        query: {params: [C]}
+                        reducer: {params: [], type: last}
+                        type: query
+                    datasource: {type: __expr__, uid: __expr__}
+                    expression: B
+                    intervalMs: 1000
+                    maxDataPoints: 43200
+                    refId: C
+                    type: threshold
+              for: 10m
+              annotations:
+                summary: "노드 메모리 92% 초과 지속 — 인스턴스는 알림 라벨 참조 (node-02 포화 이력 주의)"
+              labels:
+                severity: warning
+            - uid: node-disk-full
+              title: "노드 루트 디스크 > 90% (30분 지속)"
+              condition: C
+              data:
+                - refId: A
+                  relativeTimeRange: {from: 1800, to: 0}
+                  datasourceUid: prometheus
+                  model:
+                    editorMode: code
+                    expr: (1 - node_filesystem_avail_bytes{mountpoint="/"} / node_filesystem_size_bytes{mountpoint="/"}) * 100 > 90
+                    instant: true
+                    intervalMs: 1000
+                    maxDataPoints: 43200
+                    range: false
+                    refId: A
+                - *greduce
+                - *gthreshold
+              for: 30m
+              annotations:
+                summary: "노드 루트 디스크 사용률 90% 초과"
+              labels:
+                severity: warning
+            - uid: pod-crashloop
+              title: "파드 크래시 루프 (30분간 5회+ 재시작)"
+              condition: C
+              data:
+                - refId: A
+                  relativeTimeRange: {from: 1800, to: 0}
+                  datasourceUid: prometheus
+                  model:
+                    editorMode: code
+                    expr: increase(kube_pod_container_status_restarts_total{namespace!~"kube-system|calico-system|tigera-operator"}[30m]) > 5
+                    instant: true
+                    intervalMs: 1000
+                    maxDataPoints: 43200
+                    range: false
+                    refId: A
+                - *greduce
+                - *gthreshold
+              for: 5m
+              annotations:
+                summary: "파드 반복 재시작 중 — 네임스페이스/파드는 알림 라벨 참조"
+              labels:
+                severity: critical
+            - uid: pod-pending
+              title: "파드 Pending 15분 이상 (스케줄/리소스 문제)"
+              condition: C
+              data:
+                - refId: A
+                  relativeTimeRange: {from: 900, to: 0}
+                  datasourceUid: prometheus
+                  model:
+                    editorMode: code
+                    expr: kube_pod_status_phase{phase="Pending"} == 1
+                    instant: true
+                    intervalMs: 1000
+                    maxDataPoints: 43200
+                    range: false
+                    refId: A
+                - *greduce
+                - *gthreshold
+              for: 15m
+              annotations:
+                summary: "파드 Pending 지속 — 메모리 요청량/노드 여유 확인"
+              labels:
+                severity: warning
+            - uid: component-down
+              title: "관측/캐시 컴포넌트 다운"
+              condition: C
+              data:
+                - refId: A
+                  relativeTimeRange: {from: 300, to: 0}
+                  datasourceUid: prometheus
+                  model:
+                    editorMode: code
+                    expr: up{pod=~".*(loki|alloy|tempo|otel-collector|redis-exporter|postgres-exporter|grafana).*"} == 0
+                    instant: true
+                    intervalMs: 1000
+                    maxDataPoints: 43200
+                    range: false
+                    refId: A
+                - *greduce
+                - *gthreshold
+              for: 3m
+              annotations:
+                summary: "컴포넌트 메트릭 스크레이프 실패 — 파드는 알림 라벨 참조"
+              labels:
+                severity: critical
+            - uid: app-error-logs
+              title: "앱 에러 로그 급증 (namespace별 10분, >3/s)"
+              condition: C
+              data:
+                - refId: A
+                  relativeTimeRange: {from: 600, to: 0}
+                  datasourceUid: loki
+                  model:
+                    editorMode: code
+                    expr: sum by (namespace) (rate({namespace=~"plate-prod|grafana|argocd|redis"} |~ `(?i)error|fatal|exception` [10m])) > 3
+                    instant: true
+                    intervalMs: 1000
+                    maxDataPoints: 43200
+                    queryType: instant
+                    range: false
+                    refId: A
+                - *greduce
+                - *gthreshold
+              for: 10m
+              annotations:
+                summary: "에러 로그 급증 — Loki 대시보드 확인"
+              labels:
+                severity: warning
+extraObjects:
+  # SMTP 자격을 OpenBao(core-api/production)에서 grafana ns로 — 키만 선별 복사
+  - apiVersion: external-secrets.io/v1beta1
+    kind: ExternalSecret
+    metadata:
+      name: grafana-smtp
+      namespace: grafana
+    spec:
+      refreshInterval: 1h
+      secretStoreRef:
+        kind: ClusterSecretStore
+        name: openbao-cluster-store
+      target:
+        name: grafana-smtp
+      data:
+        - secretKey: SMTP_HOST
+          remoteRef: { key: core-api/production, property: SMTP_HOST }
+        - secretKey: SMTP_PORT
+          remoteRef: { key: core-api/production, property: SMTP_PORT }
+        - secretKey: SMTP_USER
+          remoteRef: { key: core-api/production, property: SMTP_USERNAME }
+        - secretKey: SMTP_PASSWORD
+          remoteRef: { key: core-api/production, property: SMTP_PASSWORD }
+
   # policies.yaml:
   #   apiVersion: 1
   #   policies:
@@ -907,6 +1129,14 @@ dashboardProviders:
         editable: true
         options:
           path: /var/lib/grafana/dashboards/logs
+      - name: platform
+        orgId: 1
+        folder: Platform
+        type: file
+        disableDeletion: false
+        editable: true
+        options:
+          path: /var/lib/grafana/dashboards/platform
 
 ## Configure how curl fetches remote dashboards. The beginning dash is required.
 ## NOTE: This sets the default short flags for all dashboards, but these
@@ -946,6 +1176,9 @@ dashboards:
   logs:
     container-logs:
       file: dashboards/container-logs-loki.json
+  platform:
+    platform-overview:
+      file: dashboards/platform-overview.json
 
 ## Reference to external ConfigMap per provider. Use provider name as key and ConfigMap name as value.
 ## A provider dashboards must be defined either by external ConfigMaps or in values.yaml, not in both.
@@ -974,6 +1207,15 @@ grafana.ini:
     mode: console
   grafana_net:
     url: https://grafana.net
+  smtp:
+    # 값은 envFromSecrets(grafana-smtp)에서 $__env{} 확장으로 주입
+    enabled: true
+    host: $__env{SMTP_HOST}:$__env{SMTP_PORT}
+    user: $__env{SMTP_USER}
+    password: $__env{SMTP_PASSWORD}
+    from_address: support@onjitda.com
+    from_name: onjitda 알림
+    skip_verify: false
   server:
     domain: "{{ if (and .Values.ingress.enabled .Values.ingress.hosts) }}{{ tpl (.Values.ingress.hosts | first) . }}{{ else }}''{{ end }}"
 ## grafana Authentication can be enabled with the following values on grafana.ini

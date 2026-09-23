@@ -1,0 +1,47 @@
+# Redis Exporter - Production 환경 ArgoCD Application
+# ns redis (시크릿 redis/redis-password가 해당 ns에 있어 로컬 배치)
+
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: redis-exporter-prod
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+  labels:
+    app.kubernetes.io/name: redis-exporter
+    app.kubernetes.io/instance: production
+    environment: production
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/kimjoongwon/prj-devops.git
+    path: helm/development-tools/redis-exporter
+    targetRevision: main
+    helm:
+      valueFiles:
+        - values.yaml
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: redis
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ApplyOutOfSyncOnly=true
+    retry:
+      limit: 5
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m
+  revisionHistoryLimit: 5
+  info:
+    - name: "Environment"
+      value: "Production"
+    - name: "Description"
+      value: "redis_exporter — redis-master 메트릭 (연결수/메모리/히트율)"

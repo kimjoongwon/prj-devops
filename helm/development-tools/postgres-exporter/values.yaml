@@ -1,0 +1,33 @@
+image:
+  repository: prometheuscommunity/postgres-exporter
+  tag: "v0.17.1"
+  pullPolicy: IfNotPresent
+
+postgres:
+  # plate-db-prod (CloudNativePG 운영 형태는 아니고 plate-db 차트)
+  uri: plate-db-prod.plate-prod.svc.cluster.local:5432/plate_prod?sslmode=disable
+  user: plate_prod
+  # app-env-secrets(OpenBao 동기화)의 DATABASE_PASSWORD 재사용
+  existingSecret: app-env-secrets
+  secretKey: DATABASE_PASSWORD
+
+service:
+  httpPort: 9187
+
+resources:
+  requests:
+    cpu: 20m
+    memory: 32Mi
+  limits:
+    cpu: 100m
+    memory: 128Mi
+
+prometheus:
+  podAnnotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/path: /metrics
+    prometheus.io/port: "9187"
+
+nodeSelector: {}
+tolerations: []
+affinity: {}
