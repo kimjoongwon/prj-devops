@@ -27,7 +27,7 @@ spec:
       # PreSync 훅도 extraEnv(NODE_OPTIONS)를 공유하므로 동일하게 SDK 주입
       initContainers:
         - name: otel-autoinstrumentation
-          image: "otel/autoinstrumentation-nodejs:{{ .Values.otel.imageTag }}"
+          image: "{{ .Values.otel.image }}:{{ .Values.otel.imageTag }}"
           command: ["sh", "-c", "cp -r /autoinstrumentation/. /otel-ai/"]
           volumeMounts:
             - name: otel-ai

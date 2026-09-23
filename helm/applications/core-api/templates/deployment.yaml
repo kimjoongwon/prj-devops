@@ -26,7 +26,7 @@ spec:
       # OTel nodejs 자동계측 — 모듈을 emptyDir로 복사 (NODE_OPTIONS로 로드)
       initContainers:
         - name: otel-autoinstrumentation
-          image: "otel/autoinstrumentation-nodejs:{{ .Values.otel.imageTag }}"
+          image: "{{ .Values.otel.image }}:{{ .Values.otel.imageTag }}"
           command: ["sh", "-c", "cp -r /autoinstrumentation/. /otel-ai/"]
           volumeMounts:
             {{- if and .Values.otel .Values.otel.enabled }}
