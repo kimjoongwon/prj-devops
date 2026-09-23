@@ -966,8 +966,25 @@ alerting:
               labels:
                 severity: warning
 extraObjects:
+  # ns 로컬 SecretStore — ClusterSecretStore(openbao-cluster-store)가 고장("unable
+  # to create client")이라 plate-prod의 동작 패턴(vault v2 + openbao-token)을 복제.
+  # openbao-token 시크릿은 grafana ns에 사본 배포됨(장기 토큰).
+  - apiVersion: external-secrets.io/v1
+    kind: SecretStore
+    metadata:
+      name: openbao-env-grafana
+      namespace: grafana
+    spec:
+      provider:
+        vault:
+          server: http://openbao.openbao.svc.cluster.local:8200
+          path: secret
+          version: v2
+          auth:
+            tokenSecretRef:
+              name: openbao-token
+              key: token
   # SMTP 자격을 OpenBao(core-api/production)에서 grafana ns로 — 키만 선별 복사
-  # (apiVersion v1: 이 클러스터 CRD는 v1beta1을 serve하지 않음)
   - apiVersion: external-secrets.io/v1
     kind: ExternalSecret
     metadata:
@@ -976,8 +993,8 @@ extraObjects:
     spec:
       refreshInterval: 1h
       secretStoreRef:
-        kind: ClusterSecretStore
-        name: openbao-cluster-store
+        kind: SecretStore
+        name: openbao-env-grafana
       target:
         name: grafana-smtp
       data:
