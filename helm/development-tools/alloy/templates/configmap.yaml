@@ -64,7 +64,7 @@ data:
     }
 
     loki.source.file "pod_logs" {
-      targets    = local.file_match.pod_logs.files
+      targets    = local.file_match.pod_logs.targets
       forward_to = [loki.process.pod_logs.receiver]
     }
 
@@ -76,7 +76,6 @@ data:
       stage.labels {
         values = { level = "" }
       }
-      stage.crlf { }
 
       forward_to = [loki.write.default.receiver]
     }
