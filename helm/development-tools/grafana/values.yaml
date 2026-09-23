@@ -967,7 +967,8 @@ alerting:
                 severity: warning
 extraObjects:
   # SMTP 자격을 OpenBao(core-api/production)에서 grafana ns로 — 키만 선별 복사
-  - apiVersion: external-secrets.io/v1beta1
+  # (apiVersion v1: 이 클러스터 CRD는 v1beta1을 serve하지 않음)
+  - apiVersion: external-secrets.io/v1
     kind: ExternalSecret
     metadata:
       name: grafana-smtp
