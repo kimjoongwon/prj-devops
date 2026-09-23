@@ -23,3 +23,18 @@ appSecrets:
 extraEnv:
   - name: OTEL_SERVICE_NAME
     value: idp-web-prod
+  - name: NODE_OPTIONS
+    value: "--require /otel-ai/autoinstrumentation.js"
+  - name: OTEL_EXPORTER_OTLP_ENDPOINT
+    value: "http://otel-collector.grafana.svc.cluster.local:4317"
+  - name: OTEL_EXPORTER_OTLP_PROTOCOL
+    value: "grpc"
+  - name: OTEL_TRACES_SAMPLER
+    value: "parentbased_traceidratio"
+  - name: OTEL_TRACES_SAMPLER_ARG
+    value: "1.0"
+
+# OTel nodejs 자동계측 주입 (init container로 SDK 탑재, NODE_OPTIONS로 로드)
+otel:
+  enabled: true
+  imageTag: "0.78.0"

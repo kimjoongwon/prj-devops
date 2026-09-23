@@ -28,6 +28,16 @@ appSecrets:
 extraEnv:
   - name: OTEL_SERVICE_NAME
     value: core-api-prod
+  - name: NODE_OPTIONS
+    value: "--require /otel-ai/autoinstrumentation.js"
+  - name: OTEL_EXPORTER_OTLP_ENDPOINT
+    value: "http://otel-collector.grafana.svc.cluster.local:4317"
+  - name: OTEL_EXPORTER_OTLP_PROTOCOL
+    value: "grpc"
+  - name: OTEL_TRACES_SAMPLER
+    value: "parentbased_traceidratio"
+  - name: OTEL_TRACES_SAMPLER_ARG
+    value: "1.0"
   # app-env-secrets(OpenBao 동기화)에 없는 필수값 보충 — 포트/URL은 민감하지 않음
   - name: REDIS_PORT
     value: "6379"
@@ -50,3 +60,8 @@ extraEnv:
   # ingress 뒤 1홉 (runtime-security: prod에서 필수, 0 이상 정수)
   - name: TRUST_PROXY_HOPS
     value: "1"
+
+# OTel nodejs 자동계측 주입 (init container로 SDK 탑재, NODE_OPTIONS로 로드)
+otel:
+  enabled: true
+  imageTag: "0.78.0"

@@ -43,6 +43,21 @@ extraEnv:
     value: https://onjitda.com
   - name: OTEL_SERVICE_NAME
     value: idp-api-prod
+  - name: NODE_OPTIONS
+    value: "--require /otel-ai/autoinstrumentation.js"
+  - name: OTEL_EXPORTER_OTLP_ENDPOINT
+    value: "http://otel-collector.grafana.svc.cluster.local:4317"
+  - name: OTEL_EXPORTER_OTLP_PROTOCOL
+    value: "grpc"
+  - name: OTEL_TRACES_SAMPLER
+    value: "parentbased_traceidratio"
+  - name: OTEL_TRACES_SAMPLER_ARG
+    value: "1.0"
   # 브라우저 호출 허용 출처 (runtime-security: https 절대 URL 콤마 목록, 와일드카드 금지)
   - name: CORS_ALLOWED_ORIGINS
     value: https://www.onjitda.com,https://onjitda.com,https://idp.onjitda.com
+
+# OTel nodejs 자동계측 주입 (init container로 SDK 탑재, NODE_OPTIONS로 로드)
+otel:
+  enabled: true
+  imageTag: "0.78.0"

@@ -22,6 +22,16 @@ spec:
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
+      {{- if and .Values.otel .Values.otel.enabled }}
+      # OTel nodejs 자동계측 — 모듈을 emptyDir로 복사 (NODE_OPTIONS로 로드)
+      initContainers:
+        - name: otel-autoinstrumentation
+          image: "otel/autoinstrumentation-nodejs:{{ .Values.otel.imageTag }}"
+          command: ["sh", "-c", "cp -r /autoinstrumentation/. /otel-ai/"]
+          volumeMounts:
+            - name: otel-ai
+              mountPath: /otel-ai
+      {{- end }}
       containers:
         - name: {{ include "admin-web.name" . }}
           image: "{{ index .Values "admin-web" "image" "repository" }}:{{ index .Values "admin-web" "image" "tag" | default .Chart.AppVersion }}"
@@ -43,3 +53,9 @@ spec:
           {{- end }}
           resources:
             {{- toYaml (index .Values "admin-web" "resources") | nindent 12 }}
+
+      {{- if and .Values.otel .Values.otel.enabled }}
+      volumes:
+        - name: otel-ai
+          emptyDir: {}
+      {{- end }}
