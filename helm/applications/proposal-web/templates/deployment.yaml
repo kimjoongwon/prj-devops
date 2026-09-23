@@ -29,6 +29,10 @@ spec:
           image: "otel/autoinstrumentation-nodejs:{{ .Values.otel.imageTag }}"
           command: ["sh", "-c", "cp -r /autoinstrumentation/. /otel-ai/"]
           volumeMounts:
+            {{- if and .Values.otel .Values.otel.enabled }}
+            - name: otel-ai
+              mountPath: /otel-ai
+            {{- end }}
             - name: otel-ai
               mountPath: /otel-ai
       {{- end }}
