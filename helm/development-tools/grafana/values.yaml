@@ -1951,7 +1951,7 @@ enableKubeBackwardCompatibility: false
 useStatefulSet: false
 
 # extraObjects could be utilized to add dynamic manifests via values
-extraObjects: []
+# (실제 정의는 파일 상단 alerting 섹션 뒤에 위치 — 이 중복 키 제거됨)
 # Examples:
 # extraObjects:
 # - apiVersion: kubernetes-client.io/v1
