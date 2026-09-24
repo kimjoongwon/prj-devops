@@ -64,8 +64,9 @@ service:
   port: 1234
 
 resources:
+  # idle 실사용 ~70Mi. request는 스케줄링 예약일 뿐이라 빌드 버스트는 limit(4Gi)이 지킴
   requests:
-    memory: 2Gi
+    memory: 256Mi
   limits:
     memory: 4Gi
 

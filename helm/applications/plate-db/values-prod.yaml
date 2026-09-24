@@ -4,13 +4,14 @@ postgresql:
   database: plate_prod
   username: plate_prod
 
-  resources:
-    limits:
-      cpu: 1000m
-      memory: 2Gi
-    requests:
-      cpu: 500m
-      memory: 1Gi
+resources:
+  limits:
+    cpu: 1000m
+    memory: 2Gi
+  # idle 실사용 ~60Mi(피크 여유 포함 512Mi). limit 2Gi는 유지해 버스트 흡수
+  requests:
+    cpu: 500m
+    memory: 512Mi
 
 persistence:
   size: 20Gi
