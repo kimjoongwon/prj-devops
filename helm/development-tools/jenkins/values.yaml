@@ -278,7 +278,8 @@ controller:
 
     livenessProbe:
       # -- Set the failure threshold for the liveness probe
-      failureThreshold: 5
+      # 노드 포화 시 프로브 타임아웃이 연속 실패해 재시작 직전까지 갔던 사고 방지 — 여유 있게 상향
+      failureThreshold: 8
       httpGet:
         # -- Set the Pod's HTTP path for the liveness probe
         path: '{{ default "" .Values.controller.jenkinsUriPrefix }}/login'
@@ -287,7 +288,7 @@ controller:
       # -- Set the time interval between two liveness probes executions in seconds
       periodSeconds: 10
       # -- Set the timeout for the liveness probe in seconds
-      timeoutSeconds: 5
+      timeoutSeconds: 10
 
       # If Startup Probe is not supported on your Kubernetes cluster, you might want to use "initialDelaySeconds" instead.
       # It delays the initial liveness probe while Jenkins is starting
@@ -296,16 +297,16 @@ controller:
 
     readinessProbe:
       # -- Set the failure threshold for the readiness probe
-      failureThreshold: 3
+      failureThreshold: 5
       httpGet:
         # -- Set the Pod's HTTP path for the liveness probe
         path: '{{ default "" .Values.controller.jenkinsUriPrefix }}/login'
-        # -- Set the Pod's HTTP port to use for the readiness probe
+        # -- Set the Pod's HTTP port to use for the liveness probe
         port: http
       # -- Set the time interval between two readiness probes executions in seconds
       periodSeconds: 10
       # -- Set the timeout for the readiness probe in seconds
-      timeoutSeconds: 5
+      timeoutSeconds: 10
 
       # If Startup Probe is not supported on your Kubernetes cluster, you might want to use "initialDelaySeconds" instead.
       # It delays the initial readiness probe while Jenkins is starting
@@ -1135,7 +1136,8 @@ agent:
   # -- Allocate pseudo tty to the side container
   TTYEnabled: false
   # -- Max number of agents to launch for a whole cluster.
-  containerCap: 10
+  # node-02(4C/12GB)에 빌드가 몰리므로 동시 빌드 2개로 제한 — 무제한이면 노드 포화로 NotReady 재발
+  containerCap: 2
   # -- Max number of agents to launch for this type of agent
   instanceCap: 2147483647
   # -- Agent Pod base name
