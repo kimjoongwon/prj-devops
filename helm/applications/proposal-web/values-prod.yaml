@@ -7,7 +7,7 @@ replicaCount: 1
 proposal-web:
   image:
     repository: harbor.onjitda.com/prod/proposal-web
-    tag: "840041d38a5d"
+    tag: "5bbb5e3e8a9f"
     pullPolicy: IfNotPresent # Production은 캐시된 이미지 사용
   port: 3011
   resources:
