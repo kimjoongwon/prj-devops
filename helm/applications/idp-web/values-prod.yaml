@@ -1,11 +1,10 @@
 # Production environment values for IDP Web
 
 replicaCount: 1
-
 idp-web:
   image:
     repository: harbor.onjitda.com/prod/idp-web
-    tag: "7"
+    tag: "1cd72dbaaae0"
     pullPolicy: IfNotPresent
   port: 3008
   resources:
@@ -15,11 +14,9 @@ idp-web:
     requests:
       cpu: 100m
       memory: 256Mi
-
 appSecrets:
   enabled: true
   secretName: idp-web-env-secrets
-
 extraEnv:
   - name: OTEL_SERVICE_NAME
     value: idp-web-prod
@@ -33,7 +30,6 @@ extraEnv:
     value: "parentbased_traceidratio"
   - name: OTEL_TRACES_SAMPLER_ARG
     value: "1.0"
-
 # OTel nodejs 자동계측 주입 (init container로 SDK 탑재, NODE_OPTIONS로 로드)
 otel:
   enabled: true
