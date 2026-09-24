@@ -7,7 +7,7 @@ replicaCount: 1
 core-api:
   image:
     repository: harbor.onjitda.com/prod/core-api
-    tag: "1cd72dbaaae0"
+    tag: "5bbb5e3e8a9f"
     pullPolicy: Always
   port: 3006
   resources:
