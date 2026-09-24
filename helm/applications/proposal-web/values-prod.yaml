@@ -2,14 +2,13 @@
 # Override from values.yaml for production environment
 
 replicaCount: 1
-
 # Production 이미지 저장소 (Harbor registry)
 # 이미지 규칙: harbor.onjitda.com/{환경}/{앱이름}
 proposal-web:
   image:
     repository: harbor.onjitda.com/prod/proposal-web
-    tag: "20"
-    pullPolicy: IfNotPresent  # Production은 캐시된 이미지 사용
+    tag: "840041d38a5d"
+    pullPolicy: IfNotPresent # Production은 캐시된 이미지 사용
   port: 3011
   resources:
     limits:
@@ -18,11 +17,9 @@ proposal-web:
     requests:
       cpu: 100m
       memory: 256Mi
-
 appSecrets:
   enabled: false
   secretName: ""
-
 extraEnv:
   - name: OTEL_SERVICE_NAME
     value: proposal-web-prod
@@ -36,7 +33,6 @@ extraEnv:
     value: "parentbased_traceidratio"
   - name: OTEL_TRACES_SAMPLER_ARG
     value: "1.0"
-
 # OTel nodejs 자동계측 주입 (init container로 SDK 탑재, NODE_OPTIONS로 로드)
 otel:
   enabled: true
