@@ -1,11 +1,10 @@
 # Production environment values for IDP API
 
 replicaCount: 1
-
 idp-api:
   image:
     repository: harbor.onjitda.com/prod/idp-api
-    tag: "14"
+    tag: "840041d38a5d"
     pullPolicy: IfNotPresent
   port: 3007
   resources:
@@ -15,11 +14,9 @@ idp-api:
     requests:
       cpu: 200m
       memory: 512Mi
-
 appSecrets:
   enabled: true
   secretName: idp-api-env-secrets
-
 command:
   - sh
   - -c
@@ -29,7 +26,6 @@ command:
     # 러너는 마이그레이션·앱 모두 워크스페이스 구조(/app/apps)로 실행한다
     exec node apps/idp/api/dist/main.js
 args: []
-
 extraEnv:
   - name: APP_NAME
     value: idp
@@ -56,7 +52,6 @@ extraEnv:
   # 브라우저 호출 허용 출처 (runtime-security: https 절대 URL 콤마 목록, 와일드카드 금지)
   - name: CORS_ALLOWED_ORIGINS
     value: https://www.onjitda.com,https://onjitda.com,https://idp.onjitda.com
-
 # OTel nodejs 자동계측 주입 (init container로 SDK 탑재, NODE_OPTIONS로 로드)
 otel:
   enabled: true
