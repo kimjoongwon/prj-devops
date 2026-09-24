@@ -2,13 +2,12 @@
 # Override from values.yaml for production environment
 
 replicaCount: 1
-
 # Production 이미지 저장소 (Harbor registry)
 # 이미지 규칙: harbor.onjitda.com/{환경}/{앱이름}
 core-api:
   image:
     repository: harbor.onjitda.com/prod/core-api
-    tag: "5"
+    tag: "1cd72dbaaae0"
     pullPolicy: Always
   port: 3006
   resources:
@@ -18,12 +17,10 @@ core-api:
     requests:
       cpu: 250m
       memory: 512Mi
-
 # Production 환경 시크릿
 appSecrets:
   enabled: true
   secretName: app-env-secrets
-
 # 서비스별 APM 식별자와 신규 runtime-security 계약 환경변수
 extraEnv:
   - name: OTEL_SERVICE_NAME
@@ -60,7 +57,6 @@ extraEnv:
   # ingress 뒤 1홉 (runtime-security: prod에서 필수, 0 이상 정수)
   - name: TRUST_PROXY_HOPS
     value: "1"
-
 # OTel nodejs 자동계측 주입 (init container로 SDK 탑재, NODE_OPTIONS로 로드)
 otel:
   enabled: true
