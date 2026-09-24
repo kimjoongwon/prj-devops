@@ -4,7 +4,7 @@ replicaCount: 1
 idp-api:
   image:
     repository: harbor.onjitda.com/prod/idp-api
-    tag: "518b17b1bb6f"
+    tag: "95644d7355b4"
     pullPolicy: IfNotPresent
   port: 3007
   resources:
