@@ -2,14 +2,13 @@
 # Override from values.yaml for production environment
 
 replicaCount: 1
-
 # Production 이미지 저장소 (Harbor registry)
 # 이미지 규칙: harbor.onjitda.com/{환경}/{앱이름}
 admin-web:
   image:
     repository: harbor.onjitda.com/prod/admin-web
-    tag: "10"
-    pullPolicy: IfNotPresent  # Production은 캐시된 이미지 사용
+    tag: "840041d38a5d"
+    pullPolicy: IfNotPresent # Production은 캐시된 이미지 사용
   port: 3000
   resources:
     limits:
@@ -18,12 +17,10 @@ admin-web:
     requests:
       cpu: 200m
       memory: 256Mi
-
 # Production 환경 시크릿
 appSecrets:
   enabled: true
   secretName: app-env-secrets
-
 extraEnv:
   - name: CORE_API_INTERNAL_URL
     value: http://core-api-prod:3006
@@ -41,7 +38,6 @@ extraEnv:
     value: "parentbased_traceidratio"
   - name: OTEL_TRACES_SAMPLER_ARG
     value: "1.0"
-
 # OTel nodejs 자동계측 주입 (init container로 SDK 탑재, NODE_OPTIONS로 로드)
 otel:
   enabled: true
