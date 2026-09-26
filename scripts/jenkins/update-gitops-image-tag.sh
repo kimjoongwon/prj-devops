@@ -1,8 +1,10 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Update prj-devops Helm values image tag for a specific app, commit, and optionally push.
+# Update the app's image tag in prj-deploy (배포 상태 저장소), commit, and optionally push.
 # Intended to be called from Jenkins after Harbor image push succeeds.
+# NOTE: 이 스크립트는 prj-devops에 있지만 수정 대상은 prj-deploy다 —
+# --workdir에는 prj-deploy 체크아웃을 넘겨야 한다 (Jenkins 파이프라인 참조).
 #
 # Requires mikefarah yq v4.18+ (python yq is NOT supported):
 #   https://github.com/mikefarah/yq
@@ -12,7 +14,7 @@ SCRIPT_NAME="$(basename "$0")"
 APP_NAME="${APP_NAME:-}"
 IMAGE_TAG="${IMAGE_TAG:-}"
 DEPLOY_ENV="${DEPLOY_ENV:-${ENV:-prod}}"
-REPO_URL="${REPO_URL:-https://github.com/kimjoongwon/prj-devops.git}"
+REPO_URL="${REPO_URL:-https://github.com/kimjoongwon/prj-deploy.git}"
 TARGET_BRANCH="${TARGET_BRANCH:-main}"
 GIT_USER_NAME="${GIT_USER_NAME:-jenkins-bot}"
 GIT_USER_EMAIL="${GIT_USER_EMAIL:-jenkins-bot@local}"
@@ -156,27 +158,27 @@ esac
 
 case "${APP_NAME}" in
   idp-api)
-    VALUES_REL_PATH="helm/applications/idp-api/values-prod.yaml"
+    VALUES_REL_PATH="prod/idp-api.yaml"
     APP_YAML_KEY="idp-api"
     ;;
   idp-web)
-    VALUES_REL_PATH="helm/applications/idp-web/values-prod.yaml"
+    VALUES_REL_PATH="prod/idp-web.yaml"
     APP_YAML_KEY="idp-web"
     ;;
   core-api)
-    VALUES_REL_PATH="helm/applications/core-api/values-prod.yaml"
+    VALUES_REL_PATH="prod/core-api.yaml"
     APP_YAML_KEY="core-api"
     ;;
   admin-web)
-    VALUES_REL_PATH="helm/applications/admin-web/values-prod.yaml"
+    VALUES_REL_PATH="prod/admin-web.yaml"
     APP_YAML_KEY="admin-web"
     ;;
   proposal-web)
-    VALUES_REL_PATH="helm/applications/proposal-web/values-prod.yaml"
+    VALUES_REL_PATH="prod/proposal-web.yaml"
     APP_YAML_KEY="proposal-web"
     ;;
   tool-storybook)
-    VALUES_REL_PATH="helm/applications/tool-storybook/values-prod.yaml"
+    VALUES_REL_PATH="prod/tool-storybook.yaml"
     APP_YAML_KEY="tool-storybook"
     ;;
   *)
@@ -197,7 +199,7 @@ if [[ -n "${WORKDIR}" ]]; then
   [[ -d "${REPO_DIR}/.git" ]] || fail "WORKDIR does not look like a git checkout: ${REPO_DIR}"
 else
   TMP_DIR="$(mktemp -d)"
-  REPO_DIR="${TMP_DIR}/prj-devops"
+  REPO_DIR="${TMP_DIR}/prj-deploy"
   log "Cloning ${REPO_URL} (${TARGET_BRANCH})"
   git clone --depth 1 --branch "${TARGET_BRANCH}" "${REPO_URL}" "${REPO_DIR}" >/dev/null
 fi

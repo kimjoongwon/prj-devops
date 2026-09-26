@@ -4,7 +4,7 @@ replicaCount: 1
 idp-api:
   image:
     repository: harbor.onjitda.com/prod/idp-api
-    tag: "95644d7355b4"
+    # 이미지 태그는 prj-deploy prod/idp-api.yaml 에서 관리 (ArgoCD multi-source)
     pullPolicy: IfNotPresent
   port: 3007
   resources:

@@ -5,7 +5,7 @@ replicaCount: 1
 tool-storybook:
   image:
     repository: harbor.onjitda.com/prod/tool-storybook
-    tag: "22"
+    # 이미지 태그는 prj-deploy prod/tool-storybook.yaml 에서 관리 (ArgoCD multi-source)
     pullPolicy: IfNotPresent
   port: 3009
   resources:

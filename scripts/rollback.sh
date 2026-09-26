@@ -1,9 +1,11 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Roll back an application image by reverting its latest gitops image-bump commits.
+# Roll back an application image by reverting its latest gitops image-bump commits
+# in prj-deploy (배포 상태 저장소).
 # Finds "ci(gitops): bump <app> image to <tag>" commits on the target branch,
 # reverts them (newest first), and pushes so ArgoCD redeploys the previous image.
+# NOTE: 이 스크립트는 prj-devops에 있지만 revert 대상은 prj-deploy다.
 #
 # Usage: ./scripts/rollback.sh --app core-api [--steps 1] [--dry-run] [--skip-push]
 #
@@ -13,7 +15,7 @@ SCRIPT_NAME="$(basename "$0")"
 
 APP_NAME="${APP_NAME:-}"
 STEPS="${STEPS:-1}"
-REPO_URL="${REPO_URL:-https://github.com/kimjoongwon/prj-devops.git}"
+REPO_URL="${REPO_URL:-https://github.com/kimjoongwon/prj-deploy.git}"
 TARGET_BRANCH="${TARGET_BRANCH:-main}"
 GIT_USER_NAME="${GIT_USER_NAME:-gitops-rollback}"
 GIT_USER_EMAIL="${GIT_USER_EMAIL:-gitops-rollback@local}"
@@ -154,27 +156,27 @@ require_yq
 
 case "${APP_NAME}" in
   idp-api)
-    VALUES_REL_PATH="helm/applications/idp-api/values-prod.yaml"
+    VALUES_REL_PATH="prod/idp-api.yaml"
     APP_YAML_KEY="idp-api"
     ;;
   idp-web)
-    VALUES_REL_PATH="helm/applications/idp-web/values-prod.yaml"
+    VALUES_REL_PATH="prod/idp-web.yaml"
     APP_YAML_KEY="idp-web"
     ;;
   core-api)
-    VALUES_REL_PATH="helm/applications/core-api/values-prod.yaml"
+    VALUES_REL_PATH="prod/core-api.yaml"
     APP_YAML_KEY="core-api"
     ;;
   admin-web)
-    VALUES_REL_PATH="helm/applications/admin-web/values-prod.yaml"
+    VALUES_REL_PATH="prod/admin-web.yaml"
     APP_YAML_KEY="admin-web"
     ;;
   proposal-web)
-    VALUES_REL_PATH="helm/applications/proposal-web/values-prod.yaml"
+    VALUES_REL_PATH="prod/proposal-web.yaml"
     APP_YAML_KEY="proposal-web"
     ;;
   tool-storybook)
-    VALUES_REL_PATH="helm/applications/tool-storybook/values-prod.yaml"
+    VALUES_REL_PATH="prod/tool-storybook.yaml"
     APP_YAML_KEY="tool-storybook"
     ;;
   *)
@@ -195,7 +197,7 @@ if [[ -n "${WORKDIR}" ]]; then
   [[ -d "${REPO_DIR}/.git" ]] || fail "WORKDIR does not look like a git checkout: ${REPO_DIR}"
 else
   TMP_DIR="$(mktemp -d)"
-  REPO_DIR="${TMP_DIR}/prj-devops"
+  REPO_DIR="${TMP_DIR}/prj-deploy"
   log "Cloning ${REPO_URL} (${TARGET_BRANCH})"
   git clone --depth 50 --branch "${TARGET_BRANCH}" "${REPO_URL}" "${REPO_DIR}" >/dev/null
 fi

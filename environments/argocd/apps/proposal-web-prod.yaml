@@ -14,14 +14,19 @@ metadata:
 spec:
   project: default
 
-  # Git 소스 설정
-  source:
-    repoURL: https://github.com/kimjoongwon/prj-devops.git
-    path: helm/applications/proposal-web
-    targetRevision: main
-    helm:
-      valueFiles:
-        - values-prod.yaml
+  # Git 소스 설정 (multi-source: 차트·환경설정은 prj-devops, 배포 상태(이미지 태그)는 prj-deploy)
+  sources:
+    - repoURL: https://github.com/kimjoongwon/prj-devops.git
+      path: helm/applications/proposal-web
+      targetRevision: main
+      helm:
+        valueFiles:
+          - values-prod.yaml
+          # 태그는 prj-deploy의 배포 상태 파일이 덮어씀 (뒤에 오는 valueFiles가 이김)
+          - "$values/prod/proposal-web.yaml"
+    - repoURL: https://github.com/kimjoongwon/prj-deploy.git
+      targetRevision: main
+      ref: values
 
   # 배포 대상 클러스터 및 네임스페이스
   destination:
