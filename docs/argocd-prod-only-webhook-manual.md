@@ -4,6 +4,11 @@
 - ArgoCD App of Apps를 `prod only`로 운영
 - Git `push` 직후 ArgoCD가 즉시 변경을 감지하도록 GitHub Webhook 구성
 
+## 2026-09-27 현황 (시크릿 적용 완료)
+- 웹훅 시크릿이 실제 적용됨: `argocd-secret`의 `webhook.github.secret` + 두 저장소 훅(prj-devops, prj-deploy)이 동일 시크릿으로 서명 검증 중(핑·push 전달 200 확인)
+- prj-devops 훅은 `https://argocd.onjitda.com/api/webhook` — 현재 200 전달됨(2026-09-27 확인, §6의 302 이슈는 재발하지 않는 상태). prj-deploy 훅은 우회 경로 `https://onjitda.com/api/webhook`
+- **주의**: 시크릿을 공개 레포에 넣을 수 없어 라이브 패치로만 반영함 — ArgoCD helm upgrade 시 반드시 §3의 `--set-string configs.secret.githubSecret=$(kubectl -n argocd get secret argocd-secret -o go-template='{{index .data "webhook.github.secret"}}' | base64 --decode)`를 붙여야 웹훅이 깨지지 않음
+
 ## 비용 관련
 - GitHub Webhook 자체는 별도 과금되지 않습니다.
 
