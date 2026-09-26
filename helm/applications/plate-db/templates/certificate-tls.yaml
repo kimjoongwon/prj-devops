@@ -7,6 +7,9 @@ metadata:
     {{- include "plate-db.labels" . | nindent 4 }}
 spec:
   secretName: {{ .Values.tls.secretName }}
+  # cert-manager v1.16+는 commonName 미지정 시 subject DN을 비운 인증서를 발급하고,
+  # Java(JDBC/DataGrip)는 issuer DN이 빈 인증서를 TLS 핸드셰이크에서 파싱하지 못한다(08006 bad_certificate).
+  commonName: {{ include "plate-db.name" . }}
   issuerRef:
     name: {{ include "plate-db.tlsIssuerName" . }}
     kind: Issuer
