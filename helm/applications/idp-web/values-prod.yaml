@@ -4,7 +4,7 @@ replicaCount: 1
 idp-web:
   image:
     repository: harbor.onjitda.com/prod/idp-web
-    tag: "5bbb5e3e8a9f"
+    tag: "11762ded2707"
     pullPolicy: IfNotPresent
   port: 3008
   resources:
