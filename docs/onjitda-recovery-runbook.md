@@ -284,6 +284,7 @@ rm ~/Library/LaunchAgents/com.onjitda.k8s-api-tunnel.plist
   백업: 관리 PC ~/plate_prod_backup_20260919.sql
 - 시드 부트스트랩 환경변수(LOCAL_BOOTSTRAP_ADMIN_*)는 OpenBao
   secret/idp-api/production 에 등록되어 있어 재구축 시 자동 시드된다.
-- GitOps 태그 bump는 Jenkins bump 잡 대신 스크립트 직접 실행으로 대체 가능:
+- GitOps 태그 bump는 Jenkins bump 잡 대신 스크립트 직접 실행으로 대체 가능
+  (스크립트는 prj-devops에 있고, 커밋은 prj-deploy prod/<앱>.yaml에 남는다):
   bash scripts/jenkins/update-gitops-image-tag.sh --app <앱> --tag <번호> \
     --git-user-name jenkins-bot --git-user-email jenkins-bot@onjitda.com

@@ -524,7 +524,7 @@ controller:
         jobs:
           - script: >
               pipelineJob('gitops-prod-image-bump') {
-                description('Updates prj-devops values-prod.yaml image tags after Harbor push completes.')
+                description('Updates prj-deploy prod/<app>.yaml image tags after Harbor push completes.')
                 definition {
                   cpsScm {
                     lightweight(true)

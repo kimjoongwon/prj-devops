@@ -146,7 +146,7 @@ prj-devops/
     ├── verify-harbor-auth.sh     # Harbor 인증 검증
     ├── migrate-images-to-harbor.sh  # Harbor 이미지 마이그레이션
     ├── jenkins/                  # Jenkins 연계 스크립트
-    │   ├── update-gitops-image-tag.sh  # values-prod.yaml 이미지 태그 범프 (yq)
+    │   ├── update-gitops-image-tag.sh  # prj-deploy prod/<앱>.yaml 이미지 태그 범프 (yq)
     │   ├── Jenkinsfile.gitops-prod-example.groovy  # 파이프라인 예시
     │   └── cleanup-container-builder.sh
     └── openbao/                  # OpenBao 관리 스크립트
@@ -382,11 +382,11 @@ OpenBao 경로 원칙:
 
 - 관리 원칙:
   - 각 애플리케이션 차트는 서비스 운영 모드에 맞는 values 파일을 보관합니다 (`values-stg.yaml`, `values-prod.yaml` 또는 단일 `values.yaml`)
-  - ArgoCD Application은 차트 경로(`helm/applications/<서비스>`)와 해당 환경 values만 지정하여 배포합니다
+  - ArgoCD Application은 multi-source로 배포합니다 — 차트 경로(`helm/applications/<서비스>`)와 환경 values는 이 저장소(prj-devops)에서, 이미지 태그는 **prj-deploy**의 `$values/prod/<앱>.yaml`에서 읽습니다 (2026-09-27 분리)
 - 변경 절차:
   - 스테이징: `values-stg.yaml` 수정 → PR/리뷰 → ArgoCD 동기화로 적용 → 검증
   - 프로덕션: 검증 완료 후 `values-prod.yaml` 반영 → ArgoCD 동기화로 적용
-  - CI 자동 반영: Jenkins 빌드/Harbor push 성공 → `scripts/jenkins/update-gitops-image-tag.sh`(yq 기반)로 `values-prod.yaml` 태그 자동 커밋/푸시
+  - CI 자동 반영: Jenkins 빌드/Harbor push 성공 → `scripts/jenkins/update-gitops-image-tag.sh`(yq 기반)가 **prj-deploy** `prod/<앱>.yaml`에 태그 자동 커밋/푸시 (범프 커밋이 이 저장소 히스토리를 오염시키지 않으며, 배포 기록은 prj-deploy의 git log가 담당)
   - 이미지 태그 컨벤션: 빌드 커밋 **SHA 앞 12자** (immutable, Git 커밋과 1:1 추적). 범프 스크립트는 yq 기반이며 에이전트에 yq가 없으면 `scripts/jenkins/install-yq.sh`가 핀된 버전을 자동 설치
   - Jenkins의 `gitops-prod-image-bump` 잡은 `helm/development-tools/jenkins/values.yaml` 의 `JCasC + Job DSL`로 형상 관리
   - 템플릿(templates/\*.yaml) 변경 시 반드시 린트/렌더 확인 수행
@@ -395,7 +395,7 @@ OpenBao 경로 원칙:
   - 렌더 확인(스테이징): `helm template helm/applications/<서비스> -f helm/applications/<서비스>/values-stg.yaml`
   - 렌더 확인(프로덕션): `helm template helm/applications/<서비스> -f helm/applications/<서비스>/values-prod.yaml`
 - 롤백:
-  - 앱 이미지 롤백: `./scripts/rollback.sh --app <앱명>` — 최신 bump 커밋(`ci(gitops): bump ...`)을 revert+push, ArgoCD가 자동 재배포 (먼저 `--dry-run`으로 결과 확인 권장)
+  - 앱 이미지 롤백: `./scripts/rollback.sh --app <앱명>` — prj-deploy의 최신 bump 커밋(`ci(gitops): bump ...`)을 revert+push, ArgoCD가 자동 재배포 (먼저 `--dry-run`으로 결과 확인 권장)
   - 그 외 변경: Git에서 이전 커밋으로 되돌린 뒤 ArgoCD 재동기화(실제 상태는 Git이 단일 진실 원천)
 
 ### deploy-stg.sh

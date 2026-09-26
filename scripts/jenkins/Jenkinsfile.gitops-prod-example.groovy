@@ -1,4 +1,5 @@
 // GitOps 이미지 태그 범프 파이프라인 예시
+// 구조(2026-09-27~): 스크립트는 prj-devops, 범프 커밋은 prj-deploy(배포 상태 전용 저장소)에 남긴다.
 //
 // 태그 컨벤션: 이미지 태그는 빌드 커밋의 SHA 앞 12자(GIT_COMMIT 기반)를 사용한다.
 // SHA 태그는 immutable하므로 Git 커밋과 이미지가 1:1로 추적되고,
@@ -11,8 +12,8 @@ pipeline {
   parameters {
     choice(
       name: 'APP_NAME',
-      choices: ['idp-api', 'idp-web', 'core-api', 'admin-web', 'proposal-web'],
-      description: 'GitOps values-prod.yaml image.tag를 갱신할 앱 이름'
+      choices: ['idp-api', 'idp-web', 'core-api', 'admin-web', 'proposal-web', 'tool-storybook'],
+      description: 'prj-deploy prod/<앱>.yaml 의 image.tag를 갱신할 앱 이름'
     )
     string(
       name: 'IMAGE_TAG',
@@ -23,9 +24,11 @@ pipeline {
 
   environment {
     DEPLOY_ENV = 'prod'
-    GITOPS_REPO = 'https://github.com/kimjoongwon/prj-devops.git'
+    GITOPS_REPO = 'https://github.com/kimjoongwon/prj-devops.git'   // 범프 스크립트 소스
+    DEPLOY_REPO = 'https://github.com/kimjoongwon/prj-deploy.git'   // 범프 커밋 대상 (배포 상태)
     GITOPS_BRANCH = 'main'
     GITOPS_DIR = 'prj-devops-gitops'
+    DEPLOY_DIR = 'prj-deploy-gitops'
   }
 
   stages {
@@ -62,16 +65,19 @@ pipeline {
               TAG="$(echo "${GIT_COMMIT}" | cut -c1-12)"
             fi
 
-            rm -rf "${GITOPS_DIR}"
+            rm -rf "${GITOPS_DIR}" "${DEPLOY_DIR}"
             git clone --branch "${GITOPS_BRANCH}" \
               "https://${GITHUB_TOKEN}@github.com/kimjoongwon/prj-devops.git" \
               "${GITOPS_DIR}"
+            git clone --branch "${GITOPS_BRANCH}" \
+              "https://${GITHUB_TOKEN}@github.com/kimjoongwon/prj-deploy.git" \
+              "${DEPLOY_DIR}"
 
             "${GITOPS_DIR}/scripts/jenkins/update-gitops-image-tag.sh" \
               --app "${APP_NAME}" \
               --tag "${TAG}" \
               --env "${DEPLOY_ENV}" \
-              --workdir "${PWD}/${GITOPS_DIR}" \
+              --workdir "${PWD}/${DEPLOY_DIR}" \
               --branch "${GITOPS_BRANCH}" \
               --git-user-name "jenkins-bot" \
               --git-user-email "jenkins-bot@onjitda.com" \
