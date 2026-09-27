@@ -14,30 +14,26 @@ GitOps 기반의 Kubernetes 배포 인프라로, Helm과 ArgoCD를 활용한 선
 - **보안 강화**: OpenBao 시크릿 관리 및 Harbor 프라이빗 레지스트리
 - **표준화된 구조**: 통일된 Helm 차트 패턴 및 명명 규칙
 
-## 📌 현재 운영 모드 (2026-03-17)
+## 📌 현재 운영 모드 (2026-09-27)
 
 - **도메인: 2026-09-18부터 `onjitda.com` (Cloudflare Tunnel)로 전환** 완료. 구 도메인(cocdev.co.kr)은 만료 전이라도 미해석 상태이며 전환 기간 없음. 복구/운영 절차: `docs/onjitda-recovery-runbook.md`
 - Production Parent Application: `frontend-web-apps` (`argocd` namespace)
 - Staging 매니페스트는 `environments/argocd/apps/*-stg.yaml`에만 유지하며, 별도 Parent Application은 운영하지 않습니다.
 - Git 경로: `environments/argocd/apps`
 - Production 모드: `prod only` (`environments/argocd/app-of-apps.yaml`)
-- 변경 감지: GitHub Webhook + 폴링(`timeout.reconciliation: 60s`, 웹훅 끊김 시 감지 지연 상한)
+- **이미지 태그: prj-deploy 저장소로 분리 (2026-09-27)** — 각 앱 Application은 multi-source로 차트·values는 이 저장소에서, 이미지 태그는 prj-deploy `prod/<앱>.yaml`에서 읽습니다
+- 변경 감지: GitHub Webhook(`onjitda.com/api/webhook` 우회 경로, 웹훅 시크릿 서명 검증) + 폴링(`timeout.reconciliation: 60s`, 웹훅 끊김 시 감지 지연 상한)
+- **관측 스택 전면 GitOps 운영**: Grafana·Loki·Tempo·OTel Collector·Alloy + postgres/redis exporter (모두 `environments/argocd/apps/*-prod.yaml`)
 - 운영 가이드: `docs/argocd-prod-only-webhook-manual.md`
 - Jenkins 연계 가이드: `docs/jenkins-gitops-image-bump.md`
 - Jenkinsfile 예시: `scripts/jenkins/Jenkinsfile.gitops-prod-example.groovy`
 - 도구 chart 소스 정책: `helm/development-tools/README.md`
 
-## ⚠️ 현재 운영 제약 (2026-03-17)
+## ⚠️ 현재 운영 제약 (2026-09-27)
 
 - staging child manifest는 repo에 존재하더라도 기본 운영 경로에서는 apply되지 않습니다.
 - Staging IDP는 `idp-stg.onjitda.com` DNS와 OpenBao 시크릿 patch가 끝나야 정상 동작합니다.
-- IDP 앱 정상화 선행 조건 — 아래 이미지가 각 앱 `values-prod.yaml`의 `image.tag`와 동일한 태그로 Harbor에 존재해야 함 (태그는 빌드 커밋 SHA 앞 12자 컨벤션):
-  - `harbor.onjitda.com/prod/proposal-web`
-  - `harbor.onjitda.com/stg/proposal-web`
-  - `harbor.onjitda.com/prod/idp-api`
-  - `harbor.onjitda.com/prod/idp-web`
-  - `harbor.onjitda.com/stg/idp-api`
-  - `harbor.onjitda.com/stg/idp-web`
+- 앱 정상화 선행 조건 — **prj-deploy `prod/<앱>.yaml`의 태그**와 동일한 이미지가 Harbor에 존재해야 함 (태그는 빌드 커밋 SHA 앞 12자 컨벤션). 대상: `harbor.onjitda.com/prod/{core-api, admin-web, proposal-web, idp-api, idp-web, tool-storybook}` (stg 프로젝트도 동일 구성 유지)
 - 이미지 미존재 시 `ImagePullBackOff`가 발생하며 ArgoCD 앱은 `Synced`여도 `Healthy`가 되지 않습니다.
 
 ## 📁 프로젝트 구조
@@ -46,107 +42,67 @@ GitOps 기반의 Kubernetes 배포 인프라로, Helm과 ArgoCD를 활용한 선
 prj-devops/
 ├── helm/                           # 모든 Helm 차트
 │   ├── cluster-services/          # 계층 1: 클러스터 레벨 인프라
-│   │   ├── cert-manager/          # SSL/TLS 인증서 관리
+│   │   ├── cert-manager/          # SSL/TLS 인증서 관리 (upstream + 로컬 config 차트)
 │   │   ├── metallb/               # 로드 밸런서
 │   │   └── nfs-provisioner/       # 스토리지 프로비저너
 │   ├── development-tools/         # 계층 2: 개발 및 운영 도구
 │   │   ├── README.md              # upstream chart/values 관리 기준
-│   │   ├── grafana/               # GitOps로 관리하는 Grafana 차트
-│   │   ├── otel-collector/        # GitOps로 관리하는 OTel Collector 차트
-│   │   ├── tempo/                 # GitOps로 관리하는 Tempo 차트
-│   │   ├── argocd/                # upstream Argo CD values only
-│   │   ├── harbor/                # upstream Harbor values only
-│   │   ├── jenkins/               # upstream Jenkins values only
-│   │   ├── openbao/               # upstream OpenBao values only
-│   │   ├── openebs/               # upstream OpenEBS values only
-│   │   └── prometheus/            # upstream Prometheus values only
+│   │   ├── alloy/                 # GitOps — 메트릭/로그 수집 에이전트
+│   │   ├── grafana/               # GitOps — 모니터링 대시보드
+│   │   ├── loki/                  # GitOps — 로그 저장
+│   │   ├── otel-collector/        # GitOps — 텔레메트리 파이프라인
+│   │   ├── tempo/                 # GitOps — 분산 트레이싱 백엔드
+│   │   ├── postgres-exporter/     # GitOps — PostgreSQL 메트릭
+│   │   ├── redis-exporter/        # GitOps — Redis 메트릭
+│   │   ├── buildkitd/             # BuildKit 데몬 (컨테이너 빌드)
+│   │   ├── cloudflared/           # Cloudflare Tunnel (외부 노출)
+│   │   ├── argocd/                # upstream values only
+│   │   ├── github-runner/         # upstream values only
+│   │   ├── harbor/                # upstream values only
+│   │   ├── jenkins/               # upstream values only
+│   │   ├── openbao/               # upstream values only
+│   │   ├── openebs/               # upstream values only
+│   │   └── prometheus/            # upstream values only
 │   ├── applications/              # 계층 3: Plate 애플리케이션
-│   │   ├── core-api/          # Core API 백엔드
-│   │   │   ├── Chart.yaml
-│   │   │   ├── values.yaml        # 기본 설정
-│   │   │   ├── values-stg.yaml    # 스테이징 오버라이드
-│   │   │   ├── values-prod.yaml   # 프로덕션 오버라이드
-│   │   │   └── templates/
+│   │   ├── core-api/              # Core API 백엔드
 │   │   ├── admin-web/             # Admin 웹 프론트엔드
-│   │   │   ├── Chart.yaml
-│   │   │   ├── values.yaml
-│   │   │   ├── values-stg.yaml
-│   │   │   ├── values-prod.yaml
-│   │   │   └── templates/
 │   │   ├── proposal-web/          # 퍼블릭 제안 웹 프론트엔드
-│   │   │   ├── Chart.yaml
-│   │   │   ├── values.yaml
-│   │   │   ├── values-stg.yaml
-│   │   │   ├── values-prod.yaml
-│   │   │   └── templates/
-│   │   ├── plate-llm/             # Plate LLM 서비스
-│   │   │   ├── Chart.yaml
-│   │   │   ├── values.yaml
-│   │   │   ├── values-stg.yaml
-│   │   │   └── templates/
 │   │   ├── idp-api/               # IDP API 백엔드
-│   │   │   ├── Chart.yaml
-│   │   │   ├── values.yaml
-│   │   │   ├── values-stg.yaml
-│   │   │   ├── values-prod.yaml
-│   │   │   └── templates/
 │   │   ├── idp-web/               # IDP Web 프론트엔드
-│   │   │   ├── Chart.yaml
-│   │   │   ├── values.yaml
-│   │   │   ├── values-stg.yaml
-│   │   │   ├── values-prod.yaml
-│   │   │   └── templates/
+│   │   ├── tool-storybook/        # Storybook 정적 서비스
+│   │   ├── plate-db/              # 클러스터 내 PostgreSQL
+│   │   ├── plate-llm/             # Plate LLM 서비스 (stg 매니페스트만 유지)
 │   │   └── plate-cache/           # 컨테이너 빌드 캐시 PVC
-│   │       ├── Chart.yaml
-│   │       ├── values.yaml        # 통합 설정 (환경 공통)
-│   │       └── templates/
-│   ├── ingress/                   # 통합 Ingress 설정
-│   │   ├── Chart.yaml
-│   │   ├── values-stg.yaml
-│   │   ├── values-prod.yaml
-│   │   └── templates/
+│   ├── ingress/                   # 통합 Ingress + ArgoCD 웹훅 프록시
 │   └── shared-configs/
 │       ├── openbao-secrets-manager/          # 앱 레벨 OpenBao 시크릿 동기화
-│       │   ├── Chart.yaml
-│       │   ├── values-staging.yaml
-│       │   ├── values-production.yaml
-│       │   └── templates/
 │       └── openbao-cluster-secrets-manager/  # 클러스터 공통 OpenBao 시크릿 동기화
-│           ├── Chart.yaml
-│           ├── values.yaml
-│           └── templates/
 ├── environments/                   # ArgoCD 설정
 │   └── argocd/
 │       ├── app-of-apps.yaml       # Production App of Apps (frontend-web-apps)
 │       └── apps/                  # 개별 ArgoCD Application 정의
-│           ├── core-api-stg.yaml
-│           ├── core-api-prod.yaml
-│           ├── admin-web-stg.yaml
-│           ├── admin-web-prod.yaml
-│           ├── proposal-web-stg.yaml
-│           ├── proposal-web-prod.yaml
-│           ├── plate-llm-stg.yaml
-│           ├── idp-api-stg.yaml
-│           ├── idp-api-prod.yaml
-│           ├── idp-web-stg.yaml
-│           ├── idp-web-prod.yaml
-│           ├── plate-cache.yaml   # 환경 통합 (단일 PVC)
-│           ├── ingress-stg.yaml
-│           ├── ingress-prod.yaml
-│           ├── openbao-secrets-manager-stg.yaml
-│           ├── openbao-secrets-manager-prod.yaml
-│           └── openbao-cluster-secrets-manager.yaml
+│               # prod 앱: admin-web, core-api, idp-api, idp-web,
+│               #   proposal-web, tool-storybook, plate-db
+│               # prod 관측/인프라: grafana, loki, tempo, otel-collector,
+│               #   alloy, postgres-exporter, redis-exporter, cloudflared, buildkitd
+│               # 공용(환경 무관): plate-cache, pgadmin, pgadmin-ingress,
+│               #   ingress, openbao-cluster-secrets-manager
+│               # stg: admin-web, core-api, idp-api, idp-web, proposal-web,
+│               #   plate-db, plate-llm, ingress, openbao-secrets-manager
 └── scripts/                       # 배포 자동화 스크립트
     ├── deploy-all.sh             # 메인 배포 오케스트레이터
-    ├── deploy-libraries.sh       # 클러스터 서비스 및 도구 배포
-    ├── deploy-stg.sh             # 스테이징 배포
-    ├── deploy-prod.sh            # 프로덕션 배포
-    ├── rollback.sh               # 앱 이미지 롤백 (bump 커밋 revert)
+    ├── deploy-libraries.sh       # 클러스터 서비스 및 부트스트랩 도구 배포
+    ├── deploy-stg.sh             # 스테이징 배포 (레거시/수동 검증용)
+    ├── deploy-prod.sh            # 프로덕션 배포 (안전장치 포함)
+    ├── rollback.sh               # 앱 이미지 롤백 (prj-deploy 범프 커밋 revert)
+    ├── helm-sync-check.sh        # Helm 값/시크릿 규칙 점검
+    ├── get-jenkins-password.sh   # Jenkins 초기 비밀번호 조회
     ├── deploy-harbor-auth.sh     # Harbor 인증 설정
     ├── verify-harbor-auth.sh     # Harbor 인증 검증
     ├── migrate-images-to-harbor.sh  # Harbor 이미지 마이그레이션
     ├── jenkins/                  # Jenkins 연계 스크립트
     │   ├── update-gitops-image-tag.sh  # prj-deploy prod/<앱>.yaml 이미지 태그 범프 (yq)
+    │   ├── install-yq.sh         # 휘발성 에이전트용 yq 부트스트랩 (핀 버전)
     │   ├── Jenkinsfile.gitops-prod-example.groovy  # 파이프라인 예시
     │   └── cleanup-container-builder.sh
     └── openbao/                  # OpenBao 관리 스크립트
@@ -155,12 +111,17 @@ prj-devops/
         ├── create-policy.sh      # 정책 생성
         ├── create-token.sh       # 토큰 생성
         ├── create-secrets.sh     # 시크릿 생성
+        ├── put-kv.sh             # KV 쓰기
+        ├── renew-token.sh        # 토큰 갱신
+        ├── revoke-non-root-tokens.sh  # 토큰 폐기
         ├── patch-idp-endpoints.sh # IDP 도메인/내부 URL patch
         ├── migrate-infra-secrets.sh # infra 키를 devops/* 로 이관
+        ├── migrate-server-to-core-api.sh # secret/server -> core-api 마이그레이션
         ├── migrate-idp-to-idp-api-web.sh # secret/idp -> idp-api,idp-web 마이그레이션
-        ├── validate-idp-env-sync.sh # prj-core IDP API env와 OpenBao 키 동기화 점검
-        └── revoke-non-root-tokens.sh  # 토큰 폐기
+        └── validate-idp-env-sync.sh # prj-core IDP API env와 OpenBao 키 동기화 점검
 ```
+
+> **📝 참고**: 각 애플리케이션 차트는 `values.yaml`(공통) + `values-stg.yaml` / `values-prod.yaml`(환경 오버라이드) 구성입니다. 예외: `plate-cache`는 환경 공유 단일 `values.yaml`, `pgadmin`은 단일 values + 별도 ingress values를 사용합니다.
 
 ## 🏗️ 아키텍처 설계 원칙
 
@@ -169,7 +130,7 @@ prj-devops/
 **애플리케이션 차트** (`helm/applications/`):
 
 - 차트명 = 디렉토리명 = 릴리스명 = 컨테이너명
-  - 예: `core-api`, `admin-web`, `proposal-web`, `idp-api`, `idp-web`, `plate-llm`
+  - 예: `core-api`, `admin-web`, `proposal-web`, `idp-api`, `idp-web`, `tool-storybook`, `plate-db`, `pgadmin`
 - 헬퍼 템플릿 단순화: `.Release.Name` 직접 사용
 - imagePullSecrets: Harbor 인증을 위한 `harbor-docker-secret` 포함
 - Ingress: 별도 차트에서 중앙 관리 (`helm/ingress`)
@@ -262,8 +223,8 @@ kubectl exec -n openbao openbao-0 -- bao operator unseal <UNSEAL_KEY>
 
 배포 순서:
 
-1. **Cluster Services**: cert-manager, MetalLB
-2. **Development Tools**: Grafana/Tempo/OTel은 GitOps, 나머지 운영 도구는 upstream chart + repo values 조합으로 관리
+1. **Cluster Services**: cert-manager(upstream + 로컬 config 차트), MetalLB
+2. **Development Tools**: Jenkins — 관측 스택(Grafana/Loki/Tempo/OTel/Alloy/exporters)과 cloudflared/buildkitd는 GitOps 앱으로 관리
 
 ### 2. 애플리케이션 배포
 
@@ -362,7 +323,7 @@ OpenBao 경로 원칙:
 
 관리 원칙:
 
-- 로컬 chart가 꼭 필요한 경우만 repo에 유지합니다. 현재 `grafana`, `otel-collector`, `tempo`만 해당합니다.
+- 로컬 chart가 꼭 필요한 경우만 repo에 유지합니다. 현재 `grafana`, `loki`, `tempo`, `otel-collector`, `alloy`, `postgres-exporter`, `redis-exporter`, `cloudflared`, `buildkitd`가 해당합니다(모두 GitOps로 배포).
 - upstream chart를 쓰는 도구는 repo에 chart 전체를 vendor하지 않고 `values.yaml`만 유지합니다.
 - 부트스트랩 배포는 `./scripts/deploy-libraries.sh` 또는 Helm CLI(`helm upgrade --install <repo/chart> -f values.yaml`)로 수행합니다.
 
@@ -439,11 +400,23 @@ OpenBao 경로 원칙:
 
 ## 📊 운영 및 모니터링
 
+### 관측 스택 (Observability)
+
+- **메트릭**: Alloy 수집 → Grafana 대시보드. postgres-exporter/redis-exporter로 DB·캐시 메트릭 확보
+- **로그**: Alloy 수집 → Loki 저장 → Grafana 탐색
+- **트레이스**: 앱 컨테이너에 OTel Node.js 자동계측 주입 → OTel Collector → Tempo → Grafana
+- **알림**: Grafana SMTP(ExternalSecret) 이메일 알림, 이벤트 수집·홈 대시보드 구성
+- OTel 자동계측은 5개 앱(core-api, admin-web, proposal-web, idp-api, idp-web)에 적용되어 있으며, 계측 이미지는 Docker Hub rate limit 대비 Harbor 미러를 사용합니다
+- config 변경 감지: alloy/loki 등은 checksum annotation으로 config 변경 시 자동 롤아웃
+
 ### 배포 상태 확인
 
 ```bash
-# 프로덕션 상태 확인
-kubectl -n argocd get applications frontend-web-apps proposal-web-prod idp-api-prod idp-web-prod admin-web-prod core-api-prod plate-ingress-prod openbao-secrets-manager-prod
+# 프로덕션 상태 확인 (앱)
+kubectl -n argocd get applications frontend-web-apps core-api-prod admin-web-prod proposal-web-prod idp-api-prod idp-web-prod tool-storybook-prod plate-db-prod ingress-prod openbao-secrets-manager-prod
+
+# 관측/인프라 스택 상태 확인
+kubectl -n argocd get applications grafana-prod loki-prod tempo-prod otel-collector-prod alloy-prod postgres-exporter-prod redis-exporter-prod cloudflared-prod
 
 # ArgoCD를 통한 확인
 kubectl get applications -n argocd
@@ -578,7 +551,7 @@ spec:
       - CreateNamespace=true
 ```
 
-참고: Cluster Services는 로컬 chart로 관리하고, Development Tools는 `grafana/tempo/otel-collector`만 로컬 chart를 유지합니다. 그 외 운영 도구는 upstream chart + repo `values.yaml` 조합으로 관리합니다.
+참고: Cluster Services는 로컬 chart로 관리하고, Development Tools는 관측 스택(`grafana/loki/tempo/otel-collector/alloy` + exporter)과 `cloudflared/buildkitd`만 로컬 chart(GitOps)로 유지합니다. 그 외 운영 도구(argocd, harbor, jenkins, openbao, openebs, prometheus, github-runner)는 upstream chart + repo `values.yaml` 조합으로 관리합니다.
 
 ### 장점 요약
 
@@ -586,7 +559,7 @@ spec:
 - **경로 일관성**: 모든 차트를 `helm/` 트리 하위에 배치 → ArgoCD 설정 단순화
 - **환경별 설정 관리**: `environments/` 디렉토리에서 스테이징/프로덕션 values 중앙 관리
 - **GitOps 통합**: ArgoCD를 통한 선언적 배포 및 자동 동기화
-- **멀티 애플리케이션 지원**: core-api, admin-web, proposal-web, plate-llm, plate-cache, idp-api, idp-web 통합 관리
+- **멀티 애플리케이션 지원**: core-api, admin-web, proposal-web, idp-api, idp-web, tool-storybook, plate-db, plate-cache 통합 관리
 
 ### ArgoCD Application 구조
 
@@ -602,15 +575,25 @@ spec:
 
 ## 🎯 향후 개선 로드맵
 
-1. CI/CD 파이프라인(빌드/이미지 스캔/배포 자동화) 통합
-2. 모니터링 스택(Prometheus/Grafana/Alertmanager) 도입
+1. 이미지 취약점 스캔(Trivy 등) 파이프라인 통합
+2. 알림 라우팅 고도화(Alertmanager 도입, 채널 확장) 및 SLO 정의
 3. 백업/복구 전략 구현 (예: Velero, 스냅샷)
 4. 통합 테스트/부하 테스트 파이프라인 추가
-5. 운영 Runbook 및 장애 대응 절차 문서화
+5. 운영 Runbook 커버리지 확대 (현재: 클러스터 복구, 빌드 속도, GitOps 이미지 범프, ArgoCD 웹훅 운영 가이드)
 
 ---
 
 ## 📝 변경 이력
+
+### 2026-09-27
+
+- **관측 스택 구축(LGTM 완성)**: Loki + Alloy 추가로 로그 파이프라인 확보, Grafana SMTP 이메일 알림·이벤트 수집·홈 대시보드, postgres/redis exporter로 DB 메트릭 확보
+- **OTel 자동계측**: 5개 앱(core-api, admin-web, proposal-web, idp-api, idp-web)에 Node.js 자동계측 주입 — 트레이스 축 부활 (계측 이미지는 Harbor 미러)
+- **prj-deploy 분리**: 6개 prod 앱 이미지 태그를 prj-deploy 저장소로 이관(ArgoCD multi-source), 범프/롤백 가이드·예제 파이프라인 갱신
+- **ArgoCD 웹훅 우회 체인**: Cloudflare Access가 argocd 도메인을 보호하므로 `onjitda.com/api/webhook` Exact 경로 + 초소형 nginx 프록시로 웹훅 노출, 웹훅 시크릿 서명 검증 적용
+- **plate-db 안정화**: TLS 인증서 commonName 지정(Java JDBC `Empty issuer DN` 오류 해결), values-prod resources 구조 수정, 실측 기반 메모리 rightsizing
+- **spring-api 폐기**: 관련 구성 전면 제거
+- 기타: idp-api liveness/tcpSocket 프로브 추가, app-of-apps 영구 OutOfSync 제거 및 rollout restart 재발 방지(restartedAt ignoreDifferences), OpenBao ClusterSecretStore 토큰 ns 수정
 
 ### 2026-09-21
 
