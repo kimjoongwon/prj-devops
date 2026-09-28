@@ -21,5 +21,8 @@ appSecrets:
   secretName: idp-web-env-secrets
 
 extraEnv:
+  # 로그인/동의 페이지(/auth/login|consent/[uid])의 SSR interaction 조회 대상.
+  - name: IDP_API_INTERNAL_URL
+    value: http://idp-api-stg
   - name: OTEL_SERVICE_NAME
     value: idp-web-stg

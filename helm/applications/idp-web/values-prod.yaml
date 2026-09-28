@@ -18,6 +18,10 @@ appSecrets:
   enabled: true
   secretName: idp-web-env-secrets
 extraEnv:
+  # 로그인/동의 페이지(/auth/login|consent/[uid])의 SSR interaction 조회 대상.
+  # 누락 시 조회가 localhost 폴백으로 실패해 로그인 화면이 실패 화면으로 렌더된다.
+  - name: IDP_API_INTERNAL_URL
+    value: http://idp-api-prod
   - name: OTEL_SERVICE_NAME
     value: idp-web-prod
   - name: NODE_OPTIONS
