@@ -21,6 +21,18 @@ const TOKEN = process.env.BUZZ_GATEWAY_TOKEN ?? '';
 const DEFAULT_CHANNEL = process.env.BUZZ_CHANNEL ?? '';
 const BUZZ_BIN = process.env.BUZZ_BIN ?? 'buzz';
 
+// 배포 체인 스레드 매핑: linkKey로 등록한 스레드 루트에 followKey 메시지를 답장으로 묶는다.
+// (빌드→범프→배포완료를 한 스레드로; 프로세스 재시작 시 매핑 유실 — 알림은 끊기지 않고 스레드만 풀린다)
+const threadLinks = new Map<string, string>();
+const THREAD_LINKS_MAX = 300;
+function rememberThread(key: string, root: string): void {
+  if (threadLinks.size >= THREAD_LINKS_MAX) {
+    const oldest = threadLinks.keys().next().value;
+    if (oldest !== undefined) threadLinks.delete(oldest);
+  }
+  threadLinks.set(key, root);
+}
+
 // 본문 상한: 빌드 로그 첨부(fileB64)를 감안해 8MB까지. 메시지 본문은 16K로 제한.
 const MAX_BODY_BYTES = 8 * 1024 * 1024;
 const MAX_CONTENT_CHARS = 16 * 1024;
@@ -44,6 +56,10 @@ interface SendBody {
   mentions?: string[];
   /** 이벤트 ID. 지정 시 스레드로 답장 */
   replyTo?: string;
+  /** 이 메시지의 스레드 루트를 이 키로 등록 (빌드→범프 체인용) */
+  linkKey?: string;
+  /** 등록된 키의 스레드에 답장으로 묶는다 (배포완료 알림용). replyTo가 없을 때만 동작 */
+  followKey?: string;
   /** RFC3339. 둘 다 유효하면 "동기화 소요: N분 N초" 줄을 content 끝에 추가한다 */
   startedAt?: string;
   finishedAt?: string;
@@ -171,9 +187,16 @@ async function handleSend(req: IncomingMessage, res: ServerResponse): Promise<vo
     ? parsed.mentions.filter((m) => typeof m === 'string' && /^[0-9a-zA-Z]+$/.test(m))
     : [];
 
+  // 스레드 묶기: 명시적 replyTo 우선, 없으면 followKey로 등록된 루트에 답장
+  let replyTo: string | undefined = parsed.replyTo;
+  if (!replyTo && parsed.followKey && /^[0-9a-zA-Z_-]+$/.test(parsed.followKey)) {
+    replyTo = threadLinks.get(parsed.followKey);
+  }
+  if (replyTo && !/^[0-9a-f]{64}$/.test(replyTo)) replyTo = undefined;
+
   const args = ['messages', 'send', '--channel', channel, '--content', '-'];
   for (const m of mentions) args.push('--mention', m);
-  if (parsed.replyTo && /^[0-9a-f]{64}$/.test(parsed.replyTo)) args.push('--reply-to', parsed.replyTo);
+  if (replyTo) args.push('--reply-to', replyTo);
 
   let tmpDir: string | undefined;
   try {
@@ -200,11 +223,16 @@ async function handleSend(req: IncomingMessage, res: ServerResponse): Promise<vo
       return;
     }
     // buzz --format json의 stdout(전송된 이벤트)을 그대로 돌려준다.
-    let event: unknown = null;
+    let event: { id?: string; event_id?: string } | null = null;
     try {
       event = JSON.parse(result.stdout);
     } catch {
       event = null;
+    }
+    // linkKey: 이 메시지(또는 답장 대상)의 스레드 루트를 등록
+    const rootId = replyTo ?? event?.event_id ?? event?.id;
+    if (parsed.linkKey && rootId) {
+      rememberThread(parsed.linkKey, rootId);
     }
     sendJson(res, 200, { ok: true, event });
   } finally {

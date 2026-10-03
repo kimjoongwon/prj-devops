@@ -3806,9 +3806,10 @@ notifications:
           path: /send
           body: |
             {
-              "content": "🚀 {{.app.metadata.name}} 배포 완료 — Synced/Healthy\n커밋: {{if .app.status.sync.revisions}}{{index .app.status.sync.revisions 0}}{{else}}{{.app.status.sync.revision}}{{end}}\nArgoCD: {{.context.argocdUrl}}/applications/{{.app.metadata.name}}",
+              "content": "🚀 {{.app.metadata.name}} 배포 완료 — Synced/Healthy\n차트: {{if .app.status.sync.revisions}}{{index .app.status.sync.revisions 0}}{{else}}{{.app.status.sync.revision}}{{end}}{{if and .app.status.sync.revisions (gt (len .app.status.sync.revisions) 1)}}\n배포: {{index .app.status.sync.revisions 1}}{{end}}\nArgoCD: {{.context.argocdUrl}}/applications/{{.app.metadata.name}}",
               "startedAt": "{{if .app.status.operationState.startedAt}}{{.app.status.operationState.startedAt}}{{end}}",
-              "finishedAt": "{{if .app.status.operationState.finishedAt}}{{.app.status.operationState.finishedAt}}{{end}}"
+              "finishedAt": "{{if .app.status.operationState.finishedAt}}{{.app.status.operationState.finishedAt}}{{end}}",
+              "followKey": "{{if and .app.status.sync.revisions (gt (len .app.status.sync.revisions) 1)}}{{index .app.status.sync.revisions 1}}{{end}}"
             }
     template.buzz-degraded: |
       webhook:

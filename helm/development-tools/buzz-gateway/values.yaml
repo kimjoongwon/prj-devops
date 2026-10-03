@@ -33,7 +33,7 @@ replicaCount: 1
 
 image:
   repository: harbor.onjitda.com/devops/buzz-gateway
-  tag: 0.1.1
+  tag: 0.1.2
   pullPolicy: IfNotPresent
 
 # Harbor devops 프로젝트가 비공개여서 pull 시크릿 필요 (2026-10-03 생성됨:
