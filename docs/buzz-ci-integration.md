@@ -196,3 +196,5 @@ sync는 `oncePer: revisions` 중복제거로 재발송되지 않는다.
   (게이트웨이 `mentions` 필드 + ZCode 진단 러북 `~/.buzz/GUIDES/`)
 - 게이트웨이 `fileB64`로 빌드 로그 테일 첨부
 - buzz `workflows`(YAML 트리거/승인)로 채널에서의 배포 승인 게이트
+
+> 2026-10-03: 배포 알림 노이즈 차단(리비전-only 새로고침 미발송) 검증 커밋.
