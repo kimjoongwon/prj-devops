@@ -3806,7 +3806,7 @@ notifications:
           path: /send
           body: |
             {
-              "content": "🚀 {{.app.metadata.name}} 배포 완료 — Synced/Healthy\n커밋: {{if .app.status.sync.revisions}}{{index .app.status.sync.revisions 0}}{{else}}{{.app.status.sync.revision}}{{end}}\nArgoCD: {{.context.argocdUrl}}/applications/{{.app.metadata.name}}"
+              "content": "🚀 {{.app.metadata.name}} 배포 완료 — Synced/Healthy\n커밋: {{if .app.status.sync.revisions}}{{index .app.status.sync.revisions 0}}{{else}}{{.app.status.sync.revision}}{{end}}{{if .app.status.operationState.startedAt}}\n동기화 소요: {{ago (toDate `2006-01-02T15:04:05Z07:00` .app.status.operationState.startedAt)}}{{end}}\nArgoCD: {{.context.argocdUrl}}/applications/{{.app.metadata.name}}"
             }
     template.buzz-degraded: |
       webhook:

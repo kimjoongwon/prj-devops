@@ -135,10 +135,13 @@ kubectl -n devops-tools run buzz-auth --rm -i --restart=Never --image=curlimages
 
 | 이벤트 | 발신 | 메시지 |
 |---|---|---|
-| 빌드 성공/실패 | Jenkinsfile `finally` | `✅/❌ **앱** 빌드 성공/실패` + 이미지:태그, 커밋, 빌드 링크 |
-| GitOps 범프 성공/실패 | `Jenkinsfile.gitops-update` post | `✅/❌ **앱** GitOps 범프 성공/실패` + 태그, 업스트림 빌드 링크 |
-| 배포 완료 | ArgoCD `on-buzz-deployed` | `🚀 <앱>-prod 배포 완료 — Synced/Healthy` + 커밋, ArgoCD 링크 |
+| 빌드 성공/실패 | Jenkinsfile `finally` | `✅/❌ **앱** 빌드 성공/실패` + 이미지:태그, 커밋, **소요(전체 + 이미지 빌드+푸시)**, 빌드 링크 |
+| GitOps 범프 성공/실패 | `Jenkinsfile.gitops-update` post | `✅/❌ **앱** GitOps 범프 성공/실패` + 태그, **소요**, 업스트림 빌드 링크 |
+| 배포 완료 | ArgoCD `on-buzz-deployed` | `🚀 <앱>-prod 배포 완료 — Synced/Healthy` + 커밋, **동기화 소요**(sprig `ago`), ArgoCD 링크 |
 | 헬스 저하 | ArgoCD `on-buzz-degraded` | `🔴 <앱>-prod 헬스 Degraded — 즉시 확인 필요` + ArgoCD 링크 |
+
+소요시간 포맷: Jenkins 쪽은 `fmtDur()` 헬퍼(예: `3분 4초`), ArgoCD 쪽은 sprig `ago`(예: `1m57s`,
+동기화 시작→알림 시점). 같은 리비전의 no-op sync는 `oncePer: revisions` 중복제거로 재발송되지 않는다.
 
 알림 채널은 운영 소통용이다. 배포 기록의 단일 진실 원천은 여전히
 **prj-deploy의 git log**(이미지 태그 히스토리)다.

@@ -230,7 +230,9 @@ flowchart LR
                  ArgoCD: https://argocd.onjitda.com/applications/idp-api-prod
 
 🚀 jenkins-bot   core-api-prod 배포 완료 — Synced/Healthy
-                 커밋: 2942582e…  … (6개 앱 전부 도착 확인)
+                 커밋: b530693bab3dec898f67b46782348fcfb6c07256
+                 동기화 소요: 1m57s
+                 ArgoCD: https://argocd.onjitda.com/applications/core-api-prod
 
 🔴 jenkins-bot   (예시) idp-api-prod 헬스 Degraded — 즉시 확인 필요
 ──────────────────────────────────────────────────────────────
