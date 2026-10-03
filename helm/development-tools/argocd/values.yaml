@@ -4038,7 +4038,9 @@ notifications:
     # notifications.argoproj.io/subscribe.<트리거>.buzz-gateway annotation이 담당)
     trigger.on-buzz-deployed: |
       - description: Application is synced and healthy (Buzz #cicd)
-        oncePer: app.status.sync.revision
+        # multi-source 앱은 sync.revision이 빈 값이라 oncePer 키가 고정되어
+        # 알림이 1회 후 봉쇄되므로, 배포마다 값이 바뀌는 revisions(목록)를 키로 쓴다
+        oncePer: app.status.sync.revisions
         send:
         - buzz-deployed
         when: app.status.operationState.phase in ['Succeeded'] and app.status.health.status == 'Healthy'
