@@ -140,8 +140,12 @@ kubectl -n devops-tools run buzz-auth --rm -i --restart=Never --image=curlimages
 | 배포 완료 | ArgoCD `on-buzz-deployed` | `🚀 <앱>-prod 배포 완료 — Synced/Healthy` + 커밋, **동기화 소요**(sprig `ago`), ArgoCD 링크 |
 | 헬스 저하 | ArgoCD `on-buzz-degraded` | `🔴 <앱>-prod 헬스 Degraded — 즉시 확인 필요` + ArgoCD 링크 |
 
-소요시간 포맷: Jenkins 쪽은 `fmtDur()` 헬퍼(예: `3분 4초`), ArgoCD 쪽은 sprig `ago`(예: `1m57s`,
-동기화 시작→알림 시점). 같은 리비전의 no-op sync는 `oncePer: revisions` 중복제거로 재발송되지 않는다.
+소요시간 포맷: Jenkins 쪽은 `fmtDur()` 헬퍼(예: `3분 4초`). ArgoCD 쪽 동기화 소요는
+템플릿이 `startedAt`/`finishedAt`을 함께 보내고 **게이트웨이가 차이를 계산**해
+`동기화 소요: N분 N초` 줄을 덧붙인다(템플릿 언어로는 시차 계산이 안 되고,
+`ago(startedAt)`는 "렌더링 시점 기준"이라 리비전만 갱신된 알림에서 70h 같은
+비정상 값이 나온 사례가 있어 2026-10-03 이 구조로 교체). 같은 리비전의 no-op
+sync는 `oncePer: revisions` 중복제거로 재발송되지 않는다.
 
 알림 채널은 운영 소통용이다. 배포 기록의 단일 진실 원천은 여전히
 **prj-deploy의 git log**(이미지 태그 히스토리)다.

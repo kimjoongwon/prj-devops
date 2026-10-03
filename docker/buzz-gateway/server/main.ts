@@ -44,6 +44,18 @@ interface SendBody {
   mentions?: string[];
   /** 이벤트 ID. 지정 시 스레드로 답장 */
   replyTo?: string;
+  /** RFC3339. 둘 다 유효하면 "동기화 소요: N분 N초" 줄을 content 끝에 추가한다 */
+  startedAt?: string;
+  finishedAt?: string;
+}
+
+/** 알림용 소요시간 포맷 (ms → "1시간 2분" / "3분 4초" / "45초") */
+function fmtDuration(ms: number): string {
+  const s = Math.max(0, Math.floor(ms / 1000));
+  if (s < 60) return `${s}초`;
+  const m = Math.floor(s / 60);
+  if (m < 60) return `${m}분 ${s % 60}초`;
+  return `${Math.floor(m / 60)}시간 ${m % 60}분`;
 }
 
 function sendJson(res: ServerResponse, status: number, body: Record<string, unknown>): void {
@@ -132,10 +144,17 @@ async function handleSend(req: IncomingMessage, res: ServerResponse): Promise<vo
   }
 
   // ArgoCD webhook 템플릿은 "message"를 쓰기도 한다. 셋 중 하나만 있으면 된다.
-  const content = parsed.content ?? parsed.message ?? parsed.text ?? '';
+  let content = parsed.content ?? parsed.message ?? parsed.text ?? '';
   if (!content.trim()) {
     sendJson(res, 400, { ok: false, error: 'content (또는 message/text) is required' });
     return;
+  }
+  // startedAt/finishedAt가 오면 동기화 소요시간 줄을 덧붙인다.
+  // (argoCD 쪽 템플릿 언어로 시차 계산이 안 되어 게이트웨이가 대신 계산)
+  const startedMs = Date.parse(parsed.startedAt ?? '');
+  const finishedMs = Date.parse(parsed.finishedAt ?? '');
+  if (!Number.isNaN(startedMs) && !Number.isNaN(finishedMs) && finishedMs >= startedMs) {
+    content += `\n동기화 소요: ${fmtDuration(finishedMs - startedMs)}`;
   }
   if (content.length > MAX_CONTENT_CHARS) {
     sendJson(res, 400, { ok: false, error: `content exceeds ${MAX_CONTENT_CHARS} chars` });

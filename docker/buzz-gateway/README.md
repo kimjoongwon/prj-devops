@@ -23,7 +23,9 @@ Authorization: Bearer <token>
   "fileB64":  "선택. base64 첨부 (최대 4MB 디코딩 기준)",
   "filename": "선택. 첨부 파일명 (기본 attachment.log)",
   "mentions": ["npub/hex 공개키", ...],
-  "replyTo":  "선택. 이벤트 ID (스레드 답장)"
+  "replyTo":  "선택. 이벤트 ID (스레드 답장)",
+  "startedAt": "선택. RFC3339 — finishedAt와 함께 오면",
+  "finishedAt": "선택. RFC3339 — '동기화 소요: N분 N초' 줄을 content 끝에 추가"
 }
 ```
 
