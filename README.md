@@ -27,6 +27,7 @@ GitOps 기반의 Kubernetes 배포 인프라로, Helm과 ArgoCD를 활용한 선
 - 운영 가이드: `docs/argocd-prod-only-webhook-manual.md`
 - Jenkins 연계 가이드: `docs/jenkins-gitops-image-bump.md`
 - Jenkinsfile 예시: `scripts/jenkins/Jenkinsfile.gitops-prod-example.groovy`
+- **CI/CD 알림(Buzz)**: 빌드/범프/배포 완료 알림을 Buzz `#cicd` 채널로 — `docs/buzz-ci-integration.md`
 - 도구 chart 소스 정책: `helm/development-tools/README.md`
 
 ## ⚠️ 현재 운영 제약 (2026-09-27)
@@ -55,6 +56,7 @@ prj-devops/
 │   │   ├── postgres-exporter/     # GitOps — PostgreSQL 메트릭
 │   │   ├── redis-exporter/        # GitOps — Redis 메트릭
 │   │   ├── buildkitd/             # BuildKit 데몬 (컨테이너 빌드)
+│   │   ├── buzz-gateway/          # CI/CD 알림 게이트웨이 (로컬 관리 차트)
 │   │   ├── cloudflared/           # Cloudflare Tunnel (외부 노출)
 │   │   ├── argocd/                # upstream values only
 │   │   ├── github-runner/         # upstream values only
@@ -77,6 +79,8 @@ prj-devops/
 │   └── shared-configs/
 │       ├── openbao-secrets-manager/          # 앱 레벨 OpenBao 시크릿 동기화
 │       └── openbao-cluster-secrets-manager/  # 클러스터 공통 OpenBao 시크릿 동기화
+├── docker/                         # 자체 서비스 이미지 소스
+│   └── buzz-gateway/               # CI/CD 알림 게이트웨이 이미지 (block/buzz CLI 포함)
 ├── environments/                   # ArgoCD 설정
 │   └── argocd/
 │       ├── app-of-apps.yaml       # Production App of Apps (frontend-web-apps)
@@ -84,7 +88,8 @@ prj-devops/
 │               # prod 앱: admin-web, core-api, idp-api, idp-web,
 │               #   proposal-web, tool-storybook, plate-db
 │               # prod 관측/인프라: grafana, loki, tempo, otel-collector,
-│               #   alloy, postgres-exporter, redis-exporter, cloudflared, buildkitd
+│               #   alloy, postgres-exporter, redis-exporter, cloudflared, buildkitd,
+│               #   buzz-gateway
 │               # 공용(환경 무관): plate-cache, pgadmin, pgadmin-ingress,
 │               #   ingress, openbao-cluster-secrets-manager
 │               # stg: admin-web, core-api, idp-api, idp-web, proposal-web,

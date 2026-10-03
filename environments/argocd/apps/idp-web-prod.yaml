@@ -7,6 +7,10 @@ metadata:
   namespace: argocd
   finalizers:
     - resources-finalizer.argocd.argoproj.io
+  annotations:
+    # Buzz #cicd 배포 알림 구독 (docs/buzz-ci-integration.md)
+    notifications.argoproj.io/subscribe.on-buzz-deployed.buzz-gateway: ""
+    notifications.argoproj.io/subscribe.on-buzz-degraded.buzz-gateway: ""
   labels:
     app.kubernetes.io/name: idp-web
     app.kubernetes.io/instance: production

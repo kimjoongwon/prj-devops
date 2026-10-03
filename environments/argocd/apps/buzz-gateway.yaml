@@ -1,0 +1,51 @@
+# buzz-gateway - Jenkins/ArgoCD → Buzz(Nostr) CI/CD 알림 게이트웨이
+#
+# 사전 조건: devops-tools 네임스페이스에 buzz-gateway-env 시크릿이 있어야 한다.
+# 생성 명령은 helm/development-tools/buzz-gateway/values.yaml 상단 주석과
+# docs/buzz-ci-integration.md 를 참조한다. (자격증명은 Git에 커밋하지 않는다)
+
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: buzz-gateway
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+  labels:
+    app.kubernetes.io/name: buzz-gateway
+spec:
+  project: default
+
+  source:
+    repoURL: https://github.com/kimjoongwon/prj-devops.git
+    path: helm/development-tools/buzz-gateway
+    targetRevision: main
+    helm:
+      valueFiles:
+        - values.yaml
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: devops-tools  # Jenkins와 같은 네임스페이스
+
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ApplyOutOfSyncOnly=true
+    retry:
+      limit: 5
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m
+
+  revisionHistoryLimit: 3
+
+  info:
+    - name: Purpose
+      value: "Relay Jenkins/ArgoCD notifications to the Buzz #cicd channel"
+    - name: Runbook
+      value: "docs/buzz-ci-integration.md"

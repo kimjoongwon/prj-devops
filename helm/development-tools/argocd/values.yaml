@@ -3552,7 +3552,12 @@ notifications:
   secret:
     # -- Whether helm chart creates notifications controller secret
     ## If true, will create a secret with the name below. Otherwise, will assume existence of a secret with that name.
-    create: true
+    ##
+    ## false로 둔다: buzz-gateway 토큰(buzz-gateway-token 키)을 kubectl로만 주입하기 때문에
+    ## helm이 관리하면 업그레이드 시 키가 지워진다. 토큰은 Git에 커밋하지 않는다.
+    ## 주입: kubectl -n argocd patch secret argocd-notifications-secret \
+    ##   -p '{"stringData":{"buzz-gateway-token":"<토큰>"}}'
+    create: false
 
     # -- notifications controller Secret name
     name: "argocd-notifications-secret"
@@ -3625,9 +3630,19 @@ notifications:
   # @default -- See [values.yaml]
   ## For more information: https://argo-cd.readthedocs.io/en/stable/operator-manual/notifications/services/overview/
   notifiers:
-    {}
     # service.slack: |
     #   token: $slack-token
+
+    # Buzz #cicd 채널 알림 게이트웨이 (docs/buzz-ci-integration.md)
+    # $buzz-gateway-token은 argocd-notifications-secret의 키에서 해석된다.
+    # 게이트웨이는 devops-tools 네임스페이스의 buzz-gateway 서비스다.
+    service.webhook.buzz-gateway: |
+      url: http://buzz-gateway.devops-tools.svc.cluster.local
+      headers:
+      - name: Content-Type
+        value: application/json
+      - name: Authorization
+        value: Bearer $buzz-gateway-token
 
   # -- Annotations to be applied to the notifications controller Deployment
   deploymentAnnotations: {}
@@ -3781,7 +3796,27 @@ notifications:
   # -- The notification template is used to generate the notification content
   ## For more information: https://argo-cd.readthedocs.io/en/stable/operator-manual/notifications/templates/
   templates:
-    {}
+    # Buzz #cicd 알림 템플릿 — 요청 본문 자체를 template에서 구성한다
+    # (webhook 서비스의 method/path/body는 서비스 정의가 아니라 템플릿에 둔다).
+    # \n은 JSON 이스케이프로 게이트웨이에서 실제 줄바꿈으로 해석된다.
+    template.buzz-deployed: |
+      webhook:
+        buzz-gateway:
+          method: POST
+          path: /send
+          body: |
+            {
+              "content": "🚀 {{.app.metadata.name}} 배포 완료 — Synced/Healthy\n커밋: {{.app.status.sync.revision}}\nArgoCD: {{.context.argocdUrl}}/applications/{{.app.metadata.name}}"
+            }
+    template.buzz-degraded: |
+      webhook:
+        buzz-gateway:
+          method: POST
+          path: /send
+          body: |
+            {
+              "content": "🔴 {{.app.metadata.name}} 헬스 Degraded — 즉시 확인 필요\nArgoCD: {{.context.argocdUrl}}/applications/{{.app.metadata.name}}"
+            }
     # template.app-deployed: |
     #   email:
     #     subject: New version of an application {{.app.metadata.name}} is up and running.
@@ -3999,7 +4034,19 @@ notifications:
   # -- The trigger defines the condition when the notification should be sent
   ## For more information: https://argo-cd.readthedocs.io/en/stable/operator-manual/notifications/triggers/
   triggers:
-    {}
+    # Buzz #cicd 알림 트리거 (구독은 각 Application의
+    # notifications.argoproj.io/subscribe.<트리거>.buzz-gateway annotation이 담당)
+    trigger.on-buzz-deployed: |
+      - description: Application is synced and healthy (Buzz #cicd)
+        oncePer: app.status.sync.revision
+        send:
+        - buzz-deployed
+        when: app.status.operationState.phase in ['Succeeded'] and app.status.health.status == 'Healthy'
+    trigger.on-buzz-degraded: |
+      - description: Application health degraded (Buzz #cicd)
+        send:
+        - buzz-degraded
+        when: app.status.health.status == 'Degraded'
     # trigger.on-deployed: |
     #   - description: Application is synced and healthy. Triggered once per commit.
     #     oncePer: app.status.sync.revision

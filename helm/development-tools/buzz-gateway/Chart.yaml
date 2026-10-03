@@ -1,0 +1,18 @@
+apiVersion: v2
+name: buzz-gateway
+description: >
+  Jenkins/ArgoCD 알림을 Buzz(Nostr) 채널 메시지로 중계하는 HTTP 게이트웨이.
+  Slack webhook과 동일한 UX(URL + JSON POST)를 제공하고 nostr 서명 키는
+  이 파드의 Secret에만 존재한다.
+type: application
+version: 0.1.0
+appVersion: "0.1.0"
+
+keywords:
+  - buzz
+  - notifications
+  - cicd
+
+maintainers:
+  - name: CocDev Team
+    email: dev@onjitda.com

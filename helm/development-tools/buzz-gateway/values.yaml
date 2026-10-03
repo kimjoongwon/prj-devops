@@ -1,0 +1,60 @@
+# Buzz CI/CD 알림 게이트웨이
+#
+# 용도:
+#   - Jenkins 파이프라인(post 블록)과 ArgoCD notifications(webhook notifier)의
+#     알림을 받아 Buzz(Nostr) #cicd 채널로 전송한다.
+#   - nostr 개인키/relay 인증은 이 파드에만 존재 — 호출자는 게이트웨이 토큰만 안다.
+#   - 전체 구성: docs/buzz-ci-integration.md
+#
+# 사전 조건 (실제 자격증명은 이 저장소에 커밋하지 않는다):
+#
+# 1) devops-tools 네임스페이스에 buzz-gateway-env 시크릿:
+#
+#     kubectl -n devops-tools create secret generic buzz-gateway-env \
+#       --from-literal=BUZZ_RELAY_URL='https://onjitda.communities.buzz.xyz' \
+#       --from-literal=BUZZ_PRIVATE_KEY='<jenkins-bot nsec/hex 개인키>' \
+#       --from-literal=BUZZ_AUTH_TAG='<NIP-OA auth tag JSON, 없으면 빈 값 말고 생략>' \
+#       --from-literal=BUZZ_CHANNEL='<#cicd 채널 UUID>' \
+#       --from-literal=BUZZ_GATEWAY_TOKEN='<Jenkins/ArgoCD가 쓰는 Bearer 토큰>'
+#
+#    (BUZZ_AUTH_TAG가 필요 없는 relay 멤버십이면 --from-literal 라인에서 제외)
+#    jenkins-bot 신원/채널 생성 절차는 docs/buzz-ci-integration.md 참조.
+#
+# 2) 이미지가 Harbor 비공개 프로젝트에 있으면 pull 시크릿:
+#
+#     kubectl -n devops-tools create secret docker-registry harbor-pull-buzz \
+#       --docker-server=harbor.onjitda.com \
+#       --docker-username='<harbor robot 계정명>' \
+#       --docker-password='<harbor robot secret>'
+#
+#    그리고 아래 imagePullSecrets에 이름을 지정한다.
+
+replicaCount: 1
+
+image:
+  repository: harbor.onjitda.com/devops/buzz-gateway
+  tag: 0.1.0
+  pullPolicy: IfNotPresent
+
+# Harbor devops 프로젝트가 비공개여서 pull 시크릿 필요 (2026-10-03 생성됨:
+# devops-tools ns의 harbor-pull-buzz, robot$devops-buzz-gateway 자격증명)
+imagePullSecrets:
+  - name: harbor-pull-buzz
+
+# buzz CLI 실행에 필요한 환경변수를 담은 Secret 이름 (위 사전 조건 1)
+env:
+  secretName: buzz-gateway-env
+
+service:
+  type: ClusterIP
+  port: 80
+
+resources:
+  requests:
+    cpu: 20m
+    memory: 64Mi
+  limits:
+    cpu: 100m
+    memory: 128Mi
+
+podAnnotations: {}
