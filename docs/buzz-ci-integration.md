@@ -41,6 +41,16 @@ Slack을 대체한다. Jenkins 쪽에는 플러그인을 추가하지 않는다(
 
 ## 사전 준비 (1회성, 수동)
 
+> **2026-10-03 구축 완료 상태**: #cicd 채널 UUID `2190caf3-f5fe-46fb-ab6b-3c435a175981`,
+> jenkins-bot 공개키 `540f6e07e462cda6c61cecac084b6c5896592a3c69b71efdd31e99a1479f724a`
+> (npub `npub12s8kuplyvtx6d3suajkqsjmvtzt9j23udxm3alwnr6v6z3ulwf9g93y85`, 채널 role=bot).
+> 커뮤니티 가입은 오너 초대 코드 발급/클레임(relay `/api/invites` NIP-98)으로 수행했다.
+> Harbor 프로젝트 `devops`(비공개), robot `robot$devops-buzz-gateway`(push/pull),
+> 이미지 `harbor.onjitda.com/devops/buzz-gateway:0.1.0` 푸시 완료.
+> 클러스터 시크릿(`buzz-gateway-env`, `harbor-pull-buzz`, argocd 토큰)과 Jenkins
+> credential `buzz-notify-token`·잡 파라미터 `BUZZ_NOTIFY_URL`(6개 빌드 잡 + gitops
+> Jenkinsfile 파라미터) 반영 완료. 아래 절차는 재구축/로테이션 시 참고용이다.
+
 ### 1. Buzz 측 — jenkins-bot 신원과 채널
 
 1. Buzz Desktop에서 `jenkins-bot` 에이전트를 생성한다(오너 승인 필요):
