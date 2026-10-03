@@ -4041,11 +4041,13 @@ notifications:
     trigger.on-buzz-deployed: |
       - description: Application is synced and healthy (Buzz #cicd)
         # multi-source 앱은 sync.revision이 빈 값이라 oncePer 키가 고정되어
-        # 알림이 1회 후 봉쇄되므로, 배포마다 값이 바뀌는 revisions(목록)를 키로 쓴다
+        # 알림이 1회 후 봉쇄되므로, 배포마다 값이 바뀌는 revisions(목록)를 키로 쓴다.
+        # 마지막 조건: 리비전만 갱신된(실제 sync 연산 없는) 새로고침에서 모든 앱이
+        # 재발송되는 노이즈를 막는다 — sync 연산이 현재 리비전으로 실제 수행됐을 때만 발화.
         oncePer: app.status.sync.revisions
         send:
         - buzz-deployed
-        when: app.status.operationState.phase in ['Succeeded'] and app.status.health.status == 'Healthy'
+        when: app.status.operationState.phase in ['Succeeded'] and app.status.health.status == 'Healthy' and app.status.operationState.operation.sync.revisions == app.status.sync.revisions
     trigger.on-buzz-degraded: |
       - description: Application health degraded (Buzz #cicd)
         send:
