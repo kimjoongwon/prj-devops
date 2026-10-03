@@ -150,6 +150,25 @@ sync는 `oncePer: revisions` 중복제거로 재발송되지 않는다.
 알림 채널은 운영 소통용이다. 배포 기록의 단일 진실 원천은 여전히
 **prj-deploy의 git log**(이미지 태그 히스토리)다.
 
+
+## 스레드 체인과 자동 진단 (2026-10-03 고도화)
+
+- **알림 스레드**: 빌드 ✅가 루트가 되고, 범프 ✅(SOURCE_BUZZ_EVENT_ID reply)와
+  배포완료 🚀(linkKey=prj-deploy HEAD → followKey=revisions[1])가 같은 스레드에 달린다.
+  게이트웨이(≥0.1.2)가 스레드 매핑을 보관한다(재시작 시 매핑 유실 — 알림은 끊기지 않고 스레드만 풀림).
+- **실패 자동 진단**: 빌드/범프 실패 알림에 @ZCode가 멘션된다.
+  진단 절차는 `~/.buzz/GUIDES/CICD_ALERT_DIAGNOSIS.md`(ZCode 러북).
+- **빌드 잡 형상 관리**: 앱 빌드 잡 7종(빌드 5 + tool-storybook + buildkit)이 Job DSL로
+  `jenkins/values.yaml`에서 관리된다(파라미터·경로 필터 포함, 수동 실행).
+- **빌드 자동 트리거(폴링)는 시험 후 제거**했다 — lightweight checkout에서 includedRegions가
+  무시되어 모든 커밋에 발화하고, full checkout 전환 후에도 연쇄 발화가 관찰됐다.
+  재개하려면 GitHub webhook + 경로 라우팅 검토가 필요하다.
+- **tool-storybook-buildkit 잡은 예비**: 프로비저닝이 되지 않는 현상(파드 생성 없이
+  라벨 대기)이 있어 원인 조사 중. 실제 storybook 빌드는 podman 잡(tool-storybook-build) 사용.
+- **Harbor 로봇 시크릿 로테이션 금지**: `PUT /api/v2.0/robots/{id}`로 시크릿을 바꾸면
+  권한이 비활성화된다(actions: [] 토큰 발급). 반드시 **삭제 후 재생성**하고
+  k8s pull 시크릿(`harbor-pull-buzz`)을 갱신할 것.
+
 ## 운영
 
 ### 키/토큰 로테이션
