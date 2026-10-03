@@ -1,5 +1,7 @@
 # Buzz CI/CD 알림 연동 — 빌드 과정 + 배포 완료 (buzz-gateway)
 
+> 아키텍처·이벤트 흐름을 그림으로 보려면 **[`docs/buzz-architecture-visual.md`](buzz-architecture-visual.md)**.
+
 ## 목적
 
 - Jenkins 빌드 결과(성공/실패)와 GitOps 범프 결과를 **Buzz(Nostr) `#cicd` 채널**로 실시간 알림

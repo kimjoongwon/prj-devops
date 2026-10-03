@@ -27,7 +27,7 @@ GitOps 기반의 Kubernetes 배포 인프라로, Helm과 ArgoCD를 활용한 선
 - 운영 가이드: `docs/argocd-prod-only-webhook-manual.md`
 - Jenkins 연계 가이드: `docs/jenkins-gitops-image-bump.md`
 - Jenkinsfile 예시: `scripts/jenkins/Jenkinsfile.gitops-prod-example.groovy`
-- **CI/CD 알림(Buzz)**: 빌드/범프/배포 완료 알림을 Buzz `#cicd` 채널로 — `docs/buzz-ci-integration.md`
+- **CI/CD 알림(Buzz)**: 빌드/범프/배포 완료 알림을 Buzz `#cicd` 채널로 — `docs/buzz-ci-integration.md` · [아키텍처 비주얼 가이드](docs/buzz-architecture-visual.md)
 - 도구 chart 소스 정책: `helm/development-tools/README.md`
 
 ## ⚠️ 현재 운영 제약 (2026-09-27)
