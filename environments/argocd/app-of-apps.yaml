@@ -42,6 +42,6 @@ spec:
     - name: 'Environment'
       value: 'prod + stg (2026-10-04 stg reactivated — services only)'
     - name: 'Components'
-      value: 'apps: proposal-web, admin-web, core-api, idp-web, idp-api, tool-storybook, plate-db, pgadmin(+ingress), ingress, plate-cache · infra: cloudflared, buildkitd, buzz-gateway, postgres/redis exporter · apm: grafana/tempo/otel/loki/alloy · secrets: openbao(-cluster)-secrets-manager'
+        value: 'apps: proposal-web, admin-web, core-api, idp-web, idp-api, tool-storybook, plate-db, pgadmin(+ingress), ingress · infra: cloudflared, buildkitd, buzz-gateway, postgres/redis exporter · apm: grafana/tempo/otel/loki/alloy · secrets: openbao(-cluster)-secrets-manager'
     - name: 'Namespaces'
       value: 'plate-prod 외 다중(devops-tools, grafana, redis, cloudflared, external-secrets)'
