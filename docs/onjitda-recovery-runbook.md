@@ -50,9 +50,13 @@ kubectl get pod -n openbao openbao-0
 **시크릿 회복 범위 (2026-10-04 기준)** — unseal 후 ExternalSecret이 자동 재동기화하는 것:
 앱 env(`app-env-secrets`·`idp-*-env-secrets`), `harbor-docker-secret`, `infra-env-secrets`,
 `cluster-env-secrets`, **`plate-db-secrets`(prod·stg — ExternalSecret 소유, 수동 폐지)**.
-여전히 수동(클러스터 전체 재구축 시에만 재생성 필요): `harbor/harbor-admin`,
-`cert-manager/cloudflare-dns01-api-token`, `cloudflared/cloudflared-tunnel-token`,
-각 ns `openbao-token`(esc-policy period 토큰 — 생성법은 stg 런북 참조).
+2026-10-04 Phase 2 이관 완료 — `harbor/harbor-admin`, `cert-manager/cloudflare-dns01-api-token`,
+`cloudflared/cloudflared-tunnel-token`도 OpenBao KV(secret/harbor/admin, secret/cloudflare/production)에서
+ClusterExternalSecret이 동기화한다. 재구축 시에도 unseal 후 자동 회복.
+여전히 수동(클러스터 전체 재구축 시에만 재생성 필요): 각 ns `openbao-token`
+(esc-policy period 토큰 — 생성법은 stg 런북 참조). Jenkins 내부 credentials은
+harbor(harbor/jenkins-ci KV에 원본 있음)·buzz(devops/buzz-gateway KV)를 제외하면
+원본 키 소지자가 별도 보관(github-app private key, prj-deploy deploy key).
 
 ### 1-3. SecretStore / ExternalSecret 재동기화
 

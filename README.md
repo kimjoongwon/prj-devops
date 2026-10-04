@@ -587,6 +587,7 @@ spec:
 - **스테이징 재활성화 (prod + stg 운영 전환)**: 서비스 4앱(core-api·admin-web·idp-api·idp-web) + plate-db·ingress·secrets-manager가 plate-stg에서 운영 중. 스코프 원칙(운영만: proposal-web·tool-storybook·plate-llm)에 따라 stg 매니페스트 정리. 이미지 태그는 prod와 동일한 SHA-12 GitOps(prj-deploy `stg/<앱>.yaml` + ArgoCD multi-source). 상세: `docs/stg-reactivation-runbook.md`
 - **시크릿 통합 관리 Phase 1**: prod `openbao-token`에서 root 토큰 제거(esc-policy period 토큰으로 교체, stg 동일 패턴), plate-db 비밀번호를 OpenBao KV로 이관하고 `plate-db-secrets`를 ExternalSecret 소유로 전환(수동 시크릿 폐지), OpenBao 감사 로그 활성(선언적 audit stanza), esc-policy를 OpenBao에 실제 적용
 - **도구**: `update-gitops-image-tag.sh`/`rollback.sh`에 `--env stg` 지원, stg 범프 커밋(`bump stg/<앱>`)과 prod 롤백 매칭 분리
+- **시크릿 통합 Phase 2/3**: 인프라 토큰(harbor-admin·cloudflare dns01/tunnel)을 ClusterExternalSecret으로 이관(기존 시크릿 인계, 값 불변 검증), Harbor `robot$jenkins-ci` 재생성(시크릿 원본 `secret/harbor/jenkins-ci`), buzz-gateway 환경값 `secret/devops/buzz-gateway` 기록, ArgoCD admin 통일값 재설정. grafana-prod 영구 OutOfSync 해소(ESO 기본필드 ignoreDifferences)
 
 ### 2026-10-03
 
