@@ -47,6 +47,13 @@ kubectl get pod -n openbao openbao-0
 
 주의: `bao operator unseal`은 stdin 파이프를 거부한다. 키를 **인자**로 넘긴다.
 
+**시크릿 회복 범위 (2026-10-04 기준)** — unseal 후 ExternalSecret이 자동 재동기화하는 것:
+앱 env(`app-env-secrets`·`idp-*-env-secrets`), `harbor-docker-secret`, `infra-env-secrets`,
+`cluster-env-secrets`, **`plate-db-secrets`(prod·stg — ExternalSecret 소유, 수동 폐지)**.
+여전히 수동(클러스터 전체 재구축 시에만 재생성 필요): `harbor/harbor-admin`,
+`cert-manager/cloudflare-dns01-api-token`, `cloudflared/cloudflared-tunnel-token`,
+각 ns `openbao-token`(esc-policy period 토큰 — 생성법은 stg 런북 참조).
+
 ### 1-3. SecretStore / ExternalSecret 재동기화
 
 봉인 중 실패했던 스토어 검증/동기화는 자동으로 즉시 재시도되지 않는다(최대 1시간 주기).
@@ -110,7 +117,8 @@ done
 ### 2-2. Cloudflare 쪽 최종 구성
 
 - Tunnel: `homelab` (ID `5dcf2842-f2bf-4487-8048-64c00027c06a`)
-- DNS: 서비스 12호스트 CNAME → `<tunnel-id>.cfargotunnel.com`, 프록시 ON
+- DNS: 서비스 11호스트 CNAME → `<tunnel-id>.cfargotunnel.com`, 프록시 ON
+  (onjitda.com, idp, stg, idp-stg + 관리 도구 7종: argocd, harbor, jenkins, grafana, prometheus, openbao, db)
 - 터널 라우팅(전 호스트 공통):
 
 ```json
@@ -131,7 +139,7 @@ done
   `patch-idp-endpoints.sh production apply` 실행
 - 클러스터 잔여 정리: 고아 ACME order/certificaterequest, 미사용 TLS 시크릿(default ns 3종,
   plate-stg 1종), 미사용 configmap(fe-web-prod-config) 삭제
-- `spring-api-prod`는 2026-09-23 폐기 결정으로 GitOps에서 완전 제거됨
+- `spring-api-prod`는 2026-09-23 폐기 결정 → 2026-09-27 GitOps에서 전면 제거됨
   (기존 미해결 과제였던 Harbor 이미지 누락 문제도 함께 해소)
 
 ### 2-4. 트러블슈팅 기록 (재발 방지용)
