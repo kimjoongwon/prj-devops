@@ -34,5 +34,28 @@ extraEnv:
     value: idp
   - name: APP_PORT
     value: "3007"
+  # prod values-prod와 동일 구성 (stg 도메인) — 없으면 OIDC_ISSUER/INTERACTION_BASE_URL이
+  # localhost 기본값으로 떨어져 /oidc/auth가 http://localhost:3008로 리다이렉트함 (2026-10-04 수정)
+  - name: OIDC_ISSUER
+    value: https://idp-stg.onjitda.com
+  - name: OIDC_INTERACTION_BASE_URL
+    value: https://idp-stg.onjitda.com
+  - name: OIDC_ADMIN_BASE_URL
+    value: https://stg.onjitda.com
   - name: OTEL_SERVICE_NAME
     value: idp-api-stg
+  - name: NODE_OPTIONS
+    value: "--require /otel-ai/autoinstrumentation.js"
+  - name: OTEL_EXPORTER_OTLP_ENDPOINT
+    value: "http://otel-collector.grafana.svc.cluster.local:4317"
+  - name: OTEL_EXPORTER_OTLP_PROTOCOL
+    value: "grpc"
+  - name: OTEL_TRACES_SAMPLER
+    value: "parentbased_traceidratio"
+  - name: OTEL_TRACES_SAMPLER_ARG
+    value: "1.0"
+# OTel 자동계측 — prod와 동일 구성
+otel:
+  enabled: true
+  image: otel/autoinstrumentation-nodejs
+  imageTag: "0.78.0"

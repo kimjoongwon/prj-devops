@@ -34,6 +34,11 @@ spec:
     namespace: plate-stg
 
   # 동기화 정책
+  ignoreDifferences:
+    - group: apps
+      kind: Deployment
+      jqPathExpressions:
+        - '.spec.template.metadata.annotations["kubectl.kubernetes.io/restartedAt"]'
   syncPolicy:
     automated:
       prune: true
