@@ -40,10 +40,10 @@ Authorization: Bearer <token>
 ```bash
 cd prj-devops
 podman build --platform linux/amd64 --format=docker \
-  -t harbor.onjitda.com/devops/buzz-gateway:0.1.0 \
+  -t harbor.onjitda.com/devops/buzz-gateway:0.1.2 \
   docker/buzz-gateway/
 podman login harbor.onjitda.com        # Harbor robot 계정
-podman push harbor.onjitda.com/devops/buzz-gateway:0.1.0
+podman push harbor.onjitda.com/devops/buzz-gateway:0.1.2
 ```
 
 이미지 버전을 올릴 때는 `helm/development-tools/buzz-gateway/values.yaml`의

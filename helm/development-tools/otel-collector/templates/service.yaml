@@ -26,6 +26,10 @@ spec:
       port: {{ .Values.service.healthPort }}
       targetPort: health
       protocol: TCP
+    - name: self-metrics
+      port: {{ .Values.service.selfMetricsPort }}
+      targetPort: self-metrics
+      protocol: TCP
     {{- if .Values.spanmetrics.enabled }}
     - name: spanmetrics
       port: {{ .Values.service.metricsPort }}

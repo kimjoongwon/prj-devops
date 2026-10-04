@@ -26,11 +26,12 @@
 kubectl -n argocd get application frontend-web-apps
 ```
 
-## 현재 prod-only 하위 앱(2026-03-08 기준)
-- `proposal-web-prod`
-- `admin-web-prod`, `core-api-prod`
-- `idp-web-prod`, `idp-api-prod`
-- `plate-ingress-prod`, `openbao-secrets-manager-prod`, `openbao-cluster-secrets-manager`
+## 현재 prod-only 하위 앱(2026-10-04 기준, `environments/argocd/apps/`의 prod/공용 매니페스트)
+- 앱: `proposal-web-prod`, `admin-web-prod`, `core-api-prod`, `idp-web-prod`, `idp-api-prod`, `tool-storybook-prod`, `plate-db-prod`
+- 인그레스: `plate-ingress-prod`(ingress-prod.yaml), `pgadmin-prod`, `pgadmin-ingress-prod`
+- 관측/인프라: `grafana-prod`, `loki-prod`, `tempo-prod`, `otel-collector-prod`, `alloy-prod`, `postgres-exporter-prod`, `redis-exporter-prod`, `cloudflared-prod`, `buildkitd`, `buzz-gateway`
+- 공용: `plate-cache`, `openbao-secrets-manager-prod`, `openbao-cluster-secrets-manager`
+- (stg 9종 매니페스트는 repo에 유지되나 `exclude: "*-stg.yaml"`로 제외)
 
 ## 현재 운영 제약(2026-03-08)
 - `stg` 하위 앱은 의도적으로 제외(`exclude: "*-stg.yaml"`)되어 있습니다.
@@ -120,8 +121,9 @@ helm get values argocd -n argocd -o yaml | rg "githubSecret"
 GitHub 저장소에서:
 
 1. `Settings` -> `Webhooks` -> `Add webhook`
-2. `Payload URL`: `https://onjitda.com/api/webhook`
-   - **주의**: `https://argocd.onjitda.com/api/webhook`는 Cloudflare Access가 보호 중이라 302 로그인으로 거부됨(2026-09-21 확인). 우회 경로는 cocdev-ingress의 `/api/webhook`(Exact) → `argocd-webhook` Service(nginx 프록시) → argocd-server 체인으로 plate-prod에 구성되어 있음(`helm/ingress/values.yaml` + `values-argocd-webhook.yaml`)
+2. `Payload URL`: 저장소에 따라 다르다(2026-09-27 확인)
+   - **prj-devops**: `https://argocd.onjitda.com/api/webhook` — 현재 200 전달됨(§현황 참고)
+   - **prj-deploy 등 우회 필요 시**: `https://onjitda.com/api/webhook` — Cloudflare Access가 argocd 도메인을 보호하는 경우의 우회 경로. cocdev-ingress의 `/api/webhook`(Exact) → `argocd-webhook` Service(nginx 프록시) → argocd-server 체인으로 plate-prod에 구성되어 있음(`helm/ingress/values.yaml` + `values-argocd-webhook.yaml`)
 3. `Content type`: `application/json`
 4. `Secret`: `WEBHOOK_SECRET` 값 입력
 5. 이벤트: `Just the push event`

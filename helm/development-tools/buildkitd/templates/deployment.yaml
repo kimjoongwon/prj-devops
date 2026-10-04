@@ -6,6 +6,13 @@ metadata:
     {{- include "buildkitd.labels" . | nindent 4 }}
 spec:
   replicas: {{ .Values.replicaCount }}
+  # 캐시 PVC(RWO)를 신·구 파드가 동시에 마운트하면 빌드 캐시가 손상된다
+  # (loki 차트의 2026-09-23 WAL 손상 사고와 동일 패턴) — 구 파드 종료 후 새 파드 기동
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 0
+      maxUnavailable: 1
   selector:
     matchLabels:
       app.kubernetes.io/name: {{ include "buildkitd.name" . }}

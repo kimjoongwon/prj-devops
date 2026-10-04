@@ -3,7 +3,7 @@ name: pgadmin
 description: pgAdmin 웹 대시보드용 Helm 차트
 type: application
 version: 0.1.1
-appVersion: "9.13"
+appVersion: "9.12" # values.yaml 이미지 태그(9.12)와 정합
 keywords:
   - postgres
   - pgadmin

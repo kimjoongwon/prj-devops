@@ -49,7 +49,7 @@ spec:
         - '.spec.template.metadata.annotations["kubectl.kubernetes.io/restartedAt"]'
 
   syncPolicy:
-    # 자동 동기화 설정 (Git Push 시 자동 반영, 기본 폴링 주기 3분)
+    # 자동 동기화 설정 (Git Push 시 자동 반영, 폴링 주기 60s — argocd values의 timeout.reconciliation)
     automated:
       prune: true      # Git에서 삭제된 리소스를 클러스터에서도 자동 삭제
       selfHeal: true   # 클러스터에서 수동 변경 시 Git 상태로 자동 복구

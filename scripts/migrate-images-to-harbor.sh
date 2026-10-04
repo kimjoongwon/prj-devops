@@ -12,11 +12,11 @@ YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
-# Harbor 설정
-HARBOR_URL="harbor.onjitda.com"
-HARBOR_USER="admin"
-HARBOR_PASSWORD="Harbor12345"
-HARBOR_PROJECT="server-stg"  # 올바른 프로젝트 경로
+# Harbor 설정 — 자격증명은 환경변수로만 전달한다 (Git 커밋/프로세스 리스트 노출 금지)
+HARBOR_URL="${HARBOR_URL:-harbor.onjitda.com}"
+HARBOR_USER="${HARBOR_USER:?HARBOR_USER 환경변수를 설정하세요 (권장: admin 대신 robot 계정)}"
+HARBOR_PASSWORD="${HARBOR_PASSWORD:?HARBOR_PASSWORD 환경변수를 설정하세요}"
+HARBOR_PROJECT="${HARBOR_PROJECT:-server-stg}"
 
 echo -e "${BLUE}🚀 Harbor 이미지 마이그레이션 시작${NC}"
 echo "Harbor URL: ${HARBOR_URL}"
@@ -25,7 +25,7 @@ echo ""
 
 # Harbor 로그인
 echo -e "${YELLOW}📝 Harbor 로그인 중...${NC}"
-if docker login ${HARBOR_URL} -u ${HARBOR_USER} -p ${HARBOR_PASSWORD}; then
+if docker login "$HARBOR_URL" --username "$HARBOR_USER" --password-stdin <<< "$HARBOR_PASSWORD"; then
     echo -e "${GREEN}✅ Harbor 로그인 성공${NC}"
 else
     echo -e "${RED}❌ Harbor 로그인 실패${NC}"
@@ -60,7 +60,7 @@ for image in "${IMAGES[@]}"; do
     fi
     
     # 기본 이미지명에서 앞의 부분 제거 (예: kimjoongwon/server -> server)
-    base_name=$(basename $image_name)
+    base_name=$(basename "$image_name")
     harbor_image="${HARBOR_URL}/${HARBOR_PROJECT}/${base_name}:${image_tag}"
     
     echo "  • 소스: ${image}"
@@ -68,7 +68,7 @@ for image in "${IMAGES[@]}"; do
     
     # 이미지 pull
     echo "  • Pulling image..."
-    if docker pull $image; then
+    if docker pull "$image"; then
         echo -e "    ${GREEN}✅ Pull 성공${NC}"
     else
         echo -e "    ${RED}❌ Pull 실패${NC}"
@@ -77,7 +77,7 @@ for image in "${IMAGES[@]}"; do
     
     # Harbor 태그로 변경
     echo "  • Tagging image..."
-    if docker tag $image $harbor_image; then
+    if docker tag "$image" "$harbor_image"; then
         echo -e "    ${GREEN}✅ Tag 성공${NC}"
     else
         echo -e "    ${RED}❌ Tag 실패${NC}"
@@ -86,7 +86,7 @@ for image in "${IMAGES[@]}"; do
     
     # Harbor에 push
     echo "  • Pushing to Harbor..."
-    if docker push $harbor_image; then
+    if docker push "$harbor_image"; then
         echo -e "    ${GREEN}✅ Push 성공${NC}"
         SUCCESS_COUNT=$((SUCCESS_COUNT + 1))
     else
@@ -96,7 +96,7 @@ for image in "${IMAGES[@]}"; do
     
     # 로컬 이미지 정리 (선택사항)
     echo "  • Cleaning up local tags..."
-    docker rmi $harbor_image >/dev/null 2>&1 || true
+    docker rmi "$harbor_image" >/dev/null 2>&1 || true
     
     echo ""
 done

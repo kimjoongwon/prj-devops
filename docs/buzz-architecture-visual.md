@@ -13,7 +13,7 @@ flowchart TB
 
     subgraph JENKINS["Jenkins — devops-tools ns"]
         direction TB
-        BJ["빌드 잡 6종<br/>idp-api · idp-web · core-api<br/>admin-web · proposal-web · tool-storybook"]
+        BJ["빌드 잡 7종 (앱 6종)<br/>idp-api · idp-web · core-api<br/>admin-web · proposal-web · tool-storybook<br/>(tool-storybook은 buildkit 파일럿 잡 병행)"]
         GJ["gitops-prod-image-bump"]
         BN["buzzNotify() 헬퍼<br/>(post / finally 블록)"]
     end
@@ -129,7 +129,7 @@ flowchart LR
     EXEC --> RELAY2
 ```
 
-- 이미지: `harbor.onjitda.com/devops/buzz-gateway:0.1.0` (188MB) —
+- 이미지: `harbor.onjitda.com/devops/buzz-gateway:0.1.2`(`helm/development-tools/buzz-gateway/values.yaml` 기준, 구축 시 0.1.0) —
   1단계 `rust:1-alpine`에서 [block/buzz](https://github.com/block/buzz) `desktop-v0.5.26`의
   `buzz-cli`를 musl 정적 빌드(rustls라 openssl 불필요), 2단계 `node:22-alpine`에 탑재.
   공식 릴리스에 Linux CLI 바이너리가 없어 **소스 빌드가 유일한 경로**였다.
@@ -282,4 +282,4 @@ flowchart TB
 
 ---
 
-*작성: 2026-10-03 · 전체 구축 세션 기준 · 이미지 태그 0.1.0 · block/buzz `desktop-v0.5.26`*
+*작성: 2026-10-03 · 전체 구축 세션 기준 · 이미지 태그 0.1.0(구축) → 0.1.2(스레드 매핑 보관) · block/buzz `desktop-v0.5.26`*

@@ -211,7 +211,11 @@ downloadDashboards:
   #      key: value_key
 
 ## Pod Annotations
-# podAnnotations: {}
+podAnnotations:
+  # Grafana /metrics 는 인증 없이 응답 확인됨(2026-10-03 클러스터 실측) — up{} 알림 커버리지용
+  prometheus.io/scrape: "true"
+  prometheus.io/path: /metrics
+  prometheus.io/port: "3000"
 
 ## ConfigMap Annotations
 # configMapAnnotations: {}
@@ -357,13 +361,13 @@ route:
     ## Additional custom rules that can be added to the route
     additionalRules: []
 
-resources: {}
-#  limits:
-#    cpu: 100m
-#    memory: 128Mi
-#  requests:
-#    cpu: 100m
-#    memory: 128Mi
+resources:
+  requests:
+    cpu: 100m
+    memory: 256Mi
+  limits:
+    cpu: 500m
+    memory: 1Gi
 
 ## Node labels for pod assignment
 ## ref: https://kubernetes.io/docs/user-guide/node-selection/

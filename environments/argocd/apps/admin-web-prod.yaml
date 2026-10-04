@@ -68,6 +68,6 @@ spec:
     - name: "Environment"
       value: "Production"
     - name: "Domain"
-      value: "admin.onjitda.com"
+      value: "onjitda.com, www.onjitda.com (경로 / 및 /admin)"
     - name: "Description"
       value: "Admin Web - Production Environment (Next.js)"

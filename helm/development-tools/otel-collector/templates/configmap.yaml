@@ -52,6 +52,14 @@ data:
         endpoint: {{ .Values.exporters.tempo.endpoint }}
         tls:
           insecure: true
+        # Tempo(단일 복제) 재시작 중에도 배치를 유실하지 않도록 큐잉/재시도 명시
+        sending_queue:
+          enabled: true
+          queue_size: 2048
+        retry_on_failure:
+          enabled: true
+          initial_interval: 1s
+          max_interval: 5s
       {{- if .Values.spanmetrics.enabled }}
       prometheus/spanmetrics:
         endpoint: 0.0.0.0:{{ .Values.service.metricsPort }}
@@ -65,6 +73,10 @@ data:
         endpoint: 0.0.0.0:{{ .Values.service.healthPort }}
 
     service:
+      # collector 자체 메트릭(otelcol_*) — Service 어노테이션 스크레이프로 노출
+      telemetry:
+        metrics:
+          address: 0.0.0.0:{{ .Values.service.selfMetricsPort }}
       extensions: [health_check]
       pipelines:
         traces:

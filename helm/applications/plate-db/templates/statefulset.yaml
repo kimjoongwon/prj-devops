@@ -74,6 +74,17 @@ spec:
                   key: {{ .Values.secrets.passwordKey }}
             - name: PGDATA
               value: {{ .Values.persistence.mountPath }}/pgdata
+          {{- if .Values.probes.startup.enabled }}
+          startupProbe:
+            exec:
+              command:
+                - /bin/sh
+                - -c
+                - pg_isready -U {{ .Values.postgresql.username }} -d {{ .Values.postgresql.database }}
+            periodSeconds: {{ .Values.probes.startup.periodSeconds }}
+            timeoutSeconds: {{ .Values.probes.startup.timeoutSeconds }}
+            failureThreshold: {{ .Values.probes.startup.failureThreshold }}
+          {{- end }}
           {{- if .Values.probes.liveness.enabled }}
           livenessProbe:
             exec:

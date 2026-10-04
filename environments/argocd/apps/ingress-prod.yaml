@@ -39,7 +39,7 @@ spec:
 
   # 동기화 정책
   syncPolicy:
-    # 자동 동기화 설정 (Git Push 시 자동 반영, 기본 폴링 주기 3분)
+    # 자동 동기화 설정 (Git Push 시 자동 반영, 폴링 주기 60s — argocd values의 timeout.reconciliation)
     automated:
       prune: true      # Git에서 삭제된 리소스를 클러스터에서도 자동 삭제
       selfHeal: true   # 클러스터에서 수동 변경 시 Git 상태로 자동 복구
@@ -48,7 +48,6 @@ spec:
     syncOptions:
       - CreateNamespace=true           # 네임스페이스가 없으면 자동 생성
       - ApplyOutOfSyncOnly=true        # 변경된 리소스만 적용 (성능 최적화)
-      - RespectIgnoreDifferences=true  # ignoreDifferences 설정 준수
     
     # 동기화 실패 시 재시도 정책 (Production은 보수적 설정)
     retry:
@@ -57,13 +56,6 @@ spec:
         duration: 5s        # 첫 재시도 대기 시간
         factor: 2           # 재시도마다 대기 시간 배수 증가 (5s → 10s → 20s)
         maxDuration: 3m     # 최대 대기 시간
-
-  # 특정 필드에 대한 변경 무시 설정
-  ignoreDifferences:
-    - group: networking.k8s.io
-      kind: Ingress
-      jqPathExpressions:
-        - .metadata.annotations  # Ingress annotations 변경 무시 (클러스터가 자동 추가하는 annotation 때문)
 
   # Git 이력 보관 개수 (롤백 가능한 리비전 수)
   revisionHistoryLimit: 10

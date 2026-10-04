@@ -118,7 +118,7 @@
 
 1. pnpm-store-pvc 배포 확인:
    - prj-devops에 `helm/applications/plate-cache` 변경을 merge하면 ArgoCD `plate-cache` 앱이
-     자동 동기화한다(기본 폴링 3분). 즉시 반영은 `argocd app sync plate-cache`.
+     자동 동기화한다(폴링 60초 — `timeout.reconciliation`). 즉시 반영은 `argocd app sync plate-cache`.
    - 확인 명령:
 
      ```bash
@@ -131,7 +131,7 @@
 3. 검증: 외부 PR 1건으로 install 시간을 비교한다. 변경 전 콘솔 로그(또는 직전 PR 빌드)와
    `pnpm install --frozen-lockfile` 단계 시간을 대비하고, 패키지 다운로드 대신
    스토어 복원(하드링크) 로그가 나오는지 확인한다.
-4. 문제 시(NFS 손상·권한 오류·store 무결성 오류): 스토어 디렉터리를 클리어하고 재검증한다.
+4. 문제 시(스토어 손상·권한 오류·store 무결성 오류): 스토어 디렉터리를 클리어하고 재검증한다.
 
 ### 완료 판정 기준
 
@@ -156,7 +156,7 @@ B구조 통일로 파일럿 잡이 본체 `devops/Jenkinsfile.tool-storybook`로
 
 ### (a) buildkitd 배포
 
-1. ArgoCD: prj-devops merge 후 `buildkitd` 앱 자동 동기화(3분) 또는 `argocd app sync buildkitd`.
+1. ArgoCD: prj-devops merge 후 `buildkitd` 앱 자동 동기화(폴링 60초) 또는 `argocd app sync buildkitd`.
    수동 대안:
 
    ```bash
@@ -249,4 +249,4 @@ kubectl -n devops-tools create secret docker-registry buildkit-registry-config \
   kubectl -n devops-tools exec deploy/buildkitd -- buildctl du
   ```
 
-  또한 `pnpm-store-pvc`(20Gi, NFS) 사용량도 함께 관찰해 증설 시점을 판단한다.
+  또한 `pnpm-store-pvc`(20Gi, openebs-hostpath) 사용량도 함께 관찰해 증설 시점을 판단한다.

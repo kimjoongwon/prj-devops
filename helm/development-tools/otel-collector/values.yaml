@@ -11,6 +11,7 @@ service:
   otlpHttpPort: 4318
   healthPort: 13133
   metricsPort: 8889
+  selfMetricsPort: 8888
 
 exporters:
   tempo:
@@ -38,7 +39,13 @@ spanmetrics:
     - 10s
 
 prometheus:
-  serviceAnnotations: {}
+  # Service 어노테이션(Prometheus kubernetes-services 잡)은 collector 자체 메트릭(otelcol_*) 수집.
+  # Grafana의 OpenTelemetry Collector 대시보드(15983)가 이 메트릭을 요구한다.
+  serviceAnnotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/path: /metrics
+    prometheus.io/port: "8888"
+  # 파드 어노테이션(kubernetes-pods 잡)은 기존처럼 spanmetrics(8889)를 수집한다.
   podAnnotations:
     prometheus.io/scrape: "true"
     prometheus.io/path: /metrics

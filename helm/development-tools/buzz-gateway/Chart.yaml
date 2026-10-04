@@ -6,7 +6,7 @@ description: >
   이 파드의 Secret에만 존재한다.
 type: application
 version: 0.1.0
-appVersion: "0.1.0"
+appVersion: "0.1.2"
 
 keywords:
   - buzz

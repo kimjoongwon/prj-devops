@@ -51,8 +51,16 @@ tls:
   autoGenerate: false
   host: ""
 
-# Liveness/Readiness Probe
+# Startup/Liveness/Readiness Probe
 probes:
+  # initdb/WAL replay 등 장기 복구 동안 liveness가 복구 중인 DB를 kill하지
+  # 않도록 시작 예산을 별도로 확보한다 (30회 × 10s = 300s).
+  # startupProbe가 성공할 때까지 liveness/readiness는 비활성된다.
+  startup:
+    enabled: true
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 30
   liveness:
     enabled: true
     initialDelaySeconds: 30

@@ -10,7 +10,8 @@
 #      kubectl -n cloudflared create secret generic cloudflared-tunnel-token \
 #        --from-literal=token=<tunnel token>
 
-replicaCount: 1
+# 터널 커넥터는 2개 이상이 공식 권장 — 단일 커넥터는 모든 외부 트래픽의 SPOF
+replicaCount: 2
 
 image:
   repository: cloudflare/cloudflared

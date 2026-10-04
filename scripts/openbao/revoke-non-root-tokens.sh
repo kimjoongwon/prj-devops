@@ -66,11 +66,10 @@ FAILED=0
 
 for accessor in $ACCESSORS; do
   # Accessor로 토큰 정보 조회
-  TOKEN_INFO=$(vault token lookup -accessor "$accessor" 2>/dev/null)
-
-  if [ $? -ne 0 ]; then
+  # (set -e 하에서 $(...) 실패가 즉시 종료를 유발하므로 if ! 패턴으로 검사)
+  if ! TOKEN_INFO=$(vault token lookup -accessor "$accessor" 2>/dev/null); then
     echo "⚠️  Accessor ${accessor:0:20}... 조회 실패 (이미 삭제됨)"
-    ((FAILED++))
+    FAILED=$((FAILED + 1))
     continue
   fi
 
@@ -83,7 +82,7 @@ for accessor in $ACCESSORS; do
   # Root 정책 포함 여부 확인
   if echo "$POLICIES" | grep -q "root"; then
     echo "⏭️  [SKIP] Root 토큰: $DISPLAY_NAME"
-    ((SKIPPED++))
+    SKIPPED=$((SKIPPED + 1))
   else
     echo "🗑️  [DELETE] $DISPLAY_NAME"
     echo "    ├─ Policies: $POLICIES"
@@ -92,10 +91,10 @@ for accessor in $ACCESSORS; do
 
     # 토큰 무효화
     if vault token revoke -accessor "$accessor" 2>/dev/null; then
-      ((REVOKED++))
+      REVOKED=$((REVOKED + 1))
     else
       echo "    ❌ 무효화 실패"
-      ((FAILED++))
+      FAILED=$((FAILED + 1))
     fi
   fi
   echo ""

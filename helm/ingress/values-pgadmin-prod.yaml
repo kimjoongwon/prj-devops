@@ -10,7 +10,10 @@ ingress:
   className: "nginx"
   annotations:
     cert-manager.io/cluster-issuer: "letsencrypt-prod"
-    ingress.kubernetes.io/ssl-redirect: "false"
+    nginx.ingress.kubernetes.io/ssl-redirect: "true" # HTTPS 강제 (기존 의도: false였으나 잘못된 어노테이션 키로 무시되고 nginx 기본동작(리다이렉트)이 적용 중이었음 — 실제 동작을 값으로 고정)
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "120"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "120"
+    nginx.ingress.kubernetes.io/proxy-body-size: "50m" # pgAdmin 백업/CSV 업로드 여유
     acme.cert-manager.io/http01-edit-in-place: "true"
   hosts:
     - host: db.onjitda.com

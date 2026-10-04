@@ -8,7 +8,8 @@ image:
 imagePullSecrets: []
 
 nfs:
-  server: 192.168.97
+  # 클러스터 VM 3대의 호스트 서버(recovery-runbook 참조)
+  server: 192.168.0.97
   path: /export/k8s
   mountOptions:
   volumeName: nfs-subdir-external-provisioner-root

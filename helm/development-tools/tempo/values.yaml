@@ -20,6 +20,13 @@ persistence:
 
 retention: 168h
 
+prometheus:
+  # tempo /metrics 는 query HTTP 포트(3200)에서 노출 — Grafana up{} 컴포넌트 다운 알림 커버리지용
+  podAnnotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/path: /metrics
+    prometheus.io/port: "3200"
+
 resources:
   requests:
     cpu: 200m
