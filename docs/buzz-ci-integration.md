@@ -174,8 +174,9 @@ sync는 `oncePer: revisions` 중복제거로 재발송되지 않는다.
     선언적 파라미터를 한 번 지운다 — 재적용 직후 첫 범프 빌드는 파라미터 없이 돌아
     `TRUSTED_DEPLOYMENT != 'true'`로 실패한다(선언적 파라미터는 그 실행 끝에 재등록).
     helm upgrade 후 첫 범프가 이 에러로 죽으면 파라미터를 명시해 재실행하면 된다.
-- **tool-storybook-buildkit 잡은 예비**: 프로비저닝이 되지 않는 현상(파드 생성 없이
-  라벨 대기)이 있어 원인 조사 중. 실제 storybook 빌드는 podman 잡(tool-storybook-build) 사용.
+- **tool-storybook 잡 프로비저닝 관찰**: 이전 파일럿 잡(tool-storybook-buildkit)에서
+  파드 라벨 대기 현상이 있었고 containerCap=2 대응(알림 컨테이너 제거, wget 폴백)으로 수정했다.
+  2026-10-04 B구조 통일로 잡은 tool-storybook-build로 병합됨 — 적용 후 첫 빌드 프로비저닝 관찰 필요.
 - **Harbor 로봇 시크릿 로테이션 금지**: `PUT /api/v2.0/robots/{id}`로 시크릿을 바꾸면
   권한이 비활성화된다(actions: [] 토큰 발급). 반드시 **삭제 후 재생성**하고
   k8s pull 시크릿(`harbor-pull-buzz`)을 갱신할 것.

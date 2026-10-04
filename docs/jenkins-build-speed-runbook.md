@@ -149,8 +149,9 @@
 ## 4. BuildKit 파일럿 (tool-storybook)
 
 배경: 젠킨스 빌드 전용 BuildKit 데몬(`buildkitd`, rootless)을 `devops-tools`에 두고
-`RUN --mount=type=cache` 캐시를 PVC에 영속화한다. 파일럿 대상은 tool-storybook이며,
-파일럿 잡은 `devops/Jenkinsfile.tool-storybook.buildkit`(prj-core)을 사용한다.
+빌드 캐시를 PVC에 영속화한다. 파일럿 대상은 tool-storybook이었다 — 2026-10-04
+B구조 통일로 파일럿 잡이 본체 `devops/Jenkinsfile.tool-storybook`로 병합되고
+전 앱 빌드 잡이 buildctl 원격 빌더로 전환됐다(아래 (e) 참조).
 배포 파일: `helm/development-tools/buildkitd/` + `environments/argocd/apps/buildkitd.yaml`.
 
 ### (a) buildkitd 배포
@@ -190,7 +191,8 @@ kubectl -n devops-tools create secret docker-registry buildkit-registry-config \
 
 ### (c) Jenkins 신규 pipeline job 수동 생성
 
-파일럿은 Job DSL에 넣지 않고 Jenkins UI에서 수동 생성한다.
+파일럿 당시에는 Job DSL에 넣지 않고 Jenkins UI에서 수동 생성했다
+(2026-10-04 B구조 통일 후에는 app-build-jobs Job DSL이 tool-storybook-build 잡을 관리한다 — 이 절은 이력 보존).
 기존 잡 생성 관례(보호 브랜치, 주입 값, 권한 제한)는 prj-core `devops/README.public-ci.md`를 따른다.
 
 - Pipeline from SCM: prj-core 저장소, 보호 브랜치(main) 고정,
@@ -212,11 +214,14 @@ kubectl -n devops-tools create secret docker-registry buildkit-registry-config \
 
 완료 판정: 2회째 빌드의 캐시 적중, Harbor push, 앱 기동이 모두 확인되면 파일럿 통과.
 
-### (e) 통과 시 확산
+### (e) 통과 시 확산 — 2026-10-04 실행 완료
 
-1. 본 `Jenkinsfile.tool-storybook`을 buildctl 방식으로 전환한다.
-2. 파일럿 파일 `devops/Jenkinsfile.tool-storybook.buildkit`과 파일럿 잡을 제거한다.
+1. 본 `Jenkinsfile.tool-storybook`을 buildctl 방식으로 전환한다. ✅
+2. 파일럿 파일 `devops/Jenkinsfile.tool-storybook.buildkit`과 파일럿 잡을 제거한다. ✅
+   (prj-core 파일럿 2파일 삭제, prj-devops app-build-jobs의 파일럿 잡 항목 병합)
 3. 이후 다른 앱으로 확산한다(프론트 계열부터). 확산 속도는 watch-item 관찰 결과에 따라 조절한다.
+   ✅ 전 앱(idp-api, idp-web, core-api, admin-web, proposal-web) 동시 전환 — 첫 빌드에서
+   캐시 적중·push 성공·파드 프로비저닝을 관찰할 것.
 
 ### (f) 롤백 방법
 

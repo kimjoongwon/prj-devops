@@ -550,7 +550,8 @@ controller:
       # 앱 빌드 잡 7종 — 2026-10-03 UI 수동 관리에서 Job DSL 이관.
       # 파라미터/폴링 트리거(H/5)/경로 필터(includedRegions)까지 형상 관리.
       # 경로 필터는 근사치(앱 디렉터리+공용 packages+해당 Dockerfile+루트 설정) —
-      # 놓친 경로는 수동 빌드로 항상 커버 가능. tool-storybook-build(podman)은 수동 예비.
+      # 놓친 경로는 수동 빌드로 항상 커버 가능. tool-storybook-build는 수동 예비
+      # (2026-10-04 B구조 통일 — 전 잡 buildkit 전환, 파일럿 잡 tool-storybook-buildkit 병합 제거).
       app-build-jobs: |
         jobs:
           - script: |
@@ -567,8 +568,7 @@ controller:
                 [name: 'core-api-build',          script: 'devops/Jenkinsfile.core-api',                regions: "apps/core/api/.*|packages/(be-.*|common-.*)|devops/Dockerfile.core-api|${rootCfg}"],
                 [name: 'admin-web-build',         script: 'devops/Jenkinsfile.admin-web',               regions: "apps/admin/web/.*|packages/(fe-.*|common-.*)|devops/Dockerfile.admin-web|${rootCfg}"],
                 [name: 'proposal-web-build',      script: 'devops/Jenkinsfile.proposal-web',            regions: "apps/proposal/web/.*|packages/(fe-.*|common-.*)|devops/Dockerfile.proposal-web|${rootCfg}"],
-                [name: 'tool-storybook-buildkit', script: 'devops/Jenkinsfile.tool-storybook.buildkit', regions: "apps/tool/storybook/.*|packages/(fe-.*|common-.*|tsconfig.*|type.*|toolkit.*)|devops/(Dockerfile.tool-storybook|nginx.tool-storybook.conf)|${rootCfg}"],
-                [name: 'tool-storybook-build',    script: 'devops/Jenkinsfile.tool-storybook',          regions: ''],
+                [name: 'tool-storybook-build',    script: 'devops/Jenkinsfile.tool-storybook',          regions: "apps/tool/storybook/.*|packages/(fe-.*|common-.*|tsconfig.*|type.*|toolkit.*)|devops/(Dockerfile.tool-storybook|nginx.tool-storybook.conf)|${rootCfg}"],
               ]
               apps.each { app ->
                 pipelineJob(app.name) {
@@ -619,7 +619,7 @@ controller:
       # 이 잡이 push payload의 변경 파일을 apps regions로 매칭해 해당 앱 빌드 잡만 build job 트리거.
       # regions는 app-build-jobs의 것과 동일하게 유지 — 변경 시 두 곳을 함께 고칠 것.
       # 토큰이 라우터의 유일한 인증이다(GitHub 웹훅 URL 쿼리로 전달) — 로테이션 시
-      # GitHub 웹훅 URL도 함께 갱신. tool-storybook-buildkit/buildkit은 수동 예비라 제외.
+      # GitHub 웹훅 URL도 함께 갱신. tool-storybook-build는 수동 예비라 제외.
       push-router-job: |
         jobs:
           - script: |

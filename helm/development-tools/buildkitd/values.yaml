@@ -3,7 +3,8 @@
 # 용도:
 #   - Jenkins 빌드가 buildctl 원격 빌드로 이 데몬을 사용해
 #     RUN --mount=type=cache 캐시를 PVC에 영속화해 빌드 속도를 높인다.
-#   - 파일럿 대상: tool-storybook (prj-core devops/Jenkinsfile.tool-storybook.buildkit)
+#   - 사용 잡: 전 앱 빌드 잡이 buildctl 원격 빌더를 사용 (2026-10-04 B구조 통일,
+#     파일럿 Jenkinsfile.tool-storybook.buildkit은 본체로 병합됨)
 #   - 운영 절차/롤백: docs/jenkins-build-speed-runbook.md
 #
 # 사전 조건 (실제 자격증명은 이 저장소에 커밋하지 않는다):
