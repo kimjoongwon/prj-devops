@@ -80,15 +80,25 @@ ArgoCD가 plate-stg 네임스페이스에 7개 stg 앱을 배포한다:
 끄고 싶을 때는 exclude 줄 복원 — prune로 stg 앱 전체가 제거된다 (PVC는 `plate-db-stg` finalizer
 동작에 따르니 삭제 확인 필수).
 
-## Step 4 — DB 마이그레이션
+## Step 4 — DB 마이그레이션 (자동)
 
-core-api는 기동 시 마이그레이션을 돌리지 않는다. plate-db-stg 기동 후 1회 수행:
+core-api/idp-api 차트의 **PreSync 마이그레이션 Job**(`migrationJob.enabled: true`)이
+`prisma migrate deploy` + 기준 데이터 시드(`data-migrate.ts`, `LOCAL_BOOTSTRAP_*` 필요)를
+배포 전 자동 실행한다. 수동 실행은 불필요.
 
-```bash
-# prj-core 로컬에서 (DATABASE_URL_STG/DIRECT_URL_STG는 plate_stg DB 접속 정보)
-pnpm --filter @cocrepo/be-prisma db:migrate:deploy:stg
-# 스키마만 필요하면 db:push:stg, 초기 데이터는 data-migrate 계열 스크립트 참조
-```
+## 2026-10-04 활성화 중 해결한 사항 (재현 시 참고)
+
+1. **esc-policy 미적용**: OpenBao에 정책이 없어 토큰이 403 → `bao policy write esc-policy scripts/openbao/policies/esc-policy.hcl`
+2. **plate-stg `openbao-token` 시크릿**: `bao token create -policy=esc-policy -orphan -period=24h` 후 k8s Secret 생성 (ESO가 자동 갱신)
+3. **KV 플레이스홀더**: `core-api/staging`·`idp-api/staging`의 DATABASE_URL/DIRECT_URL=CHANGE_ME → plate-db-stg 접속 URL로 기입.
+   NODE_ENV는 `staging` 불가(enum) → **production**. APP_PORT=**3006** (차트 포트와 일치).
+   `LOCAL_BOOTSTRAP_*` 5종은 idp-api/production에서 복사.
+   AWS_*/SMTP_SECURE/OIDC_STORYBOOK_CLIENT_ID도 production에서 복사(공유 인프라).
+4. **`secret/devops/staging`** 전체가 CHANGE_ME → production 값 복사 (오브젝트 스토리지 R2 공유)
+5. **부모 앱 수동 apply**: app-of-apps는 부트스트랩 객체라 Git 푸시만으로 라이브 스펙이 안 바뀜 →
+   `kubectl apply -f environments/argocd/app-of-apps.yaml`
+6. **범프 잡 파라미터 갱신**: Jenkinsfile.gitops-update의 DEPLOY_ENV choices 변경 반영을 위해
+   prod 파라미터로 1회 warm-up 실행 (b12f864 노트와 동일 함정)
 
 ## Step 5 — 검증 체크리스트
 
