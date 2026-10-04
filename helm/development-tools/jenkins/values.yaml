@@ -709,6 +709,9 @@ controller:
                 }
                 definition {
                   cps {
+                    // 샌드박스 실행 — JsonSlurperClassic 등 필요 서명은 스크립트 승인
+                    // (scriptApproval)으로 일회 전역 승인했다. 인라인 trusted 실행은
+                    // 스크립트 수정마다 재승인이 필요해 GitOps 유지보수에 부적합하다.
                     sandbox()
                     script(routerScript)
                   }
