@@ -14,7 +14,7 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: https://github.com/kimjoongwon/prj-devops.git  # 실제 Git Repository URL로 변경 필요
+    repoURL: https://github.com/kimjoongwon/prj-devops.git
     path: environments/argocd/apps
     targetRevision: main
     directory:
@@ -24,7 +24,9 @@ spec:
       # - prod only: exclude "*-stg.yaml"
       # - stg only:  exclude "*-prod.yaml"
       # - all:       remove exclude line
-      exclude: "*-stg.yaml"
+      # 2026-10-04: stg 재활성화 — 서비스 4앱(core-api/admin-web/idp-api/idp-web) +
+      # plate-db/ingress/secrets-manager가 stg로 함께 운영됨
+      # (proposal-web/tool-storybook/plate-llm은 운영 전용 — stg 매니페스트 없음)
   destination:
     server: https://kubernetes.default.svc
     namespace: argocd
@@ -38,8 +40,8 @@ spec:
     - name: 'Description'
       value: 'Frontend Web Applications - App of Apps pattern'
     - name: 'Environment'
-      value: 'Production only (staging excluded by directory.exclude)'
+      value: 'prod + stg (2026-10-04 stg reactivated — services only)'
     - name: 'Components'
-      value: 'proposal-web, admin-web, core-api, idp-web, idp-api, tool-storybook, ingress, plate-cache, apm(grafana/tempo/otel/loki/alloy)'
+      value: 'apps: proposal-web, admin-web, core-api, idp-web, idp-api, tool-storybook, plate-db, pgadmin(+ingress), ingress, plate-cache · infra: cloudflared, buildkitd, buzz-gateway, postgres/redis exporter · apm: grafana/tempo/otel/loki/alloy · secrets: openbao(-cluster)-secrets-manager'
     - name: 'Namespaces'
-      value: 'plate-prod'
+      value: 'plate-prod 외 다중(devops-tools, grafana, redis, cloudflared, external-secrets)'
