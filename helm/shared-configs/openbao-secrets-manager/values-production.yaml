@@ -140,3 +140,11 @@ openbao:
     annotations:
       description: "OpenBao token for production environment"
       monitoring: "enabled"
+
+# plate-db 비밀번호 동기화 — OpenBao KV secret/plate-db/production
+plateDb:
+  enabled: true
+  externalSecret:
+    name: "plate-db-secrets-sync-production"
+    target:
+      name: "plate-db-secrets"

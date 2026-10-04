@@ -90,3 +90,11 @@ openbao:
 
 # NOTE: 클러스터 레벨 시크릿 관리는 openbao-cluster-secrets-manager로 분리됨
 # ClusterSecretStore, ClusterExternalSecret 설정은 해당 차트 참조
+
+# plate-db 비밀번호 동기화 — OpenBao KV secret/plate-db/staging
+plateDb:
+  enabled: true
+  externalSecret:
+    name: "plate-db-secrets-sync-staging"
+    target:
+      name: "plate-db-secrets"

@@ -231,3 +231,28 @@ harbor:
 
 # NOTE: 클러스터 레벨 시크릿 관리는 openbao-cluster-secrets-manager로 분리됨
 # ClusterSecretStore, ClusterExternalSecret 설정은 해당 차트 참조
+
+# plate-db 비밀번호 동기화 (옵션) — plate-db 차트가 existingSecret(plate-db-secrets)으로 읽는다.
+# 2026-10-04: 수동 k8s 시크릿을 폐지하고 OpenBao KV secret/plate-db/<env> 기반으로 전환
+plateDb:
+  enabled: false
+  externalSecret:
+    name: "plate-db-secrets-sync"
+    refreshInterval: "1h"
+    target:
+      name: "plate-db-secrets"
+      creationPolicy: "Owner"
+      template:
+        type: "Opaque"
+        metadata:
+          labels:
+            app.kubernetes.io/component: "plate-db-secrets"
+  staging:
+    remoteRef:
+      key: "plate-db/staging"
+  production:
+    remoteRef:
+      key: "plate-db/production"
+  development:
+    remoteRef:
+      key: "plate-db/development"
