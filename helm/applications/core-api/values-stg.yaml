@@ -27,3 +27,40 @@ appSecrets:
 extraEnv:
   - name: OTEL_SERVICE_NAME
     value: core-api-stg
+  - name: NODE_OPTIONS
+    value: "--require /otel-ai/autoinstrumentation.js"
+  - name: OTEL_EXPORTER_OTLP_ENDPOINT
+    value: "http://otel-collector.grafana.svc.cluster.local:4317"
+  - name: OTEL_EXPORTER_OTLP_PROTOCOL
+    value: "grpc"
+  - name: OTEL_TRACES_SAMPLER
+    value: "parentbased_traceidratio"
+  - name: OTEL_TRACES_SAMPLER_ARG
+    value: "1.0"
+  # app-env-secrets(OpenBao 동기화)에 없는 필수값 보충 — 포트/URL은 민감하지 않음 (prod와 동일 구성)
+  - name: REDIS_PORT
+    value: "6379"
+  - name: OIDC_INTERACTION_BASE_URL
+    value: https://idp-stg.onjitda.com
+  # idp 서명 공개키·쿠키 시크릿은 idp 시크릿에서 해당 키만 참조 (전체 secret 노출 없음)
+  - name: OIDC_JWKS_KEYS
+    valueFrom:
+      secretKeyRef:
+        name: idp-api-env-secrets
+        key: OIDC_JWKS_KEYS
+  - name: OIDC_COOKIE_SECRET
+    valueFrom:
+      secretKeyRef:
+        name: idp-api-env-secrets
+        key: OIDC_COOKIE_SECRET
+  # 브라우저 호출 허용 출처 (runtime-security: https 절대 URL 콤마 목록, 와일드카드 금지)
+  - name: CORS_ALLOWED_ORIGINS
+    value: https://stg.onjitda.com,https://idp-stg.onjitda.com
+  # ingress 뒤 1홉 (runtime-security: prod에서 필수, 0 이상 정수)
+  - name: TRUST_PROXY_HOPS
+    value: "1"
+# OTel nodejs 자동계측 주입 (init container로 SDK 탑재, NODE_OPTIONS로 로드) — prod와 동일 스택으로 검증
+otel:
+  enabled: true
+  image: otel/autoinstrumentation-nodejs
+  imageTag: "0.78.0"
