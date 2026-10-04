@@ -26,6 +26,17 @@ spec:
   destination:
     server: https://kubernetes.default.svc
     namespace: grafana
+  # ServerSideApply에서는 ESO가 기본값으로 채우는 ExternalSecret 필드를 ArgoCD가
+  # 제거할 수 없어 영구 OutOfSync가 남는다(2026-10-04 grafana-smtp 사례) — 무시 처리
+  ignoreDifferences:
+    - group: external-secrets.io
+      kind: ExternalSecret
+      jqPathExpressions:
+        - '.spec.target.creationPolicy'
+        - '.spec.target.deletionPolicy'
+        - '.spec.data[].remoteRef.conversionStrategy'
+        - '.spec.data[].remoteRef.decodingStrategy'
+        - '.spec.data[].remoteRef.metadataPolicy'
   syncPolicy:
     automated:
       prune: true
