@@ -3,11 +3,11 @@ set -euo pipefail
 
 # Roll back an application image by reverting its latest gitops image-bump commits
 # in prj-deploy (배포 상태 저장소).
-# Finds "ci(gitops): bump <app> image to <tag>" commits on the target branch,
-# reverts them (newest first), and pushes so ArgoCD redeploys the previous image.
+# Finds "ci(gitops): bump <app> image to <tag>" commits (stg는 "bump stg/<app>") on the
+# target branch, reverts them (newest first), and pushes so ArgoCD redeploys the previous image.
 # NOTE: 이 스크립트는 prj-devops에 있지만 revert 대상은 prj-deploy다.
 #
-# Usage: ./scripts/rollback.sh --app core-api [--steps 1] [--dry-run] [--skip-push]
+# Usage: ./scripts/rollback.sh --app core-api [--env prod|stg] [--steps 1] [--dry-run] [--skip-push]
 #
 # Requires mikefarah yq v4.18+ (same as scripts/jenkins/update-gitops-image-tag.sh).
 
@@ -15,6 +15,7 @@ SCRIPT_NAME="$(basename "$0")"
 
 APP_NAME="${APP_NAME:-}"
 STEPS="${STEPS:-1}"
+DEPLOY_ENV="${DEPLOY_ENV:-prod}"
 REPO_URL="${REPO_URL:-https://github.com/kimjoongwon/prj-deploy.git}"
 TARGET_BRANCH="${TARGET_BRANCH:-main}"
 GIT_USER_NAME="${GIT_USER_NAME:-gitops-rollback}"
@@ -38,6 +39,7 @@ Required:
   --app <name>                 App name (idp-api|idp-web|core-api|admin-web|proposal-web|tool-storybook)
 
 Options:
+  --env <prod|stg>             Deploy environment (default: prod). stg는 서비스 앱만 지원
   --steps <n>                  Number of bump commits to revert (default: 1)
   --repo-url <url>             GitOps repository URL (default: ${REPO_URL})
   --branch <name>              Branch to read/revert/push (default: ${TARGET_BRANCH})
@@ -51,7 +53,7 @@ Options:
   -h, --help                   Show this help
 
 Environment variable alternatives:
-  APP_NAME, STEPS, REPO_URL, TARGET_BRANCH, GIT_USER_NAME, GIT_USER_EMAIL,
+  APP_NAME, STEPS, DEPLOY_ENV, REPO_URL, TARGET_BRANCH, GIT_USER_NAME, GIT_USER_EMAIL,
   PUSH_RETRIES, WORKDIR, DRY_RUN, SKIP_PUSH, FORCE
 
 Requires:
@@ -93,6 +95,10 @@ while [[ $# -gt 0 ]]; do
   case "$1" in
     --app)
       APP_NAME="${2:-}"
+      shift 2
+      ;;
+    --env)
+      DEPLOY_ENV="${2:-}"
       shift 2
       ;;
     --steps)
@@ -154,35 +160,43 @@ SKIP_PUSH="$(normalize_bool "${SKIP_PUSH}")"
 FORCE="$(normalize_bool "${FORCE}")"
 require_yq
 
+case "$(printf '%s' "${DEPLOY_ENV}" | tr '[:upper:]' '[:lower:]')" in
+  prod|production)
+    DEPLOY_ENV="prod"
+    ;;
+  stg|staging)
+    DEPLOY_ENV="stg"
+    ;;
+  *)
+    fail "Unsupported --env '${DEPLOY_ENV}'. Allowed: prod/production, stg/staging."
+    ;;
+esac
+
 case "${APP_NAME}" in
-  idp-api)
-    VALUES_REL_PATH="prod/idp-api.yaml"
-    APP_YAML_KEY="idp-api"
-    ;;
-  idp-web)
-    VALUES_REL_PATH="prod/idp-web.yaml"
-    APP_YAML_KEY="idp-web"
-    ;;
-  core-api)
-    VALUES_REL_PATH="prod/core-api.yaml"
-    APP_YAML_KEY="core-api"
-    ;;
-  admin-web)
-    VALUES_REL_PATH="prod/admin-web.yaml"
-    APP_YAML_KEY="admin-web"
-    ;;
-  proposal-web)
-    VALUES_REL_PATH="prod/proposal-web.yaml"
-    APP_YAML_KEY="proposal-web"
-    ;;
-  tool-storybook)
-    VALUES_REL_PATH="prod/tool-storybook.yaml"
-    APP_YAML_KEY="tool-storybook"
+  idp-api|idp-web|core-api|admin-web|proposal-web|tool-storybook)
+    APP_YAML_KEY="${APP_NAME}"
     ;;
   *)
     fail "Unsupported app '${APP_NAME}'. Allowed: idp-api, idp-web, core-api, admin-web, proposal-web, tool-storybook"
     ;;
 esac
+
+# stg는 서비스 앱만 존재 — proposal-web/tool-storybook은 운영 전용
+if [[ "${DEPLOY_ENV}" == "stg" ]]; then
+  case "${APP_NAME}" in
+    proposal-web|tool-storybook)
+      fail "App '${APP_NAME}' is prod-only (no stg environment)."
+      ;;
+  esac
+fi
+
+VALUES_REL_PATH="${DEPLOY_ENV}/${APP_NAME}.yaml"
+# 범프 커밋 접두사 — update-gitops-image-tag.sh의 커밋 메시지 형식과 일치해야 한다
+if [[ "${DEPLOY_ENV}" == "stg" ]]; then
+  BUMP_APP_LABEL="stg/${APP_NAME}"
+else
+  BUMP_APP_LABEL="${APP_NAME}"
+fi
 
 TMP_DIR=""
 cleanup() {
@@ -226,7 +240,7 @@ read_current_tag() {
 
 CURRENT_TAG="$(read_current_tag || fail "Could not read current image tag (${APP_YAML_KEY}.image.tag) in ${VALUES_REL_PATH}")"
 
-BUMP_SUBJECT_PREFIX="ci(gitops): bump ${APP_NAME} image to "
+BUMP_SUBJECT_PREFIX="ci(gitops): bump ${BUMP_APP_LABEL} image to "
 BUMP_LOG=()
 while IFS= read -r entry; do
   BUMP_LOG+=("${entry}")

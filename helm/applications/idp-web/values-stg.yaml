@@ -5,7 +5,7 @@ replicaCount: 1
 idp-web:
   image:
     repository: harbor.onjitda.com/stg/idp-web
-    tag: "latest"
+    # 이미지 태그는 prj-deploy stg/idp-web.yaml 에서 관리 (ArgoCD multi-source)
     pullPolicy: Always
   port: 3008
   resources:

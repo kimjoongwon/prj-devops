@@ -23,19 +23,14 @@ ingress:
   className: "nginx"
   annotations:
     cert-manager.io/cluster-issuer: "letsencrypt-prod"   # 필요 시 스테이징 ClusterIssuer 로 교체
-    ingress.kubernetes.io/ssl-redirect: "false"          # Staging 은 HTTP 허용 (테스트 편의)
+    nginx.ingress.kubernetes.io/ssl-redirect: "false"    # Staging 은 HTTP 허용 (테스트 편의)
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "120"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "120"
+    nginx.ingress.kubernetes.io/proxy-body-size: "10m"
     acme.cert-manager.io/http01-edit-in-place: "true"
   hosts:
     - host: stg.onjitda.com
       paths:
-        # /proposal prefix -> proposal landing
-        - path: /proposal
-          pathType: Prefix
-          backend:
-            service:
-              name: proposal-web-stg
-              port:
-                number: 80
         # 전체 루트 -> 기본 진입 서비스
         - path: /
           pathType: Prefix
@@ -89,16 +84,6 @@ ingress:
               name: admin
               port:
                 number: 80
-    - host: llm.onjitda.com
-      paths:
-        # LLM 서비스 전체 경로
-        - path: /
-          pathType: Prefix
-          backend:
-            service:
-              name: plate-llm-stg
-              port:
-                number: 80
     - host: idp-stg.onjitda.com
       paths:
         - path: /api
@@ -138,8 +123,7 @@ ingress:
                 number: 80
   
   tls:
-    - secretName: plate-stg-tls   # SAN 인증서: 모든 스테이징 도메인 포함
+    - secretName: plate-stg-tls   # SAN 인증서: 스테이징 도메인 포함
       hosts:
         - stg.onjitda.com
-        - llm.onjitda.com
         - idp-stg.onjitda.com

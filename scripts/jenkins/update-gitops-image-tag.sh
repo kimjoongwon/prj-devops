@@ -5,6 +5,8 @@ set -euo pipefail
 # Intended to be called from Jenkins after Harbor image push succeeds.
 # NOTE: 이 스크립트는 prj-devops에 있지만 수정 대상은 prj-deploy다 —
 # --workdir에는 prj-deploy 체크아웃을 넘겨야 한다 (Jenkins 파이프라인 참조).
+# stg는 서비스 앱(idp-api|idp-web|core-api|admin-web)만 지원 —
+# proposal-web/tool-storybook은 운영(prod) 전용 (2026-10-04 stg 축소).
 #
 # Requires mikefarah yq v4.18+ (python yq is NOT supported):
 #   https://github.com/mikefarah/yq
@@ -33,7 +35,7 @@ Required:
   --tag <image_tag>            New image tag to set
 
 Options:
-  --env <prod|production>      Deploy environment (default: prod)
+  --env <prod|stg>             Deploy environment (default: prod). stg는 서비스 앱만 지원
   --repo-url <url>             GitOps repository URL (default: ${REPO_URL})
   --branch <name>              Target branch to commit/push (default: ${TARGET_BRANCH})
   --git-user-name <name>       Git commit author name (default: ${GIT_USER_NAME})
@@ -151,40 +153,33 @@ case "$(printf '%s' "${DEPLOY_ENV}" | tr '[:upper:]' '[:lower:]')" in
   prod|production)
     DEPLOY_ENV="prod"
     ;;
+  stg|staging)
+    DEPLOY_ENV="stg"
+    ;;
   *)
-    fail "Unsupported --env '${DEPLOY_ENV}'. Currently only prod/production is supported."
+    fail "Unsupported --env '${DEPLOY_ENV}'. Allowed: prod/production, stg/staging."
     ;;
 esac
 
 case "${APP_NAME}" in
-  idp-api)
-    VALUES_REL_PATH="prod/idp-api.yaml"
-    APP_YAML_KEY="idp-api"
-    ;;
-  idp-web)
-    VALUES_REL_PATH="prod/idp-web.yaml"
-    APP_YAML_KEY="idp-web"
-    ;;
-  core-api)
-    VALUES_REL_PATH="prod/core-api.yaml"
-    APP_YAML_KEY="core-api"
-    ;;
-  admin-web)
-    VALUES_REL_PATH="prod/admin-web.yaml"
-    APP_YAML_KEY="admin-web"
-    ;;
-  proposal-web)
-    VALUES_REL_PATH="prod/proposal-web.yaml"
-    APP_YAML_KEY="proposal-web"
-    ;;
-  tool-storybook)
-    VALUES_REL_PATH="prod/tool-storybook.yaml"
-    APP_YAML_KEY="tool-storybook"
+  idp-api|idp-web|core-api|admin-web|proposal-web|tool-storybook)
+    APP_YAML_KEY="${APP_NAME}"
     ;;
   *)
     fail "Unsupported app '${APP_NAME}'. Allowed: idp-api, idp-web, core-api, admin-web, proposal-web, tool-storybook"
     ;;
 esac
+
+# stg는 서비스 앱만 존재 — proposal-web/tool-storybook은 운영 전용
+if [[ "${DEPLOY_ENV}" == "stg" ]]; then
+  case "${APP_NAME}" in
+    proposal-web|tool-storybook)
+      fail "App '${APP_NAME}' is prod-only (no stg environment)."
+      ;;
+  esac
+fi
+
+VALUES_REL_PATH="${DEPLOY_ENV}/${APP_NAME}.yaml"
 
 TMP_DIR=""
 cleanup() {
@@ -269,7 +264,14 @@ if git -C "${REPO_DIR}" diff --cached --quiet; then
   exit 0
 fi
 
-COMMIT_MSG="ci(gitops): bump ${APP_NAME} image to ${IMAGE_TAG}"
+# 범프 커밋 메시지는 환경을 구분한다 — rollback.sh가 커밋 메시지 접두사로
+# 롤백 대상을 찾므로, stg 범프는 "bump stg/<앱>" 형태로 prod 범프와 섞이지 않게 한다.
+if [[ "${DEPLOY_ENV}" == "stg" ]]; then
+  BUMP_APP_LABEL="stg/${APP_NAME}"
+else
+  BUMP_APP_LABEL="${APP_NAME}"
+fi
+COMMIT_MSG="ci(gitops): bump ${BUMP_APP_LABEL} image to ${IMAGE_TAG}"
 git -C "${REPO_DIR}" commit -m "${COMMIT_MSG}" >/dev/null
 log "Committed: ${COMMIT_MSG}"
 

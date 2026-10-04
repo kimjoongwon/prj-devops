@@ -5,7 +5,7 @@ replicaCount: 1
 idp-api:
   image:
     repository: harbor.onjitda.com/stg/idp-api
-    tag: "latest"
+    # 이미지 태그는 prj-deploy stg/idp-api.yaml 에서 관리 (ArgoCD multi-source)
     pullPolicy: Always
   port: 3007
   resources:

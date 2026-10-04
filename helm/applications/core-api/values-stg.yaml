@@ -8,8 +8,8 @@ replicaCount: 1
 core-api:
   image:
     repository: harbor.onjitda.com/stg/core-api
-    tag: "latest"
-    pullPolicy: Always  # Always pull for latest builds in staging
+    # 이미지 태그는 prj-deploy stg/core-api.yaml 에서 관리 (ArgoCD multi-source)
+    pullPolicy: Always
   port: 3006
   resources:
     limits:

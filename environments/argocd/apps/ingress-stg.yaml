@@ -38,7 +38,7 @@ spec:
 
   # 동기화 정책
   syncPolicy:
-    # 자동 동기화 설정 (Git Push 시 자동 반영, 기본 폴링 주기 3분)
+    # 자동 동기화 설정 (Git Push 시 자동 반영, 폴링 주기 60s — argocd values의 timeout.reconciliation)
     automated:
       prune: true      # Git에서 삭제된 리소스를 클러스터에서도 자동 삭제
       selfHeal: true   # 클러스터에서 수동 변경 시 Git 상태로 자동 복구
@@ -69,4 +69,4 @@ spec:
     - name: "Domain"
       value: "stg.onjitda.com, idp-stg.onjitda.com"
     - name: "Description"
-      value: "스테이징 환경 인그레스 - /proposal -> proposal-web, /와 /admin -> admin-web, core-api/idp-web/idp-api 라우팅 처리"
+      value: "스테이징 환경 인그레스 - /와 /admin -> admin-web, /api -> core-api(+idp-api 인증 경로), idp-stg는 idp-web/idp-api 라우팅"
