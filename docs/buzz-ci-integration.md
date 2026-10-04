@@ -162,7 +162,14 @@ sync는 `oncePer: revisions` 중복제거로 재발송되지 않는다.
   `jenkins/values.yaml`에서 관리된다(파라미터·경로 필터 포함, 수동 실행).
 - **빌드 자동 트리거(폴링)는 시험 후 제거**했다 — lightweight checkout에서 includedRegions가
   무시되어 모든 커밋에 발화하고, full checkout 전환 후에도 연쇄 발화가 관찰됐다.
-  재개하려면 GitHub webhook + 경로 라우팅 검토가 필요하다.
+- **자동 트리거는 GitHub webhook + 경로 라우팅으로 재개(2026-10-04)**:
+  `onjitda.com/api/jenkins-webhook`(Prefix 우회 경로) → argocd-webhook nginx →
+  Jenkins GWT → **push-router 잡**이 push payload의 변경 파일을 apps regions로 매칭해
+  해당 앱 빌드 잡만 `build job` 트리거한다(빌드 5종 — buildkit/storybook은 수동 예비 제외).
+  - 웹훅: prj-core 저장소 1개, `push` 이벤트만, 토큰은 GWT URL 쿼리(jenkins/values.yaml
+    `push-router-job`과 GitHub 웹훅 URL이 같은 토큰을 공유 — 로테이션 시 양쪽 갱신).
+  - 잡 regions와 push-router의 매핑은 수동 동기화 — app-build-jobs DSL 변경 시 함께 고칠 것.
+  - ping 이벤트/다른 저장소/main 외 브랜치/변경 파일 없는 push는 라우터에서 무시된다.
 - **tool-storybook-buildkit 잡은 예비**: 프로비저닝이 되지 않는 현상(파드 생성 없이
   라벨 대기)이 있어 원인 조사 중. 실제 storybook 빌드는 podman 잡(tool-storybook-build) 사용.
 - **Harbor 로봇 시크릿 로테이션 금지**: `PUT /api/v2.0/robots/{id}`로 시크릿을 바꾸면

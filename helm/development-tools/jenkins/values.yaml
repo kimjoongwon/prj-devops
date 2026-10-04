@@ -422,8 +422,12 @@ controller:
   installLatestSpecifiedPlugins: false
 
   # -- List of plugins to install in addition to those listed in controller.installPlugins
+  # generic-webhook-trigger(2026-10-04): push-router 잡의 GitHub 웹훅 수신용.
+  # initializeOnce:true라 기존 볼륨에는 helm이 설치해주지 않는다 — 최초 기동시에만 반영되며,
+  # 운영 중 설치는 jpi를 /var/jenkins_home/plugins에 넣고 재시작했다(docs/buzz-ci-integration.md).
   additionalPlugins:
     - job-dsl
+    - generic-webhook-trigger
 
   # Without this; whenever the controller gets restarted (Evicted, etc.) it will fetch plugin updates that have the potential to cause breakage.
   # Note that for this to work, `persistence.enabled` needs to be set to `true`
@@ -605,6 +609,108 @@ controller:
                         'excludedRegions'('')
                       }
                     }
+                  }
+                }
+              }
+      # GitHub push → 앱 빌드 잡 경로 라우터 (2026-10-04, 폴링 제거 후 자동 빌드 재개)
+      #
+      # onjitda.com/api/jenkins-webhook(Exact 우회 경로, Cloudflare Access 밖) →
+      # argocd-webhook nginx 프록시 → Jenkins GWT(/generic-webhook-trigger/invoke?token=) →
+      # 이 잡이 push payload의 변경 파일을 apps regions로 매칭해 해당 앱 빌드 잡만 build job 트리거.
+      # regions는 app-build-jobs의 것과 동일하게 유지 — 변경 시 두 곳을 함께 고칠 것.
+      # 토큰이 라우터의 유일한 인증이다(GitHub 웹훅 URL 쿼리로 전달) — 로테이션 시
+      # GitHub 웹훅 URL도 함께 갱신. tool-storybook-buildkit/buildkit은 수동 예비라 제외.
+      push-router-job: |
+        jobs:
+          - script: |
+              def routerScript = '''
+              import groovy.json.JsonSlurperClassic
+
+              properties([
+                pipelineTriggers([
+                  [
+                    $class: 'GenericTrigger',
+                    token: '362c3e7a5db32b29149d9e509d69297e5cfbcde4c6eb82e7',
+                    causeString: 'GitHub push 라우팅',
+                    printContributedVariables: false,
+                    printPostContent: false,
+                    silentResponse: false,
+                    genericVariables: [
+                      [$class: 'GenericVariable', key: 'ghpayload', value: '$', defaultValue: '{}']
+                    ]
+                  ]
+                ])
+              ])
+
+              node {
+                stage('route') {
+                  def raw = env.ghpayload
+                  if (!raw) {
+                    echo 'ghpayload 없음 — 무시'
+                    return
+                  }
+                  def payload
+                  try {
+                    payload = new JsonSlurperClassic().parseText(raw)
+                  } catch (Exception e) {
+                    echo "payload 파싱 실패 — 무시 (${e.message})"
+                    return
+                  }
+                  if (payload?.repository?.full_name != 'kimjoongwon/prj-core') {
+                    echo "대상 외 저장소: ${payload?.repository?.full_name}"
+                    return
+                  }
+                  if (payload?.ref != 'refs/heads/main') {
+                    echo "main 외 ref: ${payload?.ref}"
+                    return
+                  }
+                  def changed = new HashSet()
+                  (payload.commits ?: []).each { c ->
+                    (c.modified ?: []).each { changed.add(it) }
+                    (c.added ?: []).each { changed.add(it) }
+                    (c.removed ?: []).each { changed.add(it) }
+                  }
+                  if (changed.isEmpty()) {
+                    echo '변경 파일 목록 없음 — 무시 (수동 빌드로 커버)'
+                    return
+                  }
+                  echo "변경 파일 ${changed.size()}개"
+
+                  def rootCfg = 'pnpm-lock\\\\.yaml|pnpm-workspace\\\\.yaml|package\\\\.json|turbo\\\\.json|biome\\\\.json'
+                  def apps = [
+                    [name: 'idp-api-build',      regions: 'apps/idp/api/.*|packages/(be-.*|common-.*)|devops/Dockerfile.idp-api|' + rootCfg],
+                    [name: 'idp-web-build',      regions: 'apps/idp/web/.*|packages/(fe-.*|common-.*)|devops/Dockerfile.idp-web|' + rootCfg],
+                    [name: 'core-api-build',     regions: 'apps/core/api/.*|packages/(be-.*|common-.*)|devops/Dockerfile.core-api|' + rootCfg],
+                    [name: 'admin-web-build',    regions: 'apps/admin/web/.*|packages/(fe-.*|common-.*)|devops/Dockerfile.admin-web|' + rootCfg],
+                    [name: 'proposal-web-build', regions: 'apps/proposal/web/.*|packages/(fe-.*|common-.*)|devops/Dockerfile.proposal-web|' + rootCfg],
+                  ]
+
+                  def triggered = []
+                  apps.each { app ->
+                    if (changed.any { it ==~ app.regions }) {
+                      triggered.add(app.name)
+                    }
+                  }
+                  if (triggered.isEmpty()) {
+                    echo '매칭 앱 없음 — 빌드 생략'
+                    return
+                  }
+                  echo "트리거 대상: ${triggered.join(', ')}"
+                  triggered.each { name ->
+                    build job: name, parameters: [string(name: 'BRANCH_NAME', value: 'main')], wait: false
+                  }
+                }
+              }
+              '''
+              pipelineJob('push-router') {
+                description('GitHub push 웹훅 라우터 — 변경 경로를 apps regions로 매칭해 앱 빌드 잡만 트리거 (docs/buzz-ci-integration.md)')
+                properties {
+                  disableConcurrentBuilds()
+                }
+                definition {
+                  cps {
+                    sandbox()
+                    script(routerScript)
                   }
                 }
               }

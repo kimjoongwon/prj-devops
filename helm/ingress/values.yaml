@@ -23,7 +23,10 @@ ingress:
   className: "nginx" # IngressClass (컨트롤러 식별)
   annotations: # 보안/성능/SSL 관련 어노테이션
     cert-manager.io/cluster-issuer: "letsencrypt-prod" # 프로덕션 실서명 인증서
-    ingress.kubernetes.io/ssl-redirect: "false" # HTTP -> HTTPS 리다이렉트
+    nginx.ingress.kubernetes.io/ssl-redirect: "true" # HTTP -> HTTPS 리다이렉트 (TLS 인그레스의 nginx 기본동작과 동일하게 명시)
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "120" # 업스트림 응답 대기 (기본 60s → 장기 요청/SSE 보호)
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "120" # 업스트림 전송 대기
+    nginx.ingress.kubernetes.io/proxy-body-size: "10m" # 요청 본문 상한 (기본 1m → 업로드 413 방지)
     acme.cert-manager.io/http01-edit-in-place: "true"
   hosts:
     - host: onjitda.com # 메인 도메인 (A 레코드 -> Ingress Controller LB)
@@ -94,6 +97,17 @@ ingress:
         # Service/Endpoints(argocd-server ClusterIP)를 경유.
         - path: /api/webhook
           pathType: Exact
+          backend:
+            service:
+              name: argocd-webhook
+              port:
+                number: 80
+        # Jenkins GitHub 웹훅(push-router GWT) — jenkins.onjitda.com도 Cloudflare Access 뒤라
+        # 같은 우회 체인으로 노출. Prefix 매칭이 /api(아래)보다 길어 우선하고,
+        # argocd-webhook nginx의 /api/jenkins-webhook/ location이 Jenkins로 전달한다.
+        # 웹훅 URL: /api/jenkins-webhook/generic-webhook-trigger/invoke?token=<push-router 토큰>
+        - path: /api/jenkins-webhook
+          pathType: Prefix
           backend:
             service:
               name: argocd-webhook
