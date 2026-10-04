@@ -48,10 +48,10 @@ Slack을 대체한다. Jenkins 쪽에는 플러그인을 추가하지 않는다(
 > (npub `npub12s8kuplyvtx6d3suajkqsjmvtzt9j23udxm3alwnr6v6z3ulwf9g93y85`, 채널 role=bot).
 > 커뮤니티 가입은 오너 초대 코드 발급/클레임(relay `/api/invites` NIP-98)으로 수행했다.
 > Harbor 프로젝트 `devops`(비공개), robot `robot$devops-buzz-gateway`(push/pull),
-> 이미지 `harbor.onjitda.com/devops/buzz-gateway:0.1.0` 푸시 완료.
+> 이미지 `harbor.onjitda.com/devops/buzz-gateway:0.1.0` 푸시 완료(현재 운영 태그 `0.1.2` — 스레드 매핑 보관 기능 포함, `values.yaml` 참조).
 > 클러스터 시크릿(`buzz-gateway-env`, `harbor-pull-buzz`, argocd 토큰)과 Jenkins
-> credential `buzz-notify-token`·잡 파라미터 `BUZZ_NOTIFY_URL`(6개 빌드 잡 + gitops
-> Jenkinsfile 파라미터) 반영 완료. 아래 절차는 재구축/로테이션 시 참고용이다.
+> credential `buzz-notify-token`·잡 파라미터 `BUZZ_NOTIFY_URL`(앱 빌드 잡 7종 + gitops
+> 잡 파라미터) 반영 완료. 아래 절차는 재구축/로테이션 시 참고용이다.
 
 ### 1. Buzz 측 — jenkins-bot 신원과 채널
 
@@ -64,7 +64,7 @@ Slack을 대체한다. Jenkins 쪽에는 플러그인을 추가하지 않는다(
 
 ### 2. Harbor — 이미지 저장소
 
-- 프로젝트 `devops`를 생성하고 이미지 `harbor.onjitda.com/devops/buzz-gateway:0.1.0`를
+- 프로젝트 `devops`를 생성하고 이미지 `harbor.onjitda.com/devops/buzz-gateway:<버전>`을
   푸시한다(빌드/푸시 명령은 `docker/buzz-gateway/README.md`).
 - 프로젝트가 비공개면 pull 시크릿을 만들고 `imagePullSecrets`에 지정한다
   (`helm/development-tools/buzz-gateway/values.yaml` 상단 주석).
@@ -170,6 +170,10 @@ sync는 `oncePer: revisions` 중복제거로 재발송되지 않는다.
     `push-router-job`과 GitHub 웹훅 URL이 같은 토큰을 공유 — 로테이션 시 양쪽 갱신).
   - 잡 regions와 push-router의 매핑은 수동 동기화 — app-build-jobs DSL 변경 시 함께 고칠 것.
   - ping 이벤트/다른 저장소/main 외 브랜치/변경 파일 없는 push는 라우터에서 무시된다.
+  - 함정 하나: JCasC/DSL 재적용(`helm upgrade jenkins`)은 gitops-prod-image-bump의
+    선언적 파라미터를 한 번 지운다 — 재적용 직후 첫 범프 빌드는 파라미터 없이 돌아
+    `TRUSTED_DEPLOYMENT != 'true'`로 실패한다(선언적 파라미터는 그 실행 끝에 재등록).
+    helm upgrade 후 첫 범프가 이 에러로 죽으면 파라미터를 명시해 재실행하면 된다.
 - **tool-storybook-buildkit 잡은 예비**: 프로비저닝이 되지 않는 현상(파드 생성 없이
   라벨 대기)이 있어 원인 조사 중. 실제 storybook 빌드는 podman 잡(tool-storybook-build) 사용.
 - **Harbor 로봇 시크릿 로테이션 금지**: `PUT /api/v2.0/robots/{id}`로 시크릿을 바꾸면
