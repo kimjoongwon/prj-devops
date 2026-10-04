@@ -44,3 +44,29 @@ clusterSecrets:
   # dataFrom을 사용하여 OpenBao KV(cluster/secrets)의 모든 키-값을 자동으로 가져옴
   # 새 환경변수 추가 시 OpenBao KV에만 추가하면 자동 동기화됨
   # 개별 data 매핑이 더 이상 필요하지 않음
+
+# 인프라 컴포넌트 시크릿 (2026-10-04 Phase 2) — 수동 k8s 시크릿을 OpenBao 기반으로 전환
+# KV: secret/harbor/admin, secret/cloudflare/production
+infraSecrets:
+  enabled: true
+  items:
+    - name: harbor-admin
+      namespace: harbor
+      key: harbor/admin
+      targetSecretName: harbor-admin
+      keys:
+        - secretKey: HARBOR_ADMIN_PASSWORD
+    - name: cloudflare-dns01
+      namespace: cert-manager
+      key: cloudflare/production
+      targetSecretName: cloudflare-dns01-api-token
+      keys:
+        - secretKey: api-token
+          remoteProperty: CLOUDFLARE_DNS01_API_TOKEN
+    - name: cloudflared-tunnel
+      namespace: cloudflared
+      key: cloudflare/production
+      targetSecretName: cloudflared-tunnel-token
+      keys:
+        - secretKey: token
+          remoteProperty: CLOUDFLARED_TUNNEL_TOKEN
