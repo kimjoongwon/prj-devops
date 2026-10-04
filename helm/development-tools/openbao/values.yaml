@@ -858,6 +858,18 @@ server:
         path = "/openbao/data"
       }
 
+      # 감사 로그 — 모든 API 요청 기록(값은 HMAC 마스킹), data PVC에 저장.
+      # OpenBao 2.4+는 API 대신 이 선언적 stanza로만 audit device 관리.
+      # (2026-10-04 시크릿 통합 관리 Phase 1)
+      audit "file" "audit-file" {
+        description = "file audit to /openbao/data/audit.log"
+
+        options {
+          file_path = "/openbao/data/audit.log"
+          mode = "0600"
+        }
+      }
+
       # Example configuration for using auto-unseal, using Google Cloud KMS. The
       # GKMS keys must already exist, and the cluster must have a service account
       # that is authorized to access GCP KMS.
