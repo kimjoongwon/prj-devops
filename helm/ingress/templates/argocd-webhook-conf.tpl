@@ -19,8 +19,9 @@ server {
   }
   # PR-Agent(AI 리뷰 게이트, 2026-10-05) — /api/pr-agent/api/v1/github_webhooks
   # trailing slash 프록시라 /api/pr-agent/ 프리픽스가 벗겨져 pr-agent로 전달된다.
+  # 포트 주의: Service는 80 → 파드 3000 매핑. 여기서는 80(기본)로.
   location /api/pr-agent/ {
-    proxy_pass http://pr-agent.devops-tools.svc.cluster.local:3000/;
+    proxy_pass http://pr-agent.devops-tools.svc.cluster.local/;
     proxy_http_version 1.1;
     proxy_set_header Host $host;
     proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
