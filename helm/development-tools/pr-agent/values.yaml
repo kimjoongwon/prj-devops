@@ -26,7 +26,7 @@ replicaCount: 1
 
 image:
   repository: pragent/pr-agent
-  tag: "0.47.0" # pinned — 업그레이드 시 values + 문서 함께 갱신
+  tag: "0.47.0-github_app" # 웹훅 서버(gunicorn+FastAPI) 타깃. 인증은 설정의 deployment_type="user"(PAT). pinned — 업그레이드 시 values + 문서 함께 갱신
   pullPolicy: IfNotPresent
 
 # 웹훅 서버(gunicorn+FastAPI). 단일 워커로 시작 — 동시 리뷰 필요 시 증설.
