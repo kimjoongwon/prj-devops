@@ -477,7 +477,12 @@ controller:
   existingSecret:
 
   # -- List of additional existing secrets to mount
-  additionalExistingSecrets: []
+  additionalExistingSecrets:
+    # push-router GWT 토큰 (원본 OpenBao secret/devops/push-router-gwt) —
+    # /var/jenkins_home/secrets/jenkins-gwt-token/token 으로 마운트되고
+    # push-router-job 시드가 읽어 잡 설정에 주입한다. values에 평문을 두지 않는다.
+    - name: jenkins-gwt-token
+      keyName: token
   # ref: https://github.com/jenkinsci/configuration-as-code-plugin/blob/master/docs/features/secrets.adoc#kubernetes-secrets
   # additionalExistingSecrets:
   #  - name: secret-name-1
@@ -623,6 +628,14 @@ controller:
       push-router-job: |
         jobs:
           - script: |
+              // GWT 토큰은 이 파일(values)에 두지 않는다 — additionalExistingSecrets가
+              // /run/secrets/additional/jenkins-gwt-token-token 으로 마운트한 OpenBao 사본을
+              // 시드 실행 시점에 읽어 잡 설정에 주입한다. (Jenkins 바인딩 없이 절대경로 사용)
+              def gwtTokenFile = new File('/run/secrets/additional/jenkins-gwt-token-token')
+              if (!gwtTokenFile.exists()) {
+                  throw new Exception('GWT token file missing: /run/secrets/additional/jenkins-gwt-token-token (k8s jenkins-gwt-token 마운트 확인)')
+              }
+              def gwtToken = gwtTokenFile.text.trim()
               def routerScript = '''
               import groovy.json.JsonSlurperClassic
 
@@ -630,7 +643,7 @@ controller:
                 pipelineTriggers([
                   [
                     $class: 'GenericTrigger',
-                    token: '362c3e7a5db32b29149d9e509d69297e5cfbcde4c6eb82e7',
+                    token: '__GWT_TOKEN__',
                     causeString: 'GitHub push 라우팅',
                     printContributedVariables: false,
                     printPostContent: false,
@@ -701,7 +714,7 @@ controller:
                   }
                 }
               }
-              '''
+              '''.replace('__GWT_TOKEN__', gwtToken)
               pipelineJob('push-router') {
                 description('GitHub push 웹훅 라우터 — 변경 경로를 apps regions로 매칭해 앱 빌드 잡만 트리거 (docs/buzz-ci-integration.md)')
                 properties {
