@@ -27,7 +27,7 @@ GitOps 기반의 Kubernetes 배포 인프라로, Helm과 ArgoCD를 활용한 선
 - 운영 가이드: `docs/argocd-prod-only-webhook-manual.md`
 - Jenkins 연계 가이드: `docs/jenkins-gitops-image-bump.md`
 - Jenkinsfile 예시: `scripts/jenkins/Jenkinsfile.gitops-prod-example.groovy`
-- **CI/CD 알림(Buzz)**: 빌드/범프/배포 완료 알림을 Buzz `#cicd` 채널로 — `docs/buzz-ci-integration.md` · [아키텍처 비주얼 가이드](docs/buzz-architecture-visual.md)
+- **CI/CD 알림(Buzz)**: 빌드/범프/배포 완료 알림을 Buzz `#cicd` 채널로 (2026-10-05부터 stg 4앱도 배포완료/Degraded 구독 — prod와 동일한 상용레벨) — `docs/buzz-ci-integration.md` · [아키텍처 비주얼 가이드](docs/buzz-architecture-visual.md)
 - **AI 자율 파이프라인 (Phase 0 완료·Phase 1 구축 완료, 2026-10-05)**: 브랜치 보호(stg/main PR 필수) + pr-agent 리뷰 게이트(클러스터 서비스, 웹훅 `/api/pr-agent/`, LLM=GLM-5.2) 구축 — z.ai 잔액 충전 후 재검증 대기. `docs/ai-autonomous-pipeline.md`
 - 도구 chart 소스 정책: `helm/development-tools/README.md`
 
