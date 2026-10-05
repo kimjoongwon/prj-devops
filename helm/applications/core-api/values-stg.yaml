@@ -3,6 +3,14 @@
 
 replicaCount: 1
 
+# 서비스 노출 — ingress(stg.onjitda.com) 경유만 허용. LB 직접 노출 제거
+# (2026-10-05 stg 감사 #3: 차트 기본 LoadBalancer 상속으로 LAN 전체 3006 오픈되었음.
+#  prod는 values-prod에서 별도 검토 필요 — prod LB를 직접 쓰는 클라이언트 유무 확인 전)
+service:
+  type: ClusterIP
+  port: 3006
+  targetPort: 3006
+
 # Staging 이미지 저장소 (Harbor registry)
 # 이미지 규칙: harbor.onjitda.com/{환경}/{앱이름}
 core-api:
