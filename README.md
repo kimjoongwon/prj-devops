@@ -14,7 +14,7 @@ GitOps 기반의 Kubernetes 배포 인프라로, Helm과 ArgoCD를 활용한 선
 - **보안 강화**: OpenBao 시크릿 관리 및 Harbor 프라이빗 레지스트리
 - **표준화된 구조**: 통일된 Helm 차트 패턴 및 명명 규칙
 
-## 📌 현재 운영 모드 (2026-10-04 갱신)
+## 📌 현재 운영 모드 (2026-10-05 갱신)
 
 - **도메인: 2026-09-18부터 `onjitda.com` (Cloudflare Tunnel)로 전환** 완료. 구 도메인(cocdev.co.kr)은 만료 전이라도 미해석 상태이며 전환 기간 없음. 복구/운영 절차: `docs/onjitda-recovery-runbook.md`
 - Production Parent Application: `frontend-web-apps` (`argocd` namespace)
@@ -28,6 +28,7 @@ GitOps 기반의 Kubernetes 배포 인프라로, Helm과 ArgoCD를 활용한 선
 - Jenkins 연계 가이드: `docs/jenkins-gitops-image-bump.md`
 - Jenkinsfile 예시: `scripts/jenkins/Jenkinsfile.gitops-prod-example.groovy`
 - **CI/CD 알림(Buzz)**: 빌드/범프/배포 완료 알림을 Buzz `#cicd` 채널로 — `docs/buzz-ci-integration.md` · [아키텍처 비주얼 가이드](docs/buzz-architecture-visual.md)
+- **AI 자율 파이프라인 (설계 확정·구축 대기, 2026-10-05)**: ZCode 작업 → PR-Agent 리뷰(Jenkins) → 사람 승인 → stg/prod 자동 배포·Buzz 모니터링 — `docs/ai-autonomous-pipeline.md` (리뷰 LLM 키 `secret/devops/pr-agent-llm` 등록·검증 완료)
 - 도구 chart 소스 정책: `helm/development-tools/README.md`
 
 ## ⚠️ 현재 운영 제약 (2026-10-04 갱신)
