@@ -19,10 +19,10 @@ persistence:
 
 service:
   type: LoadBalancer
-  # 외부 접속 허용 대역(CIDR). 빈 리스트 = 전체 허용(현재 운영과 동일, 거동 무변화).
-  # 예: 사무실/VPN 대역 확인 후 ["203.0.113.0/24"] 형태로 지정하면 해당 대역만 5432 접근 가능.
-  # 잘못된 CIDR 지정 시 접속이 차단되므로 실제 접속 경로 확인 후 적용할 것.
-  loadBalancerSourceRanges: []
+  # 외부 접속 허용 대역(CIDR) — 사무실 LAN(192.168.0.0/24)만 허용 (2026-10-05 적용,
+  # DataGrip 직접 접속(노트북 192.168.0.111) 경로 확인. VPN 대역 추가 시 여기에 append).
+  loadBalancerSourceRanges:
+    - 192.168.0.0/24
 
 tls:
   enabled: true

@@ -1,6 +1,14 @@
 # Production environment values for Core API
 # Override from values.yaml for production environment
 
+# 서비스 노출 — ingress(onjitda.com) 경유만 허용. LB 직접 노출(LAN 3006 오픈) 제거
+# (2026-10-05 prod LB 결정: 내부 호출은 전부 서비스 DNS, 외부는 ingress가 정상 경로라
+#  LB 직접 소비자 없음 확인. stg 전환(values-stg)과 동일 패턴)
+service:
+  type: ClusterIP
+  port: 3006
+  targetPort: 3006
+
 replicaCount: 1
 # Production 이미지 저장소 (Harbor registry)
 # 이미지 규칙: harbor.onjitda.com/{환경}/{앱이름}
