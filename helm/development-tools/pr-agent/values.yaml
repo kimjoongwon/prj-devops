@@ -1,0 +1,50 @@
+# PR-Agent — AI 코드 리뷰 게이트웨이
+#
+# 용도:
+#   - GitHub PR 웹훅(pull_request)을 받아 /review + /improve를 자동 실행하고
+#     결과를 PR 코멘트로 게시한다 (ZCode 자율 파이프라인의 리뷰 게이트).
+#   - LLM: z.ai 종량제 GLM (openai 호환) — OpenBao secret/devops/pr-agent-llm
+#   - 전체 구성: docs/ai-autonomous-pipeline.md
+#
+# 사전 조건 (실제 자격증명은 이 저장소에 커밋하지 않는다):
+#
+# 1) devops-tools 네임스페이스에 pr-agent-secrets 시크릿 (.secrets.toml 파일):
+#      [openai]   key / api_base        ← OpenBao secret/devops/pr-agent-llm
+#      [github]   user_token / webhook_secret / deployment_type="user"
+#                                          ← OpenBao secret/devops/pr-agent-github
+#    원본은 OpenBao가 진실 원천. k8s 시크릿 재생성 절차는
+#    docs/ai-autonomous-pipeline.md 의 '시크릿 관리' 절 참조.
+#
+# 2) GitHub prj-core 저장소 웹훅:
+#      URL    https://onjitda.com/api/pr-agent/api/v1/github_webhooks
+#      events pull_request · secret = pr-agent-github.webhook_secret
+#
+# 3) ingress(helm/ingress)의 /api/pr-agent 경로가 argocd-webhook-proxy를
+#    거쳐 이 Service로 라우팅된다 (tpl: argocdWebhookProxy.nginxConf).
+
+replicaCount: 1
+
+image:
+  repository: pragent/pr-agent
+  tag: "0.47.0" # pinned — 업그레이드 시 values + 문서 함께 갱신
+  pullPolicy: IfNotPresent
+
+# 웹훅 서버(gunicorn+FastAPI). 단일 워커로 시작 — 동시 리뷰 필요 시 증설.
+env:
+  GUNICORN_WORKERS: "1"
+
+containerPort: 3000
+
+service:
+  type: ClusterIP
+  port: 80
+
+resources:
+  requests:
+    cpu: 50m
+    memory: 128Mi
+  limits:
+    cpu: 500m
+    memory: 512Mi
+
+podAnnotations: {}

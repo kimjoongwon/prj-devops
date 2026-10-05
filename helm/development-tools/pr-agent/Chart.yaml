@@ -1,0 +1,6 @@
+apiVersion: v2
+name: pr-agent
+description: PR-Agent — AI 코드 리뷰 게이트 (ZCode 자율 파이프라인 Phase 1)
+type: application
+version: 0.1.0
+appVersion: "0.47.0"

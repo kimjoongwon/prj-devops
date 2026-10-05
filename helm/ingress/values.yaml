@@ -113,6 +113,16 @@ ingress:
               name: argocd-webhook
               port:
                 number: 80
+        # PR-Agent GitHub 웹훅(AI 리뷰 게이트, 2026-10-05) — 같은 우회 체인.
+        # argocd-webhook nginx의 /api/pr-agent/ location이 pr-agent Service로 전달한다.
+        # 웹훅 URL: /api/pr-agent/api/v1/github_webhooks
+        - path: /api/pr-agent
+          pathType: Prefix
+          backend:
+            service:
+              name: argocd-webhook
+              port:
+                number: 80
         # API 경로 (백엔드 서비스로 프록시)
         - path: /api
           pathType: Prefix

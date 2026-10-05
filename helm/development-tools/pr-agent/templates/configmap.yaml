@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: pr-agent-config
+  labels:
+    app.kubernetes.io/name: pr-agent
+data:
+  configuration.toml: |
+{{ .Files.Get "configuration.toml" | indent 4 }}
