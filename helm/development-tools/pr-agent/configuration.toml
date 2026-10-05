@@ -46,9 +46,8 @@ repo_context_max_sibling_files = 5 # Maximum number of sibling-repository files 
 # token limits
 max_description_tokens = 500
 max_commits_tokens = 500
-custom_model_max_tokens = 131072 # GLM-5.2 128K 컨텍스트 (litellm 비등록 모델 — MAX_TOKENS 폴백용)
 max_model_tokens = 32000 # Limits the maximum number of tokens that can be used by any model, regardless of the model's default capabilities.
-custom_model_max_tokens=-1 # Override unknown models or Sol/Luna on non-native custom providers.
+custom_model_max_tokens=131072 # GLM-5.2 128K 컨텍스트 (litellm 비등록 모델 폴백; 원본 기본값 -1)
 # Send max_completion_tokens for recognized Astra IDs, including bare IDs on custom providers,
 # and native OpenAI/Azure Sol/Luna. OpenRouter Astra uses it only without a routing suffix or with :nitro/:floor.
 # Use max_tokens for other routes, including azure_text and text-completion-openai.
