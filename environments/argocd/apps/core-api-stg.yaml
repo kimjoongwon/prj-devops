@@ -11,6 +11,10 @@ metadata:
     app.kubernetes.io/name: core-api
     app.kubernetes.io/instance: staging
     environment: staging
+  annotations:
+    # Buzz #cicd 알림 구독 — prod 4앱과 동일한 상용레벨 (2026-10-05)
+    notifications.argoproj.io/subscribe.on-buzz-deployed.buzz-gateway: ""
+    notifications.argoproj.io/subscribe.on-buzz-degraded.buzz-gateway: ""
 spec:
   # ArgoCD 프로젝트 지정 (default는 모든 클러스터/네임스페이스 접근 가능)
   project: default
