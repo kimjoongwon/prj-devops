@@ -28,7 +28,7 @@ GitOps 기반의 Kubernetes 배포 인프라로, Helm과 ArgoCD를 활용한 선
 - Jenkins 연계 가이드: `docs/jenkins-gitops-image-bump.md`
 - Jenkinsfile 예시: `scripts/jenkins/Jenkinsfile.gitops-prod-example.groovy`
 - **CI/CD 알림(Buzz)**: 빌드/범프/배포 완료 알림을 Buzz `#cicd` 채널로 — `docs/buzz-ci-integration.md` · [아키텍처 비주얼 가이드](docs/buzz-architecture-visual.md)
-- **AI 자율 파이프라인 (설계 확정·구축 대기, 2026-10-05)**: ZCode 작업 → PR-Agent 리뷰(Jenkins) → 사람 승인 → stg/prod 자동 배포·Buzz 모니터링 — `docs/ai-autonomous-pipeline.md` (리뷰 LLM 키 `secret/devops/pr-agent-llm` 등록·검증 완료)
+- **AI 자율 파이프라인 (Phase 0 완료·Phase 1 구축 완료, 2026-10-05)**: 브랜치 보호(stg/main PR 필수) + pr-agent 리뷰 게이트(클러스터 서비스, 웹훅 `/api/pr-agent/`, LLM=GLM-5.2) 구축 — z.ai 잔액 충전 후 재검증 대기. `docs/ai-autonomous-pipeline.md`
 - 도구 chart 소스 정책: `helm/development-tools/README.md`
 
 ## ⚠️ 현재 운영 제약 (2026-10-04 갱신)
