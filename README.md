@@ -35,7 +35,7 @@ GitOps 기반의 Kubernetes 배포 인프라로, Helm과 ArgoCD를 활용한 선
 
 - 앱 정상화 선행 조건 — **prj-deploy `prod|stg/<앱>.yaml`의 태그**와 동일한 이미지가 Harbor에 존재해야 함 (태그는 빌드 커밋 SHA 앞 12자 컨벤션). 대상: `harbor.onjitda.com/prod/{core-api, admin-web, proposal-web, idp-api, idp-web, tool-storybook}`, `harbor.onjitda.com/stg/{core-api, admin-web, idp-api, idp-web}` (stg는 서비스 앱만 존재)
 - 이미지 미존재 시 `ImagePullBackOff`가 발생하며 ArgoCD 앱은 `Synced`여도 `Healthy`가 되지 않습니다.
-- 운용 DB(plate-db) Service가 LoadBalancer(5432)로 노출되어 있고 허용 대역(`loadBalancerSourceRanges`)이 비어 있어 내부망 전체에 열려 있음 — 사무실/VPN CIDR 확인 후 `helm/applications/plate-db/values-prod.yaml`에 지정 권장 (2026-10-03 검토, 값 예시 주석 참고)
+- LB 노출 정리 완료 (2026-10-05): plate-db LB는 사무실 대역(`192.168.0.0/24`)으로 제한 — DataGrip 직접 접속 경로 유지, VPN 대역 추가 시 values-prod에 append. core-api(stg·prod 모두) LB 직접 노출 제거 — ingress 경유 ClusterIP로 통일
 
 ## 📁 프로젝트 구조
 
