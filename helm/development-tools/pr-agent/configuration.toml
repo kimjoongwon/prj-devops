@@ -337,7 +337,7 @@ publish_as_check_run = false # when true, publish review/description/improve out
 
 [github_app]
 # these toggles allows running the github app from custom deployments
-override_deployment_type = true
+override_deployment_type = false
 # 오픈 시 자동 실행 명령 (ZCode 파이프라인: 리뷰+개선제안)
 pr_commands = ["/review", "/improve"]
 # settings for "pull_request" event
