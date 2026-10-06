@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: prj-docs-web
+  labels:
+    app.kubernetes.io/name: prj-docs-web
+spec:
+  type: {{ .Values.service.type }}
+  selector:
+    app.kubernetes.io/name: prj-docs-web
+  ports:
+    - name: http
+      port: {{ .Values.service.port }}
+      targetPort: http
