@@ -31,14 +31,6 @@ ingress:
   hosts:
     - host: onjitda.com # 메인 도메인 (A 레코드 -> Ingress Controller LB)
       paths:
-        # /docs prefix -> prj-docs 랜딩페이지 (정적)
-        - path: /docs
-          pathType: Prefix
-          backend:
-            service:
-              name: prj-docs-web
-              port:
-                number: 80
         # /story prefix -> Storybook 정적 서비스
         - path: /story
           pathType: Prefix

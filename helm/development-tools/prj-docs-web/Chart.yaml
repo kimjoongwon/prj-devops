@@ -1,6 +1,0 @@
-apiVersion: v2
-name: prj-docs-web
-description: prj-docs 랜딩페이지 (정적)
-type: application
-version: 0.1.0
-appVersion: "1.0.0"
