@@ -43,8 +43,8 @@
 |---|---|---|
 | 0 | GitHub 브랜치 보호 | ✅ **완료 (2026-10-05)** — `stg`/`main`: PR 필수(승인 0), 관리자 포함 직접 푸시 차단, force push/삭제 차단. 승인 0인 이유: PR 작성자=사용자 계정이라 자기 승인 불가(교착 방지), 병합 버튼 자체가 결정 지점 |
 | 1 | pr-agent 리뷰 게이트 | 🟡 **구축 완료·검증 대기** — 전 구간 동작 확인, 유일 블로커: z.ai 계정 잔액 |
-| 2 | stg CI/CD 자동화 | ⏸ 대기 |
-| 3 | AGENTS.md 표준 절차 + agent-bot 승인 요청 알림 | ⏸ 대기 |
+| 2 | stg CI/CD 자동화 | 🟡 **핵심 완료 (2026-10-05)** — 4서비스앱 stg 빌드 지원(DEPLOYMENT_BRANCHES/ENV_NAME/DEPLOY_ENV), prj-deploy stg/ 범프, stg 4앱 Buzz 구독(배포완료/Degraded). 잔여: 결정적 CI(lint/test) PR 체크 추가 → required check 지정, stg 머지 시 자동 트리거(현재 수동 빌드 실행) |
+| 3 | AGENTS.md 표준 절차 + agent-bot 승인 요청 알림 | 🟢 절반 — AGENTS.md 체계 구축 완료(~/dev/AGENTS.md + 3리포). 잔여: agent-bot nostr 키 발급·스랩 요청 알림(사람 1회 작업) |
 | 4 | stg→prod 승격 자동화 | ⏸ 대기 |
 
 ## 리뷰 실행자 결정 (2026-10-05 심야 갱신)
@@ -114,7 +114,7 @@ kubectl -n devops-tools rollout restart deploy/pr-agent
 
 ## 이후 Phase (변경 없음)
 
-- **Phase 2**: Jenkinsfile stg 분기 → Harbor stg 이미지 → prj-deploy stg 범프 → ArgoCD + stg 앱 4종 Buzz 구독. 결정적 CI(lint/test)도 이때 PR 체크로 추가 → Phase 0 보호규칙에 required check 지정
+- **Phase 2 잔여**: 결정적 CI(lint/test)를 PR 체크로 추가 → Phase 0 보호규칙에 required check 지정. (stg 빌드·범프·Buzz 구독은 2026-10-05 완료)
 - **Phase 3**: prj-core AGENTS.md 표준 절차 + agent-bot 승인 요청 Buzz 알림 (nostr 키 발급 = 사람 1회)
 - **Phase 4**: 승격 안정 기준 → prod PR 자동 생성
 

@@ -24,7 +24,7 @@ ArgoCD multi-source로 읽는다 (`tag: latest` + 수동 재시작 방식 폐기
   stg 범프 커밋은 `ci(gitops): bump stg/<앱> image to <태그>` (prod 롤백 매칭과 분리)
 - prj-core `devops/Jenkinsfile.*`: 서비스 4앱은 stg 빌드도 범프 트리거(`DEPLOY_ENV=stg`),
   proposal-web는 main 전용으로 제한
-- prj-deploy `stg/<앱>.yaml`: 초기 태그는 prod 복제(부트스트랩) — 실제 이미지는 아직 없음
+- prj-deploy `stg/<앱>.yaml`: 초기 태그는 prod 복제(부트스트랩 당시 기록 — 이후 stg 빌드·배포 완료)
 
 ## 이미 확인된 사전 조건 (2026-10-04)
 
@@ -89,11 +89,11 @@ core-api/idp-api 차트의 **PreSync 마이그레이션 Job**(`migrationJob.enab
 ## 2026-10-04 활성화 중 해결한 사항 (재현 시 참고)
 
 1. **esc-policy 미적용**: OpenBao에 정책이 없어 토큰이 403 → `bao policy write esc-policy scripts/openbao/policies/esc-policy.hcl`
-2. **plate-stg `openbao-token` 시크릿**: `bao token create -policy=esc-policy -orphan -period=24h` 후 k8s Secret 생성 (ESO가 자동 갱신)
+2. **plate-stg `openbao-token` 시크릿**: `bao token create -policy=esc-policy -orphan -period=168h` 후 k8s Secret 생성 (ESO가 자동 갱신 — 24h는 만료 사고 재발 위험, 2026-10-05 인시던트 이후 168h 권장)
 3. **KV 플레이스홀더**: `core-api/staging`·`idp-api/staging`의 DATABASE_URL/DIRECT_URL=CHANGE_ME → plate-db-stg 접속 URL로 기입.
    NODE_ENV는 `staging` 불가(enum) → **production**. APP_PORT=**3006** (차트 포트와 일치).
-   `LOCAL_BOOTSTRAP_*` 5종은 idp-api/production에서 복사.
-   AWS_*/SMTP_SECURE/OIDC_STORYBOOK_CLIENT_ID도 production에서 복사(공유 인프라).
+   `LOCAL_BOOTSTRAP_*`·SMTP_SECURE·OIDC_STORYBOOK_CLIENT_ID는 idp-api/production에서 복사했었다(최초 부트스트랩 시점 기록).
+   이후 관리자 비밀번호는 prod와 분리(2026-10-05), AWS_* 4종은 미사용 제거(2026-10-05).
 4. **`secret/devops/staging`** 전체가 CHANGE_ME → production 값 복사 (오브젝트 스토리지 R2 공유)
 5. **부모 앱 수동 apply**: app-of-apps는 부트스트랩 객체라 Git 푸시만으로 라이브 스펙이 안 바뀜 →
    `kubectl apply -f environments/argocd/app-of-apps.yaml`

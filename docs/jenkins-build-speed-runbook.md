@@ -225,7 +225,7 @@ kubectl -n devops-tools create secret docker-registry buildkit-registry-config \
 
 ### (f) 롤백 방법
 
-1. 파일럿 Jenkins 잡을 UI에서 삭제한다(본 잡은 그대로 podman 방식으로 운영된다).
+1. (역사 기록) 파일럿 잡 병합 시절의 롤백 절차였다 — 2026-10-04 B구조 통일로 본 잡 6종 전부 buildctl이며 podman 복귀 경로는 없음. 되돌리려면 git history의 구 Jenkinsfile 복원이 유일.
 2. buildkitd 배포를 중단한다: `argocd app delete buildkitd` 또는
    `helm -n devops-tools uninstall buildkitd`.
 3. `buildkit-cache-pvc`는 유지한다(삭제하지 않는다). 재배포 시 캐시를 재사용할 수 있다.

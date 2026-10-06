@@ -57,6 +57,7 @@ prj-devops/
 │   │   ├── redis-exporter/        # GitOps — Redis 메트릭
 │   │   ├── buildkitd/             # BuildKit 데몬 (컨테이너 빌드)
 │   │   ├── buzz-gateway/          # CI/CD 알림 게이트웨이 (로컬 관리 차트)
+│   │   ├── pr-agent/              # AI 코드 리뷰 게이트 (ZCode 파이프라인 Phase 1, 2026-10-05)
 │   │   ├── cloudflared/           # Cloudflare Tunnel (외부 노출)
 │   │   ├── argocd/                # upstream values only
 │   │   ├── github-runner/         # 미사용(빈 디렉터리만 존재)
@@ -549,7 +550,7 @@ spec:
       - CreateNamespace=true
 ```
 
-참고: Cluster Services는 로컬 chart로 관리하고, Development Tools는 관측 스택(`grafana/loki/tempo/otel-collector/alloy` + exporter)과 `cloudflared/buildkitd/buzz-gateway`만 로컬 chart(GitOps)로 유지합니다. 그 외 운영 도구(argocd, harbor, jenkins, openbao, openebs, prometheus)는 upstream chart + repo `values.yaml` 조합으로 관리합니다.
+참고: Cluster Services는 로컬 chart로 관리하고, Development Tools는 관측 스택(`grafana/loki/tempo/otel-collector/alloy` + exporter)과 `cloudflared/buildkitd/buzz-gateway/pr-agent`만 로컬 chart(GitOps)로 유지합니다. 그 외 운영 도구(argocd, harbor, jenkins, openbao, openebs, prometheus)는 upstream chart + repo `values.yaml` 조합으로 관리합니다.
 
 ### 장점 요약
 

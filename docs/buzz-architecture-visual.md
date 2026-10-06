@@ -13,7 +13,7 @@ flowchart TB
 
     subgraph JENKINS["Jenkins — devops-tools ns"]
         direction TB
-        BJ["빌드 잡 7종 (앱 6종)<br/>idp-api · idp-web · core-api<br/>admin-web · proposal-web · tool-storybook<br/>(tool-storybook은 buildkit 파일럿 잡 병행)"]
+        BJ["빌드 잡 6종<br/>idp-api · idp-web · core-api<br/>admin-web · proposal-web · tool-storybook<br/>(전 잡 buildkit — 파일럿 병합 완료 2026-10-04)"]
         GJ["gitops-prod-image-bump"]
         BN["buzzNotify() 헬퍼<br/>(post / finally 블록)"]
     end
@@ -76,7 +76,7 @@ sequenceDiagram
     participant C as cicd 채널
 
     D->>J: git push (main)
-    J->>J: podman build · 태그 = 커밋 SHA 앞 12자
+    J->>J: buildctl 원격 빌드 (buildkitd) · 태그 = 커밋 SHA 앞 12자
     J->>H: 이미지 push (prod/앱)
     J->>W: POST /send "✅ 앱 빌드 성공 + 태그 + 빌드 링크"
     W->>C: jenkins-bot이 채널에 전송

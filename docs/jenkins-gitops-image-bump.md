@@ -41,7 +41,7 @@
 - `--tag <image_tag>`
 
 주요 옵션:
-- `--env prod` (현재 prod/production만 지원)
+- `--env prod|stg` (stg는 2026-10-04 지원 — prj-deploy `stg/<앱>.yaml` 범프, 커밋 `bump stg/<앱>`)
 - `--repo-url <git_url>` (기본: `https://github.com/kimjoongwon/prj-deploy.git`)
 - `--branch <branch>` (기본: `main`)
 - `--push-retries <n>` (기본: `3`)

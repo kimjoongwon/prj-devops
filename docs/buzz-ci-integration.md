@@ -37,7 +37,7 @@ Slack을 대체한다. Jenkins 쪽에는 플러그인을 추가하지 않는다(
 | 게이트웨이 Helm 차트 | `helm/development-tools/buzz-gateway/` (로컬 관리 차트 — buildkitd와 같은 범주) |
 | 게이트웨이 ArgoCD App | `environments/argocd/apps/buzz-gateway.yaml` (ns: devops-tools) |
 | ArgoCD notifier/템플릿/트리거 | `helm/development-tools/argocd/values.yaml` → `notifications.*` |
-| 앱 배포 알림 구독 | `environments/argocd/apps/<앱>-prod.yaml`의 `notifications.argoproj.io/subscribe.*` annotation |
+| 앱 배포 알림 구독 | Application의 `notifications.argoproj.io/subscribe.*` annotation — prod 전 앱 + stg 4앱(2026-10-05 추가) |
 | Jenkins 알림 호출 | prj-core `devops/Jenkinsfile.*`의 `buzzNotify()` (7종) |
 | 게이트웨이 API 문서 | `docker/buzz-gateway/README.md` |
 
@@ -158,7 +158,7 @@ sync는 `oncePer: revisions` 중복제거로 재발송되지 않는다.
   게이트웨이(≥0.1.2)가 스레드 매핑을 보관한다(재시작 시 매핑 유실 — 알림은 끊기지 않고 스레드만 풀림).
 - **실패 자동 진단**: 빌드/범프 실패 알림에 @ZCode가 멘션된다.
   진단 절차는 `~/.buzz/GUIDES/CICD_ALERT_DIAGNOSIS.md`(ZCode 러북).
-- **빌드 잡 형상 관리**: 앱 빌드 잡 7종(빌드 5 + tool-storybook + buildkit)이 Job DSL로
+- **빌드 잡 형상 관리**: 앱 빌드 잡 6종(buildkit 통일, 파일럿 buildkit 잡은 병합 제거 2026-10-04)이 Job DSL로
   `jenkins/values.yaml`에서 관리된다(파라미터·경로 필터 포함, 수동 실행).
 - **빌드 자동 트리거(폴링)는 시험 후 제거**했다 — lightweight checkout에서 includedRegions가
   무시되어 모든 커밋에 발화하고, full checkout 전환 후에도 연쇄 발화가 관찰됐다.

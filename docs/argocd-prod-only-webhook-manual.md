@@ -31,10 +31,10 @@ kubectl -n argocd get application frontend-web-apps
 - 인그레스: `plate-ingress-prod`(ingress-prod.yaml), `pgadmin-prod`, `pgadmin-ingress-prod`
 - 관측/인프라: `grafana-prod`, `loki-prod`, `tempo-prod`, `otel-collector-prod`, `alloy-prod`, `postgres-exporter-prod`, `redis-exporter-prod`, `cloudflared-prod`, `buildkitd`, `buzz-gateway`
 - 공용: `plate-cache`, `openbao-secrets-manager-prod`, `openbao-cluster-secrets-manager`
-- (stg 9종 매니페스트는 repo에 유지되나 `exclude: "*-stg.yaml"`로 제외)
+- stg는 2026-10-04 재활성화 — 서비스 앱(+인프라)이 `plate-stg`에서 운영 중 (prod+stg 모드, 상세: stg-reactivation-runbook.md)
 
-## 현재 운영 제약(2026-03-08)
-- `stg` 하위 앱은 의도적으로 제외(`exclude: "*-stg.yaml"`)되어 있습니다.
+## 현재 운영 제약(2026-10-05 갱신)
+- `stg` 앱은 활성 상태입니다(과거 prod-only 제외 운영은 종료).
 - `idp-api-prod`, `idp-web-prod`는 Harbor 이미지가 없으면 `ImagePullBackOff`로 Health가 `Progressing/Degraded`에 머뭅니다.
 - 배포 전 최소 확인:
 

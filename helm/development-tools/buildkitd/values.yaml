@@ -12,6 +12,11 @@
 #   Deployment는 이 시크릿의 .dockerconfigjson 키를 config.json으로 매핑해
 #   /home/user/.docker/config.json 에 마운트한다. 시크릿이 없으면 pod가 시작되지 않는다.
 #
+#   ★ 세트 주의(2026-10-05 실증): 원격 buildkit push 자격은 **클라이언트(buildctl)가 전달**한다.
+#   Jenkins 빌드 에이전트의 /home/user/.docker 마운트용 Opaque 시크릿 buildkit-client-config
+#   (키=config.json, 동일 로봇 값)이 함께 필요 — 없으면 push가 unauthorized.
+#   로테이션 시 이 시크릿과 buildkit-client-config 양쪽 갱신 + buildkitd 재시작.
+#
 #     kubectl -n devops-tools create secret docker-registry buildkit-registry-config \
 #       --docker-server=harbor.onjitda.com \
 #       --docker-username='<harbor robot 계정명>' \
