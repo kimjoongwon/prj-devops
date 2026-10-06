@@ -2,6 +2,11 @@
 
 인프라 IaC 저장소. **커밋 푸시 = 배포**(ArgoCD GitOps). Jenkins만 예외(수동 helm).
 
+## 인프라 접근 (전체 진입점)
+
+- 워크스페이스 전체 지도·파이프라인: `~/dev/AGENTS.md` (최초 1회 읽을 것)
+- OpenBao 접근 열쇠: `~/dev/onjitda-credentials.md`(부트스트랩 카드, git 밖) → 이후 `secret/docs/*`
+
 ## 구조
 
 - `helm/` — 3계층: cluster-services(인프라) / development-tools(도구: jenkins·buzz-gateway·pr-agent·buildkitd·관측) / applications(앱)
