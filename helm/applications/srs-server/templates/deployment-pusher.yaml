@@ -1,0 +1,68 @@
+{{- if .Values.pusher.enabled }}
+# 데모 소스 푸셔: 루프 영상을 내려받아 SRS로 RTMP 무한 송출 (실제 방송 시 OBS가 이 역할을 대신)
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "srs-server.name" . }}-pusher
+  labels:
+    {{- include "srs-server.labels" . | nindent 4 }}
+    app.kubernetes.io/component: pusher
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      {{- include "srs-server.pusherSelectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "srs-server.pusherSelectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: pusher
+    spec:
+      initContainers:
+        # 영상을 한 번 내려받아 로컬 파일로 루프(송출 중 네트워크 의존 제거)
+        - name: download-source
+          image: "{{ .Values.pusher.downloaderImage.repository }}:{{ .Values.pusher.downloaderImage.tag }}"
+          command:
+            - /bin/sh
+            - -c
+            - |
+              set -eu
+              for attempt in 1 2 3 4 5 6 7 8 9 10; do
+                if wget -q -O /media/source.mp4 "{{ .Values.pusher.sourceUrl }}"; then
+                  echo "downloaded $(wc -c < /media/source.mp4) bytes"; exit 0
+                fi
+                echo "download failed (attempt $attempt), retrying..."; sleep 5
+              done
+              exit 1
+          volumeMounts:
+            - name: media
+              mountPath: /media
+      containers:
+        - name: ffmpeg-pusher
+          image: "{{ .Values.pusher.image.repository }}:{{ .Values.pusher.image.tag }}"
+          imagePullPolicy: {{ .Values.pusher.image.pullPolicy }}
+          command:
+            - /bin/sh
+            - -c
+            - |
+              set -u
+              TARGET="rtmp://{{ include "srs-server.name" . }}:{{ .Values.srs.ports.rtmp }}/{{ .Values.srs.app }}/{{ .Values.pusher.streamName }}"
+              while true; do
+                echo "pushing /media/source.mp4 -> $TARGET"
+                ffmpeg -hide_banner -loglevel warning -re -stream_loop -1 \
+                  -i /media/source.mp4 -c copy -f flv "$TARGET" || true
+                echo "push ended, reconnecting in 3s"
+                sleep 3
+              done
+          volumeMounts:
+            - name: media
+              mountPath: /media
+              readOnly: true
+          resources:
+            {{- toYaml .Values.pusher.resources | nindent 12 }}
+      volumes:
+        - name: media
+          emptyDir: {}
+{{- end }}

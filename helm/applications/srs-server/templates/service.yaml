@@ -1,0 +1,24 @@
+# SRS Service — RTMP(송출)·API·HTTP(FLV/HLS 재생)
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "srs-server.name" . }}
+  labels:
+    {{- include "srs-server.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+    - name: rtmp
+      port: {{ .Values.srs.ports.rtmp }}
+      targetPort: rtmp
+      protocol: TCP
+    - name: api
+      port: {{ .Values.srs.ports.api }}
+      targetPort: api
+      protocol: TCP
+    - name: http
+      port: {{ .Values.srs.ports.http }}
+      targetPort: http
+      protocol: TCP
+  selector:
+    {{- include "srs-server.selectorLabels" . | nindent 4 }}

@@ -1,0 +1,18 @@
+apiVersion: v2
+name: srs-server
+description: 라이브 커머스 시연용 오픈소스 미디어 서버(SRS) — RTMP 수신, HTTP-FLV/HLS 송출, 데모 소스 푸셔 포함
+type: application
+version: 0.1.0
+appVersion: "6.0-r2"
+keywords:
+  - plate
+  - live-commerce
+  - srs
+  - streaming
+home: https://onjitda.com/live
+sources:
+  - https://github.com/kimjoongwon/prj-devops
+  - https://github.com/ossrs/srs
+maintainers:
+  - name: Plate Team
+    email: dev@onjitda.com

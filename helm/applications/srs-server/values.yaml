@@ -1,0 +1,59 @@
+# SRS(Simple Realtime Server) Chart 기본 값 파일
+# 라이브 커머스 시연 데모(live-web)의 실제 스트리밍 백엔드.
+#   송출: ffmpeg 푸셔(또는 OBS) → RTMP 1935 → SRS
+#   재생: SRS http_server 8080 → HTTP-FLV(/live/<stream>.flv, 1~3초 지연) · HLS(/live/<stream>.m3u8)
+# 이미지는 upstream(docker.io/ossrs/srs)을 태그 고정으로 직접 사용 — Jenkins 빌드·prj-deploy 범프 대상 아님.
+# 환경별 오버라이드: values-prod.yaml
+
+replicaCount: 1
+
+srs:
+  image:
+    repository: docker.io/ossrs/srs
+    tag: "v6.0-r2"
+    pullPolicy: IfNotPresent
+  ports:
+    rtmp: 1935
+    api: 1985
+    http: 8080
+  # 스트림 앱 이름(rtmp://host/<app>/<stream>) — URL 경로의 첫 세그먼트
+  app: live
+  resources:
+    limits:
+      cpu: 500m
+      memory: 512Mi
+    requests:
+      cpu: 100m
+      memory: 128Mi
+
+# 데모 소스 푸셔: live-web이 서빙하는 루프 영상을 내려받아 RTMP로 무한 반복 송출한다.
+# 실제 방송에서는 이 Deployment를 끄고(enabled: false) OBS 등이 같은 RTMP 주소로 송출한다.
+pusher:
+  enabled: true
+  image:
+    repository: docker.io/jrottenberg/ffmpeg
+    tag: "6-alpine"
+    pullPolicy: IfNotPresent
+  downloaderImage:
+    repository: docker.io/library/alpine
+    tag: "3.20"
+  sourceUrl: "http://live-web-prod.plate-prod.svc.cluster.local/live/videos/live-loop.mp4"
+  streamName: livedemo
+  resources:
+    limits:
+      cpu: 300m
+      memory: 256Mi
+    requests:
+      cpu: 50m
+      memory: 64Mi
+
+service:
+  type: ClusterIP
+
+# 재생 경로 노출: https://<host><pathPrefix>/live/<stream>.flv|.m3u8 → SRS 8080 (prefix 제거 후 전달)
+# 메인 cocdev-ingress와 같은 host를 공유하는 별도 Ingress — TLS는 메인 Ingress의 서버 블록을 그대로 탄다.
+ingress:
+  enabled: true
+  className: nginx
+  host: onjitda.com
+  pathPrefix: /live-stream

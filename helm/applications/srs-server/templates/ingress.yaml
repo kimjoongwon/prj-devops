@@ -1,0 +1,32 @@
+{{- if .Values.ingress.enabled }}
+# 재생 경로 노출 — 메인 cocdev-ingress와 같은 host를 공유하는 별도 Ingress.
+# /live-stream/<app>/<stream>.flv|.m3u8 → SRS 8080의 /<app>/<stream>.flv|.m3u8 (prefix 제거).
+# rewrite-target 어노테이션은 이 Ingress의 경로에만 적용되므로 메인 Ingress 규칙에 영향이 없다.
+# TLS·cert-manager 설정은 두지 않는다 — 같은 host의 메인 Ingress가 가진 인증서 서버 블록을 그대로 탄다.
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ include "srs-server.name" . }}-stream
+  labels:
+    {{- include "srs-server.labels" . | nindent 4 }}
+  annotations:
+    nginx.ingress.kubernetes.io/use-regex: "true"
+    nginx.ingress.kubernetes.io/rewrite-target: /$2
+    # FLV는 응답이 끊기지 않는 스트림이므로 버퍼링을 끄고 타임아웃을 길게 둔다
+    nginx.ingress.kubernetes.io/proxy-buffering: "off"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
+spec:
+  ingressClassName: {{ .Values.ingress.className }}
+  rules:
+    - host: {{ .Values.ingress.host }}
+      http:
+        paths:
+          - path: {{ .Values.ingress.pathPrefix }}(/|$)(.*)
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: {{ include "srs-server.name" . }}
+                port:
+                  number: {{ .Values.srs.ports.http }}
+{{- end }}

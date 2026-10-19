@@ -1,0 +1,59 @@
+# SRS 서버 설정 (ConfigMap → /usr/local/srs/conf/srs.conf)
+# 지연 최소화 옵션(tcp_nodelay/min_latency)과 HTTP-FLV·HLS 동시 송출을 켠다.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "srs-server.name" . }}-conf
+  labels:
+    {{- include "srs-server.labels" . | nindent 4 }}
+data:
+  srs.conf: |
+    listen              {{ .Values.srs.ports.rtmp }};
+    max_connections     1000;
+    daemon              off;
+    srs_log_tank        console;
+    srs_log_level       info;
+
+    http_api {
+        enabled         on;
+        listen          {{ .Values.srs.ports.api }};
+    }
+
+    http_server {
+        enabled         on;
+        listen          {{ .Values.srs.ports.http }};
+        dir             ./objs/nginx/html;
+    }
+
+    vhost __defaultVhost__ {
+        tcp_nodelay     on;
+        min_latency     on;
+
+        play {
+            # 접속 즉시 재생되도록 GOP 캐시 유지(지연은 키프레임 간격 수준)
+            gop_cache       on;
+            queue_length    10;
+            mw_latency      100;
+        }
+
+        publish {
+            mr      off;
+        }
+
+        # HTTP-FLV: /<app>/<stream>.flv — 브라우저는 mpegts.js(MSE)로 재생
+        http_remux {
+            enabled     on;
+            mount       [vhost]/[app]/[stream].flv;
+        }
+
+        # HLS: /<app>/<stream>.m3u8 — iOS Safari 네이티브 재생용 폴백
+        hls {
+            enabled         on;
+            hls_path        ./objs/nginx/html;
+            hls_fragment    2;
+            hls_window      12;
+            hls_cleanup     on;
+            hls_dispose     30;
+            hls_wait_keyframe on;
+        }
+    }

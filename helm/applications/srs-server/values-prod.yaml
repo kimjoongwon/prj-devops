@@ -1,0 +1,27 @@
+# Production environment values for SRS server (라이브 커머스 시연 스트리밍)
+# Override from values.yaml for production environment
+
+replicaCount: 1
+
+srs:
+  image:
+    repository: docker.io/ossrs/srs
+    tag: "v6.0-r2"
+    pullPolicy: IfNotPresent
+  resources:
+    limits:
+      cpu: 500m
+      memory: 512Mi
+    requests:
+      cpu: 100m
+      memory: 128Mi
+
+pusher:
+  enabled: true
+  sourceUrl: "http://live-web-prod.plate-prod.svc.cluster.local/live/videos/live-loop.mp4"
+  streamName: livedemo
+
+ingress:
+  enabled: true
+  host: onjitda.com
+  pathPrefix: /live-stream

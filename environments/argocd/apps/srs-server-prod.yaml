@@ -1,0 +1,66 @@
+# SRS Server (라이브 커머스 시연 스트리밍) - Production 환경 ArgoCD Application
+# live-web 데모의 실제 미디어 백엔드. 이미지는 upstream 태그 고정(prj-deploy 범프 대상 아님).
+
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: srs-server-prod
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+  annotations:
+    # Buzz #cicd 배포 알림 구독 (docs/buzz-ci-integration.md)
+    notifications.argoproj.io/subscribe.on-buzz-deployed.buzz-gateway: ""
+    notifications.argoproj.io/subscribe.on-buzz-degraded.buzz-gateway: ""
+  labels:
+    app.kubernetes.io/name: srs-server
+    app.kubernetes.io/instance: production
+    environment: production
+spec:
+  project: default
+
+  source:
+    repoURL: https://github.com/kimjoongwon/prj-devops.git
+    path: helm/applications/srs-server
+    targetRevision: main
+    helm:
+      valueFiles:
+        - values-prod.yaml
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: plate-prod
+
+  # kubectl rollout restart 흔적(restartedAt)을 drift로 보지 않음 — 3-way merge가 제거 불가해
+  # 이 annotation이 남으면 앱이 영구 OutOfSync가 됨 (2026-09-23 정비)
+  ignoreDifferences:
+    - group: apps
+      kind: Deployment
+      jqPathExpressions:
+        - '.spec.template.metadata.annotations["kubectl.kubernetes.io/restartedAt"]'
+
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+
+    syncOptions:
+      - CreateNamespace=true
+      - ApplyOutOfSyncOnly=true
+
+    retry:
+      limit: 3
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m
+
+  revisionHistoryLimit: 10
+
+  info:
+    - name: "Environment"
+      value: "Production"
+    - name: "Playback"
+      value: "https://onjitda.com/live-stream/live/livedemo.flv (HTTP-FLV) · .m3u8 (HLS)"
+    - name: "Description"
+      value: "SRS v6 media server + ffmpeg demo pusher for live-web"

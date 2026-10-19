@@ -1,0 +1,63 @@
+# SRS 미디어 서버 Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "srs-server.name" . }}
+  labels:
+    {{- include "srs-server.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  # HLS 조각이 파드 로컬에 쌓이므로 교체 시 두 파드가 동시에 뜨지 않게 한다
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      {{- include "srs-server.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "srs-server.labels" . | nindent 8 }}
+      annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
+    spec:
+      containers:
+        - name: srs
+          image: "{{ .Values.srs.image.repository }}:{{ .Values.srs.image.tag }}"
+          imagePullPolicy: {{ .Values.srs.image.pullPolicy }}
+          command: ["./objs/srs", "-c", "conf/srs.conf"]
+          ports:
+            - name: rtmp
+              containerPort: {{ .Values.srs.ports.rtmp }}
+              protocol: TCP
+            - name: api
+              containerPort: {{ .Values.srs.ports.api }}
+              protocol: TCP
+            - name: http
+              containerPort: {{ .Values.srs.ports.http }}
+              protocol: TCP
+          readinessProbe:
+            httpGet:
+              path: /api/v1/versions
+              port: api
+            initialDelaySeconds: 3
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /api/v1/versions
+              port: api
+            initialDelaySeconds: 10
+            periodSeconds: 20
+          volumeMounts:
+            - name: srs-conf
+              mountPath: /usr/local/srs/conf/srs.conf
+              subPath: srs.conf
+            - name: hls-segments
+              mountPath: /usr/local/srs/objs/nginx/html
+          resources:
+            {{- toYaml .Values.srs.resources | nindent 12 }}
+      volumes:
+        - name: srs-conf
+          configMap:
+            name: {{ include "srs-server.name" . }}-conf
+        - name: hls-segments
+          emptyDir: {}
