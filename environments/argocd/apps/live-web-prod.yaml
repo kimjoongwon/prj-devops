@@ -1,0 +1,73 @@
+# Proposal Web - Production 환경 ArgoCD Application
+
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: live-web-prod
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+  annotations:
+    # Buzz #cicd 배포 알림 구독 (docs/buzz-ci-integration.md)
+    notifications.argoproj.io/subscribe.on-buzz-deployed.buzz-gateway: ""
+    notifications.argoproj.io/subscribe.on-buzz-degraded.buzz-gateway: ""
+  labels:
+    app.kubernetes.io/name: live-web
+    app.kubernetes.io/instance: production
+    environment: production
+spec:
+  project: default
+
+  # Git 소스 설정 (multi-source: 차트·환경설정은 prj-devops, 배포 상태(이미지 태그)는 prj-deploy)
+  sources:
+    - repoURL: https://github.com/kimjoongwon/prj-devops.git
+      path: helm/applications/live-web
+      targetRevision: main
+      helm:
+        valueFiles:
+          - values-prod.yaml
+          # 태그는 prj-deploy의 배포 상태 파일이 덮어씀 (뒤에 오는 valueFiles가 이김)
+          - "$values/prod/live-web.yaml"
+    - repoURL: https://github.com/kimjoongwon/prj-deploy.git
+      targetRevision: main
+      ref: values
+
+  # 배포 대상 클러스터 및 네임스페이스
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: plate-prod
+
+  # 동기화 정책
+  # kubectl rollout restart 흔적(restartedAt)을 drift로 보지 않음 — 3-way merge가 제거 불가해
+  # 이 annotation이 남으면 앱이 영구 OutOfSync가 됨 (2026-09-23 정비)
+  ignoreDifferences:
+    - group: apps
+      kind: Deployment
+      jqPathExpressions:
+        - '.spec.template.metadata.annotations["kubectl.kubernetes.io/restartedAt"]'
+
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+
+    syncOptions:
+      - CreateNamespace=true
+      - ApplyOutOfSyncOnly=true
+
+    retry:
+      limit: 3
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m
+
+  revisionHistoryLimit: 10
+
+  info:
+    - name: "Environment"
+      value: "Production"
+    - name: "Domain"
+      value: "onjitda.com/live"
+    - name: "Description"
+      value: "Live Commerce Demo Web - Production Environment (Next.js 시연 데모)"

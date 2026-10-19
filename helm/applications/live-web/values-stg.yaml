@@ -1,0 +1,28 @@
+# Staging environment values for Live Commerce Demo Web
+# Override from values.yaml for staging environment
+
+replicaCount: 1
+
+# Staging 이미지 저장소 (Harbor registry)
+# 이미지 규칙: harbor.onjitda.com/{환경}/{앱이름}
+live-web:
+  image:
+    repository: harbor.onjitda.com/stg/live-web
+    tag: "latest"
+    pullPolicy: Always  # Staging은 항상 최신 이미지 가져옴
+  port: 3013
+  resources:
+    limits:
+      cpu: 500m
+      memory: 512Mi
+    requests:
+      cpu: 100m
+      memory: 256Mi
+
+appSecrets:
+  enabled: false
+  secretName: ""
+
+extraEnv:
+  - name: OTEL_SERVICE_NAME
+    value: live-web-stg
