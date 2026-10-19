@@ -37,6 +37,13 @@ spec:
     server: https://kubernetes.default.svc
     namespace: plate-stg
 
+  # kubectl rollout restart 흔적(restartedAt)을 drift로 보지 않음 (core-api 앱 관례와 동일)
+  ignoreDifferences:
+    - group: apps
+      kind: Deployment
+      jqPathExpressions:
+        - '.spec.template.metadata.annotations["kubectl.kubernetes.io/restartedAt"]'
+
   syncPolicy:
     automated:
       prune: true
