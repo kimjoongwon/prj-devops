@@ -21,7 +21,4 @@ pusher:
   sourceUrl: "http://live-web-prod.plate-prod.svc.cluster.local/live/videos/live-loop.mp4"
   streamName: livedemo
 
-ingress:
-  enabled: true
-  host: onjitda.com
-  pathPrefix: /live-stream
+publicPathPrefix: /live-stream

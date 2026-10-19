@@ -50,10 +50,8 @@ pusher:
 service:
   type: ClusterIP
 
-# 재생 경로 노출: https://<host><pathPrefix>/live/<stream>.flv|.m3u8 → SRS 8080 (prefix 제거 후 전달)
-# 메인 cocdev-ingress와 같은 host를 공유하는 별도 Ingress — TLS는 메인 Ingress의 서버 블록을 그대로 탄다.
-ingress:
-  enabled: true
-  className: nginx
-  host: onjitda.com
-  pathPrefix: /live-stream
+# 공개 재생 경로 접두: https://onjitda.com<publicPathPrefix>/<app>/<stream>.flv|.m3u8
+# 경로는 메인 ingress 차트(helm/ingress/values.yaml)에 Prefix 규칙으로 등록한다 —
+# 이 클러스터의 ingress 컨트롤러는 같은 host를 쓰는 별도 Ingress를 거부하므로(2026-10-19 실측)
+# SRS가 접두 경로를 직접 서빙해 경로 재작성 없이 전달받는다.
+publicPathPrefix: /live-stream

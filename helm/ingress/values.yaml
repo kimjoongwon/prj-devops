@@ -55,6 +55,15 @@ ingress:
               name: proposal-web-prod
               port:
                 number: 80
+        # /live-stream prefix -> SRS 미디어 서버(HTTP-FLV/HLS). SRS가 접두 경로를 직접 서빙하므로 재작성 없음.
+        # /live보다 긴 접두라 nginx 최장 일치로 우선 매칭된다.
+        - path: /live-stream
+          pathType: Prefix
+          backend:
+            service:
+              name: srs-server-prod
+              port:
+                number: 8080
         # /live prefix -> live commerce demo
         - path: /live
           pathType: Prefix
