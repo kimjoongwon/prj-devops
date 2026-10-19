@@ -162,11 +162,11 @@ case "$(printf '%s' "${DEPLOY_ENV}" | tr '[:upper:]' '[:lower:]')" in
 esac
 
 case "${APP_NAME}" in
-  idp-api|idp-web|core-api|admin-web|proposal-web|tool-storybook|dolmen-api|dolmen-web)
+  idp-api|idp-web|core-api|admin-web|proposal-web|live-web|tool-storybook|dolmen-api|dolmen-web)
     APP_YAML_KEY="${APP_NAME}"
     ;;
   *)
-    fail "Unsupported app '${APP_NAME}'. Allowed: idp-api, idp-web, core-api, admin-web, proposal-web, tool-storybook, dolmen-api, dolmen-web"
+    fail "Unsupported app '${APP_NAME}'. Allowed: idp-api, idp-web, core-api, admin-web, proposal-web, live-web, tool-storybook, dolmen-api, dolmen-web"
     ;;
 esac
 
