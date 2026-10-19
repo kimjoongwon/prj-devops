@@ -1,0 +1,87 @@
+# Core API Backend Deployment 템플릿
+# 백엔드 애플리케이션(port 3012)을 Kubernetes 클러스터에 배포
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "dolmen-api.name" . }}
+  labels:
+    {{- include "dolmen-api.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "dolmen-api.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "dolmen-api.labels" . | nindent 8 }}
+      annotations: {}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- if and .Values.otel .Values.otel.enabled }}
+      # OTel nodejs 자동계측 — 모듈을 emptyDir로 복사 (NODE_OPTIONS로 로드)
+      initContainers:
+        - name: otel-autoinstrumentation
+          image: "{{ .Values.otel.image }}:{{ .Values.otel.imageTag }}"
+          command: ["sh", "-c", "cp -r /autoinstrumentation/. /otel-ai/"]
+          volumeMounts:
+            {{- if and .Values.otel .Values.otel.enabled }}
+            - name: otel-ai
+              mountPath: /otel-ai
+            {{- end }}
+      {{- end }}
+      containers:
+        - name: {{ include "dolmen-api.name" . }}
+          image: "{{ index .Values "dolmen-api" "image" "repository" }}:{{ index .Values "dolmen-api" "image" "tag" | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ index .Values "dolmen-api" "image" "pullPolicy" }}
+          ports:
+            - name: http
+              containerPort: {{ index .Values "dolmen-api" "port" }}
+              protocol: TCP
+          {{- with index .Values "dolmen-api" "probes" "startup" }}
+          startupProbe:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with index .Values "dolmen-api" "probes" "readiness" }}
+          readinessProbe:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with index .Values "dolmen-api" "probes" "liveness" }}
+          livenessProbe:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.extraEnv }}
+          env:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- $hasAppSecrets := .Values.appSecrets.enabled }}
+          {{- $hasInfraSecrets := and .Values.infraSecrets .Values.infraSecrets.enabled }}
+          {{- if or $hasAppSecrets $hasInfraSecrets }}
+          # envFrom으로 Secret을 환경변수로 주입
+          envFrom:
+            {{- if $hasAppSecrets }}
+            - secretRef:
+                name: {{ .Values.appSecrets.secretName }}
+            {{- end }}
+            {{- if $hasInfraSecrets }}
+            - secretRef:
+                name: {{ .Values.infraSecrets.secretName }}
+            {{- end }}
+          {{- end }}
+          {{- if and .Values.otel .Values.otel.enabled }}
+          volumeMounts:
+            - name: otel-ai
+              mountPath: /otel-ai
+          {{- end }}
+          resources:
+            {{- toYaml (index .Values "dolmen-api" "resources") | nindent 12 }}
+
+      {{- if and .Values.otel .Values.otel.enabled }}
+      volumes:
+        - name: otel-ai
+          emptyDir: {}
+      {{- end }}

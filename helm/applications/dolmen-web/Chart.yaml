@@ -1,0 +1,17 @@
+apiVersion: v2
+name: dolmen-web
+description: Dolmen Web 채팅 화면용 Helm 차트 (Next.js)
+type: application
+version: 0.1.0
+appVersion: "1.0.0"
+keywords:
+  - plate
+  - dolmen
+  - nextjs
+  - frontend
+home: https://onjitda.com
+sources:
+  - https://github.com/kimjoongwon/prj-devops
+maintainers:
+  - name: Plate Team
+    email: dev@onjitda.com

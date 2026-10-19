@@ -1,0 +1,64 @@
+# Dolmen API Chart 기본 값 파일
+# hello-agents 기반 에이전트 메모리·RAG 학습 데모 (prj-core apps/dolmen/api)
+# 환경별 오버라이드: values-prod.yaml, values-stg.yaml
+
+replicaCount: 1
+
+# dolmen-api 애플리케이션 설정
+dolmen-api:
+  image:
+    repository: harbor.onjitda.com/stg/dolmen-api
+    tag: "latest"
+    pullPolicy: IfNotPresent
+  port: 3012
+  resources:
+    # 로컬 임베딩 추론(fastembed ONNX CPU)을 감안해 여유 있게
+    limits:
+      cpu: "1"
+      memory: 1536Mi
+    requests:
+      cpu: 250m
+      memory: 512Mi
+  probes:
+    startup:
+      # 첫 요청 전 모델 로딩/시딩이 있을 수 있어 tcp 소켓 판정으로 넉넉히
+      tcpSocket:
+        port: http
+      periodSeconds: 10
+      timeoutSeconds: 3
+      failureThreshold: 18
+    readiness:
+      tcpSocket:
+        port: http
+      periodSeconds: 10
+      timeoutSeconds: 3
+      failureThreshold: 3
+    liveness:
+      tcpSocket:
+        port: http
+      periodSeconds: 20
+      timeoutSeconds: 3
+      failureThreshold: 3
+
+# Harbor registry authentication
+imagePullSecrets:
+  - name: harbor-docker-secret
+
+service:
+  type: ClusterIP
+  port: 3012
+  targetPort: 3012
+
+# 애플리케이션 환경변수 Secret 설정
+# OpenBao KV 경로: core-api/staging(stg) / core-api/production(prod) — 환경 공유 app-env-secrets
+# LLM_API_KEY / LLM_MODEL_ID / LLM_BASE_URL (credentials-map "Dolmen LLM 접속" 항목 참고)
+appSecrets:
+  enabled: true
+  secretName: app-env-secrets
+
+# 인프라 공통 시크릿은 이 앱이 사용하지 않는다
+infraSecrets:
+  enabled: false
+
+# 애플리케이션 추가 환경변수
+extraEnv: []

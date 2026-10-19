@@ -1,0 +1,16 @@
+# Core API Backend Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "dolmen-api.name" . }}
+  labels:
+    {{- include "dolmen-api.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+    - port: {{ .Values.service.port }}           # External service port
+      targetPort: {{ .Values.service.targetPort }} # Container port (backend.port: 3006)
+      protocol: TCP
+      name: http
+  selector:
+    {{- include "dolmen-api.selectorLabels" . | nindent 4 }}

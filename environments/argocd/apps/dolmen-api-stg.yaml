@@ -1,0 +1,62 @@
+# Dolmen API - Staging 환경 ArgoCD Application
+# hello-agents 기반 에이전트 메모리·RAG 학습 데모 (prj-core apps/dolmen/api)
+
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: dolmen-api-stg
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+  labels:
+    app.kubernetes.io/name: dolmen-api
+    app.kubernetes.io/instance: staging
+    environment: staging
+  annotations:
+    # Buzz #cicd 알림 구독
+    notifications.argoproj.io/subscribe.on-buzz-deployed.buzz-gateway: ""
+    notifications.argoproj.io/subscribe.on-buzz-degraded.buzz-gateway: ""
+spec:
+  project: default
+
+  # Git 소스 설정 (multi-source: 차트·환경설정은 prj-devops, 배포 상태(이미지 태그)는 prj-deploy)
+  sources:
+    - repoURL: https://github.com/kimjoongwon/prj-devops.git
+      path: helm/applications/dolmen-api
+      targetRevision: main
+      helm:
+        valueFiles:
+          - values-stg.yaml
+          # 태그는 prj-deploy의 배포 상태 파일이 덮어씀 (뒤에 오는 valueFiles가 이김)
+          - "$values/stg/dolmen-api.yaml"
+    - repoURL: https://github.com/kimjoongwon/prj-deploy.git
+      targetRevision: main
+      ref: values
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: plate-stg
+
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ApplyOutOfSyncOnly=true
+    retry:
+      limit: 5
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m
+
+  revisionHistoryLimit: 10
+
+  info:
+    - name: "Environment"
+      value: "Staging"
+    - name: "Domain"
+      value: "stg.onjitda.com/dolmen (dolmen-web 경유)"
+    - name: "Description"
+      value: "Dolmen API - Staging (FastAPI + hello-agents)"

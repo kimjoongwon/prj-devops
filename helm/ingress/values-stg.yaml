@@ -39,6 +39,15 @@ ingress:
               name: frontend
               port:
                 number: 80
+        # /dolmen -> Dolmen Web (에이전트 메모리·RAG 학습 데모, 2026-10-19)
+        # /dolmen/api/* 는 dolmen-web의 Next rewrite가 dolmen-api로 서버사이드 프록시한다
+        - path: /dolmen
+          pathType: Prefix
+          backend:
+            service:
+              name: dolmen-web-stg
+              port:
+                number: 80
         # IDP 인증/관리 경로는 IDP API로 전달
         - path: /api/v1/auth
           pathType: Prefix

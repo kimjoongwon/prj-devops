@@ -1,0 +1,15 @@
+# Staging environment values for Dolmen API
+# Override from values.yaml for staging environment
+
+replicaCount: 1
+
+dolmen-api:
+  image:
+    repository: harbor.onjitda.com/stg/dolmen-api
+    tag: "latest"
+    pullPolicy: Always
+  port: 3012
+
+appSecrets:
+  enabled: true
+  secretName: app-env-secrets
