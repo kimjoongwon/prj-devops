@@ -55,6 +55,14 @@ ingress:
               name: proposal-web-prod
               port:
                 number: 80
+        # /live prefix -> live commerce demo
+        - path: /live
+          pathType: Prefix
+          backend:
+            service:
+              name: live-web-prod
+              port:
+                number: 80
         # 기본 진입 경로
         - path: /
           pathType: Prefix
