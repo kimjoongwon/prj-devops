@@ -120,9 +120,11 @@ push-router GWT 트리거 등록 상태를 확인합니다. Git에 저장된 선
 
 ## 관측·구성 점검
 
-관측은 Alloy(메트릭·로그 수집), Loki(로그), OTel Collector·Tempo(트레이스),
-Grafana(조회·알림)와 postgres/redis exporter를 사용합니다. 형상은 각 로컬 차트와
-`environments/argocd/apps/*-prod.yaml`이 소유하며 실제 수집·알림 상태는 런타임에서 검증합니다.
+관측은 Alloy(로그·이벤트 수집), Loki(로그 저장), Prometheus(메트릭 수집),
+OTel Collector·Tempo(트레이스), Grafana(조회·알림)와 postgres/redis exporter를 사용합니다.
+Prometheus의 scrape 설정은 [upstream 차트 values](helm/development-tools/prometheus/values.yaml)가
+소유하며 수동 Helm으로 반영합니다. 나머지 관측 구성은 각 로컬 차트와
+`environments/argocd/apps/*-prod.yaml`이 소유합니다. 실제 수집·알림 상태는 런타임에서 검증합니다.
 
 - Helm 값·시크릿 규칙 정적 점검: `./scripts/helm-sync-check.sh`.
 - IDP env 키 대조: `scripts/openbao/validate-idp-env-sync.sh production`은 OpenBao 접근이 필요한 운영 점검입니다.
