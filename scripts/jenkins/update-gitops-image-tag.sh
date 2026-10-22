@@ -6,7 +6,7 @@ set -euo pipefail
 # NOTE: 이 스크립트는 prj-devops에 있지만 수정 대상은 prj-deploy다 —
 # --workdir에는 prj-deploy 체크아웃을 넘겨야 한다 (Jenkins 파이프라인 참조).
 # stg는 서비스 앱(idp-api|idp-web|core-api|admin-web)만 지원 —
-# proposal-web/tool-storybook은 운영(prod) 전용 (2026-10-04 stg 축소).
+# proposal-web/design-web/tool-storybook은 운영(prod) 전용 (2026-10-04 stg 축소).
 #
 # Requires mikefarah yq v4.18+ (python yq is NOT supported):
 #   https://github.com/mikefarah/yq
@@ -31,7 +31,7 @@ Usage:
   ${SCRIPT_NAME} --app <name> --tag <image_tag> [options]
 
 Required:
-  --app <name>                 App name (idp-api|idp-web|core-api|admin-web|proposal-web|tool-storybook)
+  --app <name>                 App name (idp-api|idp-web|core-api|admin-web|proposal-web|design-web|live-web|tool-storybook|dolmen-api|dolmen-web)
   --tag <image_tag>            New image tag to set
 
 Options:
@@ -162,18 +162,18 @@ case "$(printf '%s' "${DEPLOY_ENV}" | tr '[:upper:]' '[:lower:]')" in
 esac
 
 case "${APP_NAME}" in
-  idp-api|idp-web|core-api|admin-web|proposal-web|live-web|tool-storybook|dolmen-api|dolmen-web)
+  idp-api|idp-web|core-api|admin-web|proposal-web|design-web|live-web|tool-storybook|dolmen-api|dolmen-web)
     APP_YAML_KEY="${APP_NAME}"
     ;;
   *)
-    fail "Unsupported app '${APP_NAME}'. Allowed: idp-api, idp-web, core-api, admin-web, proposal-web, live-web, tool-storybook, dolmen-api, dolmen-web"
+    fail "Unsupported app '${APP_NAME}'. Allowed: idp-api, idp-web, core-api, admin-web, proposal-web, design-web, live-web, tool-storybook, dolmen-api, dolmen-web"
     ;;
 esac
 
-# stg는 서비스 앱만 존재 — proposal-web/tool-storybook은 운영 전용
+# stg는 서비스 앱만 존재 — proposal-web/design-web/tool-storybook은 운영 전용
 if [[ "${DEPLOY_ENV}" == "stg" ]]; then
   case "${APP_NAME}" in
-    proposal-web|tool-storybook)
+    proposal-web|design-web|tool-storybook)
       fail "App '${APP_NAME}' is prod-only (no stg environment)."
       ;;
   esac
