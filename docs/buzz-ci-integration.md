@@ -2,6 +2,9 @@
 
 > 아키텍처·이벤트 흐름을 그림으로 보려면 **[`docs/buzz-architecture-visual.md`](buzz-architecture-visual.md)**.
 
+> 2026-10-22 형상 기준 갱신. 현재 앱 연결은 [배포 연결 지도](deployment-map.md)를 봅니다.
+> 아래 2026-10-03 구축·검증 결과와 채널·계정 정보는 당시 기록이며 현재 런타임을 재확인하지 않았습니다.
+
 ## 목적
 
 - Jenkins 빌드 결과(성공/실패)와 GitOps 범프 결과를 **Buzz(Nostr) `#cicd` 채널**로 실시간 알림
@@ -14,7 +17,7 @@ Slack을 대체한다. Jenkins 쪽에는 플러그인을 추가하지 않는다(
 ## 아키텍처
 
 ```
-[prj-core Jenkinsfile.* 7종]                 [ArgoCD notifications controller]
+[prj-core 앱 빌드 10종 + 범프 Jenkinsfile]                 [ArgoCD notifications controller]
   post/finally: buzzNotify()                   trigger.on-buzz-deployed / on-buzz-degraded
         │ curl/wget POST                             │ webhook notifier
         │ Authorization: Bearer <token>              │ Bearer $buzz-gateway-token
@@ -37,8 +40,8 @@ Slack을 대체한다. Jenkins 쪽에는 플러그인을 추가하지 않는다(
 | 게이트웨이 Helm 차트 | `helm/development-tools/buzz-gateway/` (로컬 관리 차트 — buildkitd와 같은 범주) |
 | 게이트웨이 ArgoCD App | `environments/argocd/apps/buzz-gateway.yaml` (ns: devops-tools) |
 | ArgoCD notifier/템플릿/트리거 | `helm/development-tools/argocd/values.yaml` → `notifications.*` |
-| 앱 배포 알림 구독 | Application의 `notifications.argoproj.io/subscribe.*` annotation — prod 전 앱 + stg 4앱(2026-10-05 추가) |
-| Jenkins 알림 호출 | prj-core `devops/Jenkinsfile.*`의 `buzzNotify()` (7종) |
+| 앱 배포 알림 구독 | Application의 `notifications.argoproj.io/subscribe.*` annotation — 태그 소비 prod 8앱 + stg 6앱, 별도 SRS prod App |
+| Jenkins 알림 호출 | prj-core `devops/Jenkinsfile.*`의 `buzzNotify()` (앱 빌드 10종 + 범프 잡) |
 | 게이트웨이 API 문서 | `docker/buzz-gateway/README.md` |
 
 ## 사전 준비 (1회성, 수동)
@@ -48,7 +51,7 @@ Slack을 대체한다. Jenkins 쪽에는 플러그인을 추가하지 않는다(
 > (npub `npub12s8kuplyvtx6d3suajkqsjmvtzt9j23udxm3alwnr6v6z3ulwf9g93y85`, 채널 role=bot).
 > 커뮤니티 가입은 오너 초대 코드 발급/클레임(relay `/api/invites` NIP-98)으로 수행했다.
 > Harbor 프로젝트 `devops`(비공개), robot `robot$devops-buzz-gateway`(push/pull),
-> 이미지 `harbor.onjitda.com/devops/buzz-gateway:0.1.0` 푸시 완료(현재 운영 태그 `0.1.2` — 스레드 매핑 보관 기능 포함, `values.yaml` 참조).
+> 이미지 `harbor.onjitda.com/devops/buzz-gateway:0.1.0` 푸시 완료. 형상 태그는 `0.1.2`이며 실제 실행 이미지는 별도 확인한다.
 > 클러스터 시크릿(`buzz-gateway-env`, `harbor-pull-buzz`, argocd 토큰)과 Jenkins
 > credential `buzz-notify-token`·잡 파라미터 `BUZZ_NOTIFY_URL`(앱 빌드 잡 7종 + gitops
 > 잡 파라미터) 반영 완료. 아래 절차는 재구축/로테이션 시 참고용이다.
@@ -103,10 +106,11 @@ kubectl -n argocd patch secret argocd-notifications-secret \
 
 1. **게이트웨이**: 위 사전 준비 1~3 완료 후 이 저장소 커밋/푸시 →
    `buzz-gateway` Application이 자동 배포(app-of-apps). 또는 수동:
-   `kubectl -n argocd argocd app sync buzz-gateway`
+   `argocd app sync buzz-gateway`
 2. **앱 알림 구독/트리거**: 커밋/푸시만으로 앱 annotation은 반영되지만
    notifier/트리거는 argocd Helm 릴리스에 있으므로 수동 반영이 필요하다:
-   `helm upgrade --install argocd jenkins/argocd ...` (기존 배포 관례 따라 values.yaml 지정)
+   `helm upgrade --install argocd argo/argo-cd --version 8.3.1 -n argocd -f helm/development-tools/argocd/values.yaml ...`
+   (기존 webhook secret 보존 옵션은 [ArgoCD 운영 가이드](argocd-prod-only-webhook-manual.md#3-helm-릴리스에도-secret-유지권장) 참고)
    이후 notifications controller가 새 설정을 읽는다(config reload 또는 재시작).
 3. **Jenkins**: prj-core 병합 후 각 잡의 env/credential만 Jenkins 관리자가 주입.
 
@@ -137,8 +141,8 @@ kubectl -n devops-tools run buzz-auth --rm -i --restart=Never --image=curlimages
 |---|---|---|
 | 빌드 성공/실패 | Jenkinsfile `finally` | `✅/❌ **앱** 빌드 성공/실패` + 이미지:태그, 커밋, **소요(전체 + 이미지 빌드+푸시)**, 빌드 링크 |
 | GitOps 범프 성공/실패 | `Jenkinsfile.gitops-update` post | `✅/❌ **앱** GitOps 범프 성공/실패` + 태그, **소요**, 업스트림 빌드 링크 |
-| 배포 완료 | ArgoCD `on-buzz-deployed` | `🚀 <앱>-prod 배포 완료 — Synced/Healthy` + 커밋, **동기화 소요**(sprig `ago`), ArgoCD 링크 |
-| 헬스 저하 | ArgoCD `on-buzz-degraded` | `🔴 <앱>-prod 헬스 Degraded — 즉시 확인 필요` + ArgoCD 링크 |
+| 배포 완료 | ArgoCD `on-buzz-deployed` | `🚀 <앱>-<env> 배포 완료 — Synced/Healthy` + 커밋, **동기화 소요**(게이트웨이가 시작·종료 시각 차이 계산), ArgoCD 링크 |
+| 헬스 저하 | ArgoCD `on-buzz-degraded` | `🔴 <앱>-<env> 헬스 Degraded — 즉시 확인 필요` + ArgoCD 링크 |
 
 소요시간 포맷: Jenkins 쪽은 `fmtDur()` 헬퍼(예: `3분 4초`). ArgoCD 쪽 동기화 소요는
 템플릿이 `startedAt`/`finishedAt`을 함께 보내고 **게이트웨이가 차이를 계산**해
@@ -158,14 +162,15 @@ sync는 `oncePer: revisions` 중복제거로 재발송되지 않는다.
   게이트웨이(≥0.1.2)가 스레드 매핑을 보관한다(재시작 시 매핑 유실 — 알림은 끊기지 않고 스레드만 풀림).
 - **실패 자동 진단**: 빌드/범프 실패 알림에 @ZCode가 멘션된다.
   진단 절차는 `~/.buzz/GUIDES/CICD_ALERT_DIAGNOSIS.md`(ZCode 러북).
-- **빌드 잡 형상 관리**: 앱 빌드 잡 6종(buildkit 통일, 파일럿 buildkit 잡은 병합 제거 2026-10-04)이 Job DSL로
-  `jenkins/values.yaml`에서 관리된다(파라미터·경로 필터 포함, 수동 실행).
+- **빌드 잡 형상 관리**: 현재 앱 빌드 잡 10종이 Job DSL의 `app-build-jobs`로 선언된다.
+  실행 Jenkinsfile은 prj-core가 소유하고, main 자동 라우터와 수동 실행은 [연결 지도](deployment-map.md#자동수동-경로)를 따른다.
 - **빌드 자동 트리거(폴링)는 시험 후 제거**했다 — lightweight checkout에서 includedRegions가
   무시되어 모든 커밋에 발화하고, full checkout 전환 후에도 연쇄 발화가 관찰됐다.
 - **자동 트리거는 GitHub webhook + 경로 라우팅으로 재개(2026-10-04)**:
   `onjitda.com/api/jenkins-webhook`(Prefix 우회 경로) → argocd-webhook nginx →
   Jenkins GWT → **push-router 잡**이 push payload의 변경 파일을 apps regions로 매칭해
-  해당 앱 빌드 잡만 `build job` 트리거한다(빌드 5종 — buildkit/storybook은 수동 예비 제외).
+  해당 앱 빌드 잡만 `build job` 트리거한다(현재 9종, Storybook 제외).
+  Dolmen main은 prod 태그/Application이 없어 범프가 완결되지 않는다. stg 빌드는 수동이다.
   - 웹훅: prj-core 저장소 1개, `push` 이벤트만, 토큰은 GWT URL 쿼리(jenkins/values.yaml
     `push-router-job`과 GitHub 웹훅 URL이 같은 토큰을 공유 — 로테이션 시 양쪽 갱신).
   - 잡 regions와 push-router의 매핑은 수동 동기화 — app-build-jobs DSL 변경 시 함께 고칠 것.
@@ -185,6 +190,9 @@ sync는 `oncePer: revisions` 중복제거로 재발송되지 않는다.
 
 ### 키/토큰 로테이션
 
+먼저 OpenBao `secret/docs/credentials-map`에서 원본과 소비처를 확인하고 원본을 갱신한다.
+아래는 런타임 사본의 동기화 대상이다. 현재 값을 문서나 로그에 출력하지 않는다.
+
 1. jenkins-bot 키 교체: Buzz Desktop에서 신원 재발급 → `buzz-gateway-env` Secret 패치 →
    `kubectl -n devops-tools rollout restart deploy/buzz-gateway`
 2. 게이트웨이 토큰 교체: `buzz-gateway-env`의 `BUZZ_GATEWAY_TOKEN` +
@@ -193,7 +201,7 @@ sync는 `oncePer: revisions` 중복제거로 재발송되지 않는다.
 
 ### 알림 끄기
 
-- 특정 앱만: 해당 `environments/argocd/apps/<앱>-prod.yaml`의 subscribe annotation 제거.
+- 특정 앱만: 해당 `environments/argocd/apps/<앱>-<env>.yaml`의 subscribe annotation 제거.
 - 전체(배포): argocd values의 `notifications.notifiers`에서 `service.webhook.buzz-gateway` 제거.
 - 빌드 알림만: Jenkins 잡에서 `BUZZ_NOTIFY_URL` env 제거.
 
@@ -218,7 +226,7 @@ sync는 `oncePer: revisions` 중복제거로 재발송되지 않는다.
 
 - `jenkins-bot`은 비공개 채널에만 초대한다(키 유출 시 채널 스팸 가능 범위가 채널로 한정).
 - 게이트웨이는 클러스터 내부 서비스다(ClusterIP, ingress 없음). 외부 노출 금지.
-- 모든 자격증명은 Git에 커밋하지 않는다: `kubectl create/patch`로만 주입(기존 관례와 동일).
+- 모든 자격증명은 Git에 커밋하지 않는다. OpenBao `secret/docs/credentials-map`의 원본·소비처·동기화 짝을 기준으로 교체한다. 아래 수동 Secret 예제를 원본 없이 먼저 실행하지 않는다.
 - Jenkins 파이프라인의 전송 로그는 `set +x`로 토큰 노출을 차단하고 credential masking에 의존한다.
 
 ## 향후 확장 (Phase 4, 별도 승인)

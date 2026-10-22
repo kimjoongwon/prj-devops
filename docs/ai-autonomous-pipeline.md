@@ -1,7 +1,21 @@
 # AI 자율 개발·배포 파이프라인 — 설계·구축 문서
 
-작성: 2026-10-05 · 갱신: 2026-10-05 (Phase 0 완료, Phase 1 구축 완료·검증 대기)
+작성: 2026-10-05 · 형상 대조 갱신: 2026-10-22 (구축·검증 이력은 당시 기록)
 원본 논의: ZCode 세션 2026-10-04~05
+
+## 현재 형상과 검증 경계 (2026-10-22)
+
+- 현재 배포 계약은 [배포 연결 지도](deployment-map.md)를 기준으로 합니다. prj-deploy 태그를
+  소비하는 앱은 prod 8개, stg 6개이며 stg에 Dolmen 두 앱이 추가되어 있습니다.
+- push-router는 prj-core main push만 경로 매칭합니다. stg 머지는 자동 빌드를 시작하지 않아
+  `BRANCH_NAME=stg` 수동 실행이 필요합니다. Storybook도 수동 실행입니다.
+- ArgoCD 부모·자식은 prj-devops/prj-deploy main을 추적하고 환경은 prod/stg 태그 디렉터리로
+  선택합니다. 부모는 `directory.exclude` 없이 양 환경을 포함합니다.
+- Dolmen main 라우터 등록과 prod 태그/Application 부재, 범프 10앱과 rollback.sh 지원 범위 차이는
+  연결 지도에 명시했습니다. 이 문서 갱신은 기능 변경이나 해당 불일치 해결을 포함하지 않습니다.
+- 아래 Phase 완료·브랜치 보호·리뷰 서비스 상태는 2026-10-05 구축 기록입니다. GitHub 보호규칙,
+  PR #1, z.ai 잔액, 클러스터 서비스·Buzz 실행 상태는 이번에 재확인하지 않았습니다.
+  계정·토큰의 현 상태는 OpenBao `credentials-map`과 서비스에서 확인합니다.
 
 ## 목적
 
@@ -26,7 +40,7 @@
    ▼
 ④ 사용자: GitHub PR 승인·머지
    ▼
-⑤ stg 자동 배포: Jenkins 빌드 → Harbor stg/<앱> (태그=SHA 12자)
+⑤ stg 수동 빌드 시작(BRANCH_NAME=stg) → Jenkins 빌드 → Harbor stg/<앱> (태그=SHA 12자)
    → prj-deploy stg/<앱>.yaml 태그 범프 → ArgoCD 자동 배포
    → Buzz #cicd: 빌드/배포/Degraded 알림 (buzz-gateway 재사용)
    ▼
@@ -34,10 +48,10 @@
    ▼
 ⑦ stg 안정 판정 → ZCode가 prod PR (stg → main) 생성
    ▼
-⑧ 【결정 ②】prod 승인 → ⑤와 동일 자동 배포·모니터링
+⑧ 【결정 ②】prod 승인·main 병합 → main push-router 경로 매칭 → prod 빌드·범프·배포·모니터링
 ```
 
-## Phase별 상태
+## Phase별 상태 (2026-10-05 구축 기록)
 
 | Phase | 내용 | 상태 |
 |---|---|---|
@@ -105,9 +119,9 @@ kubectl -n devops-tools rollout restart deploy/pr-agent
 - **coc-devops GitHub App의 웹훅 URL 교체**: 기존 `https://jenkins.cocdev.co.kr/github-webhook`(2026-09-18 도메인 만료 후 죽은 상태였음) → pr-agent URL. 구 소비자는 없었음(Jenkins 트리거는 2026-10-04 repo 웹훅 push-router로 이전 완료). 앱 이벤트 구독은 기존 `push` 그대로 유지.
 - 테스트 PR: `prj-core#1` (ci/pr-agent-gate-test, worktree ~/dev/wt/pr-agent-test) — 재충전 후 reopen하면 리뷰가 게시되는 종단 재검증용으로 유지.
 
-## 재검증 절차 (z.ai 재충전 후)
+## 재검증 절차 (당시 미완료 항목, 현재 상태 확인 후 실행)
 
-1. z.ai 콘솔에서 잔액/리소스 패키지 충전
+1. 현재 리뷰 실행자·계정 상태와 `prj-core#1`의 용도를 먼저 확인한 뒤 필요하면 z.ai 잔액/리소스 패키지 충전
 2. `gh pr close 1 -R kimjoongwon/prj-core && gh pr reopen 1 -R kimjoongwon/prj-core`
 3. ~1분 내 PR에 /review + /improve 코멘트 게시 확인 (`kubectl -n devops-tools logs deploy/pr-agent -f`)
 4. 정상이면 Phase 1 완료 선언, OpenBao `pr-agent-llm` note의 ⚠ 문구 삭제
@@ -122,5 +136,5 @@ kubectl -n devops-tools rollout restart deploy/pr-agent
 
 - 리뷰는 독립 도구 + 진짜 게이트는 결정적 CI(Phase 2) → pr-agent 장애 시 파이프라인 무영향
 - AI 실수 푸시 → 브랜치 보호가 구조적 차단 (Phase 0, 관리자 포함)
-- 배포 이상 → ArgoCD Degraded 즉시 Buzz + prj-deploy 태그 revert로 자동 롤백
+- 배포 이상 → ArgoCD Degraded 구독 알림 → 원인 확인·롤백 결정 → prj-deploy 범프 커밋 revert → ArgoCD 복구. Degraded가 자동으로 태그를 되돌리지는 않는다.
 - 알림은 best-effort (buzz-gateway 장애가 배포를 막지 않음 — 기존 설계)

@@ -1,101 +1,108 @@
-# Jenkins GitOps 이미지 태그 자동 반영 가이드
+# Jenkins GitOps 이미지 범프·롤백 가이드
 
-## 목적
-- Jenkins가 Harbor 이미지 push를 성공한 직후 **`prj-deploy`**의 `prod/<앱>.yaml`(이미지 태그 전용 저장소)을 자동 갱신
-- Git 커밋/푸시를 통해 ArgoCD가 변경을 감지하고 배포 수행
+갱신: 2026-10-22 형상 소스 기준. 앱·환경 전체 연결은 [배포 연결 지도](deployment-map.md)를 봅니다.
+이 문서의 명령은 운영 절차이며, 이번 갱신에서 Jenkins 실행·Git push·클러스터 변경을 수행한 것은 아닙니다.
 
-## 저장소 분리 구조 (2026-09-27~)
-- `prj-deploy` — 배포 상태(이미지 태그) 전용. Jenkins 범프 잡이 여기에만 커밋하며 git log가 곧 배포 기록
-- `prj-devops` — 차트·values(리소스/env 등)·Application 정의. 사람이 관리
-- ArgoCD Application은 multi-source로 차트는 prj-devops, 태그는 prj-deploy의 `$values/prod/<앱>.yaml`에서 읽는다
-- 범프 스크립트(`update-gitops-image-tag.sh`)와 `rollback.sh`는 prj-devops에 있지만 수정 대상은 prj-deploy다
+## 저장소 책임
 
-## 핵심 원칙
-- Jenkins는 **클러스터 직접 배포를 하지 않고**, GitOps 저장소 변경까지만 수행
-- ArgoCD가 Git 단일 진실 원천(SSOT)으로 배포를 담당
-- Production 이미지 태그는 빌드 커밋 **SHA 앞 12자**를 사용한다 (`latest`, 빌드 번호 X)
-  - SHA 태그는 immutable하므로 Git 커밋 ↔ 이미지가 1:1 추적된다
-  - `prj-deploy`의 `prod/<앱>.yaml`도 그 태그로만 갱신
+- `prj-core`: 앱 이미지 빌드 Jenkinsfile과 `devops/Jenkinsfile.gitops-update`.
+- `prj-devops`: 차트·환경 values·Application, 범프/롤백 스크립트.
+- `prj-deploy main`: `prod|stg/<앱>.yaml` 이미지 태그 상태와 배포 기록.
+- ArgoCD multi-source: prj-devops main의 차트·환경 values 뒤에 prj-deploy main의
+  `$values/<env>/<앱>.yaml`을 적용합니다. Jenkins는 클러스터 배포 대신 이 Git 상태만 갱신합니다.
 
-## 지원 대상 앱 (prod)
-- `idp-api`
-- `idp-web`
-- `core-api`
-- `admin-web`
-- `proposal-web`
-- `tool-storybook`
+태그는 **실제 빌드 체크아웃 커밋 SHA 앞 12자**를 사용합니다. `latest`나 빌드 번호 대신
+소스 커밋을 추적합니다. 같은 SHA 태그로 재빌드·재범프하면 no-op이며, 파드 재시작을 보장하지 않습니다.
 
-## 스크립트
-- 경로: `scripts/jenkins/update-gitops-image-tag.sh`
-- Jenkinsfile 템플릿: `scripts/jenkins/Jenkinsfile.gitops-prod-example.groovy`
-- yq 요구사항(mikefarah yq v4.18+, python yq 불가): 에이전트에 yq가 없으면
-  `scripts/jenkins/install-yq.sh`가 핀된 버전(v4.53.6, sha256 검증)을 워크스페이스 `.tools/bin`에
-  자동 설치한다. `Jenkinsfile.gitops-update`(prj-core)가 이를 자동으로 호출하므로 별도 사전 설치 불필요.
+## 범프 지원 범위
 
-참고: SHA 태그는 커밋별로 불변이므로 **같은 커밋을 다시 빌드하면 태그가 같아 범프가 no-op** 처리된다.
-재배포가 필요하면 `gitops-prod-image-bump` 잡을 IMAGE_TAG 파라미터로 수동 실행하거나
-롤백 후 재빌드한다.
+| 환경 | 태그 파일·Application이 연결된 앱 |
+|---|---|
+| prod | core-api, admin-web, idp-api, idp-web, proposal-web, design-web, live-web, tool-storybook |
+| stg | core-api, admin-web, idp-api, idp-web, dolmen-api, dolmen-web |
 
-필수 인자:
-- `--app <name>`
-- `--tag <image_tag>`
+`scripts/jenkins/update-gitops-image-tag.sh`와 범프 Jenkinsfile의 앱 allowlist는 10개입니다.
+실제 지원은 위 표의 기존 파일 쌍을 따릅니다. 스크립트는 파일을 새로 만들지 않습니다.
+proposal/design/Storybook의 stg는 명시적으로 차단하고, live-web stg·Dolmen prod는 파일 부재로 실패합니다.
+`push-router`가 Dolmen main 잡도 호출하는 불일치는 [연결 지도](deployment-map.md#앱환경-매트릭스)에 기록했습니다.
 
-주요 옵션:
-- `--env prod|stg` (stg는 2026-10-04 지원 — prj-deploy `stg/<앱>.yaml` 범프, 커밋 `bump stg/<앱>`)
-- `--repo-url <git_url>` (기본: `https://github.com/kimjoongwon/prj-deploy.git`)
-- `--branch <branch>` (기본: `main`)
-- `--push-retries <n>` (기본: `3`)
-- `--dry-run` (diff만 출력)
-- `--skip-push` (commit만 생성)
+## Jenkins 실행 경로
 
-## Jenkins Pipeline 예시
+1. `prj-core main` push는 Jenkins `push-router`가 경로를 매칭해 Storybook 제외 9개 잡을 호출합니다.
+   stg와 Storybook은 해당 빌드 잡을 수동 실행합니다. stg는 `BRANCH_NAME=stg`,
+   `TRUSTED_DEPLOYMENT=true`를 사용하고 실제 체크아웃 SHA를 확인합니다.
+2. 빌드/Harbor push 성공 후 `/gitops-prod-image-bump`에 `APP_NAME`, `IMAGE_TAG`,
+   `DEPLOY_ENV=prod|stg`를 넘깁니다. 잡 이름의 `prod`와 달리 양 환경을 지원합니다.
+3. 범프 잡은 public HTTPS로 prj-devops·prj-deploy를 읽고 `prj-deploy-deploy-key`로
+   prj-deploy main에만 push합니다. `github-app-credential`은 잡 정의의 prj-core 체크아웃용입니다.
+4. 커밋 메시지는 prod `ci(gitops): bump <앱> image to <태그>`,
+   stg `ci(gitops): bump stg/<앱> image to <태그>`입니다. 롤백이 이 접두사를 사용합니다.
+5. ArgoCD가 webhook 또는 폴링으로 감지한 뒤 배포합니다. `Synced+Healthy`, 실제 이미지/env,
+   앱 동작과 Buzz `#cicd` 도착까지 확인합니다.
 
-아래 파일을 기준으로 사용하세요:
+Jenkins 잡 선언은 [JCasC·Job DSL](../helm/development-tools/jenkins/values.yaml)의
+`gitops-prod-image-bump-job`이고 실행 스크립트는 prj-core `devops/Jenkinsfile.gitops-update`입니다.
+Jenkins Helm/JCasC 재적용 시 선언적 파라미터가 지워지는 과거 사례가 있으므로 첫 실행 결과와
+파라미터 재등록을 확인합니다. push-router는 GWT 트리거 등록을 위한 1회 수동 실행이 필요할 수 있습니다.
 
-- `scripts/jenkins/Jenkinsfile.gitops-prod-example.groovy`
-- Jenkins job 선언: `helm/development-tools/jenkins/values.yaml` 의 `controller.JCasC.configScripts.gitops-prod-image-bump-job`
+[`Jenkinsfile.gitops-prod-example.groovy`](../scripts/jenkins/Jenkinsfile.gitops-prod-example.groovy)는
+기존 prod 6앱·PAT 방식의 참고용 골격입니다. 실제 잡의 앱 목록·권한·yq 설치 순서 기준으로 복사하지 않습니다.
 
-핵심 동작:
-- 프로덕션 빌드는 이미지에 빌드 커밋 **SHA 앞 12자** immutable tag만 push
-- 이미지 빌드/푸시 후 `github-app-credential`으로 스크립트는 `prj-devops`를 clone,
-  범프 커밋/푸시는 `prj-deploy`를 clone해서 수행 (`Jenkinsfile.gitops-update`가 양쪽을 관리)
-- `update-gitops-image-tag.sh` 호출로 `prj-deploy/prod/<앱>.yaml` 갱신 (yq 기반)
-- `ci(gitops): bump <app> image to <tag>` 커밋 후 `prj-deploy` `main`에 push
+## 범프 스크립트
 
-운영 반영:
-- Jenkins는 `JCasC + Job DSL`로 `gitops-prod-image-bump` 잡을 선언합니다. 잡 정의 자체가 `prj-devops`에 포함되므로 Jenkins 재배포 시 동일 상태로 수렴합니다.
-- 반영은 Jenkins Helm 릴리스 재적용(`helm upgrade --install`)이 필요합니다. `configAutoReload`가 켜져 있어도 Job DSL 플러그인 추가는 컨트롤러 재시작이 선행돼야 합니다.
-
-## 로컬 테스트 예시
+- [update-gitops-image-tag.sh](../scripts/jenkins/update-gitops-image-tag.sh): `--app`, `--tag` 필수.
+- `--env prod|stg`(기본 prod), `--repo-url`(기본 prj-deploy HTTPS), `--branch main`,
+  `--push-retries 3`, `--dry-run`, `--skip-push`, `--workdir` 지원.
+- mikefarah yq v4.18+ 필요. Python yq는 지원하지 않습니다.
+  [install-yq.sh](../scripts/jenkins/install-yq.sh)가 핀 버전 v4.53.6·SHA 검증으로 설치하며 실제 범프 잡이 호출합니다.
+- push 충돌 시 pull/rebase 후 재시도합니다. 계속 실패하면 충돌 원인을 해결한 뒤 재실행합니다.
 
 ```bash
+# 깨끗한 prj-deploy clone에서 결과만 확인
 ./scripts/jenkins/update-gitops-image-tag.sh \
-  --app idp-api \
-  --tag test-1234abcd \
-  --env prod \
-  --workdir /path/to/prj-deploy \
-  --dry-run
+  --app idp-api --tag <빌드-SHA-12> --env stg \
+  --workdir /path/to/prj-deploy --dry-run
 ```
-
-## 실패/충돌 처리
-- 스크립트는 push 시 `pull --rebase` 후 재시도(`--push-retries`) 수행
-- 동시 업데이트로 충돌이 계속되면 job fail 처리 후 재실행 권장
 
 ## 롤백
-롤백은 bump 커밋을 revert하는 방식으로 수행한다 (Git 되돌리기 = 롤백, ArgoCD가 자동 복구):
+
+롤백 대상은 **prj-deploy main의 범프 커밋**입니다. 앱 소스 브랜치를 되돌리는 작업과 구분합니다.
+되돌릴 이미지가 Harbor에 남아 있어야 재빌드 없이 이전 태그로 배포할 수 있습니다.
+
+### rollback.sh 지원 앱
+
+- prod: core-api, admin-web, idp-api, idp-web, proposal-web, tool-storybook.
+- stg: core-api, admin-web, idp-api, idp-web.
+- design-web, live-web, dolmen-api, dolmen-web은 현재 allowlist에 없어 거부됩니다.
 
 ```bash
-# 직전 버전으로 롤백 (dry-run으로 결과 미리보기)
-./scripts/rollback.sh --app core-api --dry-run
+# 먼저 revert 결과를 확인
+./scripts/rollback.sh --app core-api --env stg --dry-run
 
-# 실제 롤백: 최신 bump 커밋 revert + push
-./scripts/rollback.sh --app core-api
+# 승인된 운영 롤백 실행: 범프 revert + prj-deploy push
+./scripts/rollback.sh --app core-api --env stg
 
-# 2단계 롤백 (최신 bump 2개 revert)
-./scripts/rollback.sh --app core-api --steps 2
+# 직전 범프 두 개를 되돌리기
+./scripts/rollback.sh --app core-api --env prod --steps 2 --dry-run
 ```
 
-동작:
-- `ci(gitops): bump <app> image to <tag>` 커밋을 찾아 최신 것부터 revert 후 push
-- 안전장치: prj-deploy `prod/<앱>.yaml` 현재 태그가 최신 bump 태그와 불일치하거나, bump 커밋이 다른 파일을 건드렸으면 중단 (강제는 `--force`)
-- SHA 태그 이미지는 Harbor에 그대로 남있으므로 리빌드 없이 즉시 재배포됨
+스크립트는 최신 일치 범프부터 revert합니다. 현재 태그가 범프 태그와 다르거나 범프가 다른 파일도
+변경했다면 중단합니다. `--force`로 검토를 대신하지 않습니다.
+
+### 미지원 앱 수동 revert
+
+깨끗한 prj-deploy 작업 브랜치에서 대상 파일과 범프 커밋을 먼저 확인합니다.
+다음 예시는 stg Dolmen web이며 prod design/live도 해당 경로로 바꿔 적용합니다.
+
+```bash
+git fetch origin
+git log origin/main -- stg/dolmen-web.yaml
+git show --stat <범프-커밋>
+git show <범프-커밋> -- stg/dolmen-web.yaml
+# 해당 태그 파일만 바꾼 범프이며 후속 태그와 충돌하지 않는지 확인 후
+git revert <범프-커밋>
+git diff HEAD^ HEAD -- stg/dolmen-web.yaml
+```
+
+검토한 revert를 저장소의 변경 절차에 따라 main에 반영하고 ArgoCD·파드·Buzz를 검증합니다.
+이전 태그나 여러 앱이 섞인 커밋을 맹목적으로 되돌리지 않습니다.

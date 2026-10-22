@@ -1,6 +1,10 @@
 # onjitda.com 클러스터 복구 런북
 
-작성일: 2026-09-18 (cocdev.co.kr → onjitda.com 전환 작업 기준)
+작성일: 2026-09-18 (cocdev.co.kr → onjitda.com 전환 작업 기준) · 형상 연결 갱신: 2026-10-22
+
+> VM·DNS·계정·Access·토큰 상태는 당시 운영 기록입니다. 이번 문서 갱신에서 런타임을 재조회하지 않았습니다.
+> 복구 전 OpenBao `secret/docs/overview → endpoints → credentials-map → runbooks/recovery`를 확인합니다.
+> 현재 앱·환경·태그 연결은 [배포 연결 지도](deployment-map.md) 기준이며 prod 8앱/stg 6앱입니다.
 
 이 문서는 두 가지를 다룬다.
 
@@ -54,7 +58,7 @@ kubectl get pod -n openbao openbao-0
 `cloudflared/cloudflared-tunnel-token`도 OpenBao KV(secret/harbor/admin, secret/cloudflare/production)에서
 ClusterExternalSecret이 동기화한다. 재구축 시에도 unseal 후 자동 회복.
 여전히 수동(클러스터 전체 재구축 시에만 재생성 필요): 각 ns `openbao-token`
-(esc-policy period 토큰 — 생성법은 stg 런북 참조). Jenkins 내부 credentials 원본은 OpenBao에 있다: harbor 로봇(harbor/jenkins-ci KV — 현재 robot$jenkins-ci-build, 2026-10-05 재발급),
+(esc-policy period 토큰 — 현재 생성·갱신 절차는 OpenBao runbook 확인). Jenkins 내부 credentials 원본은 OpenBao에 있다: harbor 로봇(harbor/jenkins-ci KV — 2026-10-05 당시 robot$jenkins-ci-build 재발급 기록),
 buzz(devops/buzz-gateway KV), github-app private key(jenkins/github-app KV),
 prj-deploy deploy key(jenkins/prj-deploy-deploy-key KV), GWT 토큰(devops/push-router-gwt KV, 2026-10-05 이관).
 
@@ -96,7 +100,25 @@ for h in onjitda.com idp.onjitda.com argocd.onjitda.com harbor.onjitda.com; do
 done
 ```
 
-### 1-5. 문제가 있을 때 첫 확인 포인트
+### 1-5. GitOps·배포 복구 확인
+
+부모 `frontend-web-apps`와 자식 Application은 prj-devops/prj-deploy main을 추적하고
+환경 exclude 없이 prod/stg를 함께 포함한다. 복구 과정에서 prod-only exclude를 추가하지 않는다.
+이미지는 prj-deploy의 `prod|stg/<앱>.yaml` 태그와 Harbor 존재 여부를 대조한다.
+
+```bash
+kubectl -n argocd get applications \
+  -o custom-columns=NAME:.metadata.name,SYNC:.status.sync.status,HEALTH:.status.health.status
+kubectl -n plate-prod get pods,ingress
+kubectl -n plate-stg get pods,ingress
+```
+
+Jenkins 복구 후 범프 잡 파라미터와 push-router의 GWT 등록을 확인한다.
+stg 빌드는 수동이며 같은 태그의 범프 재실행은 no-op이다. 앱 이미지 롤백은
+prj-deploy 범프 커밋 revert이며 지원 앱·수동 절차는 [범프·롤백 가이드](jenkins-gitops-image-bump.md#롤백)를 따른다.
+ArgoCD `Synced+Healthy`·파드 이미지/env·앱 동작과 Buzz 도착을 함께 확인한다.
+
+### 1-6. 문제가 있을 때 첫 확인 포인트
 
 | 증상 | 확인 |
 |---|---|
@@ -180,13 +202,16 @@ done
 
 ---
 
-## 3. 후속 조치 (2026-09-18 기준)
+## 3. 당시 후속 조치 (2026-09-18 역사 기록)
+
+아래 항목을 현재 미해결 상태로 판단하지 않는다. 이후 시크릿 이관·로테이션이 있었으므로
+현 계정 값·교체 여부는 OpenBao `credentials-map`과 운영 계정에서 확인한다.
 
 1. **Cloudflare Access 적용 완료 (2026-09-18)** — 관리 도구 7호스트(argocd/harbor/jenkins/grafana/prometheus/openbao/db.onjitda.com)가 이메일 OTP로 보호됨. 팀 도메인: `onjitda.cloudflareaccess.com`, 허용 이메일 정책. 도구 접속 시 이메일 인증(24시간 세션) 후 서비스 로그인 화면에 도달한다.
-2. **Harbor 어드민 비밀번호 교체** — 현재 차트 기본값 사용 중
+2. **Harbor 어드민 비밀번호 교체** — 당시 차트 기본값 사용. 현재 차트는 `harbor-admin` 기존 Secret 참조
 3. **유출 이력 있는 비밀번호 교체** — Jenkins/ArgoCD/pgAdmin 비밀번호가 GitHub 프로필 README에 공개된 적 있음(이력에서는 삭제 완료). Access 경비실이 있어도 교체 권장
 4. OpenBao Unseal Key / Root Token을 비밀번호 관리자로 이관
-5. (선택) `www.onjitda.com` → 루트 리다이렉트 ingress 규칙 추가 (현재 404)
+5. (선택) `www.onjitda.com` → 루트 리다이렉트 ingress 규칙 추가 (당시 404; 현재 응답 미확인)
 
 ## 4. Cloudflare Access 운영 시 주의 (2026-09-18 추가)
 
@@ -287,7 +312,7 @@ launchctl bootout gui/$(id -u)/com.onjitda.k8s-api-tunnel
 rm ~/Library/LaunchAgents/com.onjitda.k8s-api-tunnel.plist
 ```
 
-## 7. IDP 재건 및 identity DB v2 재구축 (2026-09-19)
+## 7. IDP 재건 및 identity DB v2 재구축 (2026-09-19 역사 기록)
 
 - apps/idp 재건(prj-core): 얇은 발급자(idp-api) + 로그인 UI(idp-web).
   이미지 idp-api:23, idp-web:27 (Jenkins 잡 idp-api-build / idp-web-build).
@@ -296,7 +321,6 @@ rm ~/Library/LaunchAgents/com.onjitda.k8s-api-tunnel.plist
   백업: 관리 PC ~/plate_prod_backup_20260919.sql
 - 시드 부트스트랩 환경변수(LOCAL_BOOTSTRAP_ADMIN_*)는 OpenBao
   secret/idp-api/production 에 등록되어 있어 재구축 시 자동 시드된다.
-- GitOps 태그 bump는 Jenkins bump 잡 대신 스크립트 직접 실행으로 대체 가능
-  (스크립트는 prj-devops에 있고, 커밋은 prj-deploy prod/<앱>.yaml에 남는다):
-  bash scripts/jenkins/update-gitops-image-tag.sh --app <앱> --tag <번호> \
-    --git-user-name jenkins-bot --git-user-email jenkins-bot@onjitda.com
+- 당시 숫자 이미지 태그는 역사 기록이다. 현재 태그는 실제 빌드 커밋 SHA 앞 12자이며
+  Jenkins 범프 잡이 prj-deploy main의 `prod|stg/<앱>.yaml`을 갱신한다.
+  수동 복구가 필요하면 [범프·롤백 가이드](jenkins-gitops-image-bump.md)를 따른다.

@@ -9,8 +9,9 @@ Jenkins 잡과 ArgoCD notifications는 Bearer 토큰 하나로 호출한다.
 로컬 관리 차트(buildkitd와 같은 범주 — `environments/argocd/apps/buzz-gateway.yaml`이
 GitOps로 직접 참조). Deployment/Service 두 템플릿만 둔다.
 
-- 전체 구성/운영: `docs/buzz-ci-integration.md`
-- 이미지 소스: `docker/buzz-gateway/`
+- 전체 구성/운영: [Buzz 연동](../../../docs/buzz-ci-integration.md)
+- 현재 배포 연결: [배포 연결 지도](../../../docs/deployment-map.md)
+- 이미지 소스: [docker/buzz-gateway](../../../docker/buzz-gateway/)
 
 ## 사전 조건
 
@@ -21,10 +22,12 @@ GitOps로 직접 참조). Deployment/Service 두 템플릿만 둔다.
 ## 반영
 
 ArgoCD Application(`environments/argocd/apps/buzz-gateway.yaml`)가 이 차트를
-관리하므로 values 변경은 커밋/푸시로 반영된다. Application 신규 등록 시에는
+관리하므로 values 변경은 prj-devops main 반영 후 자동 동기화 대상이다. Application 신규 등록 시에는
 argocd 네임스페이스의 app-of-apps(`frontend-web-apps`)가 자동으로 가져간다.
 
 ## 검증
+
+형상 선언과 실제 실행을 구분한다. 아래 명령과 Buzz 채널 도착으로 검증하며 문서 갱신 자체는 실행 성공을 뜻하지 않는다.
 
 ```bash
 kubectl -n devops-tools rollout status deploy/buzz-gateway
