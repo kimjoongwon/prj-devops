@@ -1,0 +1,17 @@
+apiVersion: v2
+name: design-web
+description: Design Web 퍼블릭 랜딩 애플리케이션용 Helm 차트 (Next.js)
+type: application
+version: 0.1.0
+appVersion: "1.0.0"
+keywords:
+  - plate
+  - design
+  - nextjs
+  - frontend
+home: https://onjitda.com
+sources:
+  - https://github.com/kimjoongwon/prj-devops
+maintainers:
+  - name: Plate Team
+    email: dev@onjitda.com
