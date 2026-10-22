@@ -1,19 +1,35 @@
 # Jenkins 빌드 속도 개선 운영 런북
 
-## 목적
+> 2026-10-22 형상 대조 갱신. **1~3절은 폐기·완료된 전환의 역사 기록**이며 재실행 절차가 아닙니다.
+> 4절은 현재 BuildKit 구성과 파일럿 이력을 함께 다룹니다. 클러스터·Jenkins 실행 상태는 이번에 조회하지 않았습니다.
+> 배포 환경과 태그 연결은 [배포 연결 지도](deployment-map.md)를 기준으로 합니다.
+
+## 현재 기준
+
+- 앱 빌드 10종은 prj-core Jenkinsfile의 원격 `buildctl` 경로를 사용합니다.
+- BuildKit 형상은 `helm/development-tools/buildkitd/values.yaml`: rootless v0.33.0·digest 고정,
+  `devops-tools`, `buildkit-cache-pvc` 50Gi/RWO/openebs-hostpath, 서비스 TCP 1234입니다.
+- 원격 push 인증은 클라이언트가 전달합니다. OpenBao 원본과 데몬의 `buildkit-registry-config`,
+  에이전트의 `buildkit-client-config`(Opaque, `config.json` 키)를 함께 맞추고 데몬을 재시작합니다.
+  데몬 시크릿 하나만 교체하면 push 인증이 해결되지 않습니다. 원본·소비처 짝은 OpenBao `credentials-map` 기준입니다.
+- `plate-cache` 차트/Application과 `pnpm-store-pvc` 선언은 삭제되었습니다.
+  현재 prj-core `Jenkinsfile.public-ci`는 파드 수명의 `emptyDir`(10Gi)을 pnpm 스토어로 사용합니다.
+- 본 문서의 Podman v4/v5, 과거 6앱 수, 캐시 PVC 생성·파일럿 잡 생성 명령은 당시 전환을 설명합니다.
+
+## 전환 당시 목적
 
 - Jenkins 빌드 파이프라인의 1차 플래그 개선, podman v5 전환, public-ci pnpm 캐시,
   BuildKit 영속 캐시 도입을 단계별로 검증하고 안전하게 롤백할 수 있게 한다.
 - 각 단계는 독립적으로 진행/중단할 수 있으며, 뒤 단계는 앞 단계 완료를 전제로 하지 않는다.
 
-## 대상 및 관련 파일
+## 대상 및 관련 파일 (현존 경로와 과거 경로 구분)
 
 | 항목 | 위치 |
 | --- | --- |
 | 1차 플래그 개선 대상 Jenkinsfile/Dockerfile | prj-core `devops/Jenkinsfile.*`, `devops/Dockerfile.*` |
 | GitOps 얕은 clone(depth 5) | prj-core `devops/Jenkinsfile.gitops-update` |
 | container-builder-pvc 정리 스크립트 | prj-devops `scripts/jenkins/cleanup-container-builder.sh` |
-| pnpm 스토어 공유 캐시 PVC | prj-devops `helm/applications/plate-cache/` (`pnpm-store-pvc`) |
+| 과거 pnpm 공유 캐시 | `plate-cache`·`pnpm-store-pvc` 폐기, 현재 public-ci는 emptyDir |
 | BuildKit 데몬 차트/앱 | prj-devops `helm/development-tools/buildkitd/`, `environments/argocd/apps/buildkitd.yaml` |
 | 외부 PR CI | prj-core `devops/Jenkinsfile.public-ci`, `devops/README.public-ci.md` |
 
@@ -21,14 +37,14 @@
 
 - Jenkins 컨트롤러와 agent pod는 `devops-tools` 네임스페이스에서 실행된다
   (`helm/development-tools/jenkins/values.yaml`의 `agent.namespace` 미설정 → 컨트롤러 네임스페이스 상속).
-- `container-builder-pvc`(RWO, openebs-hostpath), `pnpm-store-pvc`(RWO, openebs-hostpath),
-  `buildkitd` 모두 `devops-tools` 네임스페이스에 둔다.
-- 실제 자격증명·시크릿 값은 어느 저장소에도 커밋하지 않는다. 시크릿은 런북의
-  `kubectl create secret` 명령으로만 생성한다.
+- 현재 BuildKit은 `devops-tools`의 `buildkit-cache-pvc`를 사용한다.
+  `container-builder-pvc`·`pnpm-store-pvc`는 아래 과거 전환 문맥이며 현존 여부를 가정하지 않는다.
+- 실제 자격증명·시크릿 값은 어느 저장소에도 커밋하지 않는다.
+  현재 생성·로테이션은 OpenBao `credentials-map`에 따라 원본과 런타임 사본을 함께 갱신한다.
 
 ---
 
-## 1. 1차 플래그 개선 검증 (stg)
+## 1. 1차 플래그 개선 검증 (역사 기록)
 
 대상 개선 (prj-core devops 기존 변경):
 
@@ -60,7 +76,7 @@
 
 ---
 
-## 2. podman v4.8.2 → v5.8.4 전환
+## 2. podman v4.8.2 → v5.8.4 전환 (역사 기록)
 
 배경: podman 이미지를
 `quay.io/podman/stable:v5.8.4@sha256:3c99be9108dacd2b25d2f343c91386abd14a5ceaca68aa3e8d7f6ee2ebd50a16`
@@ -108,7 +124,7 @@
 
 ---
 
-## 3. public-ci pnpm 캐시 (pnpm-store-pvc)
+## 3. public-ci pnpm 캐시 (폐기된 구성의 역사 기록)
 
 배경: 외부 PR CI(`Jenkinsfile.public-ci`)는 매 PR 임의 노드에서 pod가 떠서 pnpm install이
 매번 콜드로 실행된다. `pnpm-store-pvc`(RWO, openebs-hostpath)로 pnpm 스토어를 공유해 이를 제거한다.
@@ -156,12 +172,8 @@ B구조 통일로 파일럿 잡이 본체 `devops/Jenkinsfile.tool-storybook`로
 
 ### (a) buildkitd 배포
 
-1. ArgoCD: prj-devops merge 후 `buildkitd` 앱 자동 동기화(폴링 60초) 또는 `argocd app sync buildkitd`.
-   수동 대안:
-
-   ```bash
-   helm upgrade --install buildkitd helm/development-tools/buildkitd -n devops-tools
-   ```
+1. ArgoCD: prj-devops main 반영 후 `buildkitd` 앱 자동 동기화(폴링 설정 60초) 또는 `argocd app sync buildkitd`.
+   이 앱은 GitOps 소유이므로 별도 Helm 릴리스로 중복 설치하지 않는다.
 
 2. 확인 명령:
 
@@ -176,7 +188,8 @@ B구조 통일로 파일럿 잡이 본체 `devops/Jenkinsfile.tool-storybook`로
 
 ### (b) buildkit-registry-config 시크릿 생성
 
-Harbor 로봇 계정을 사용한다. 값은 Git에 커밋하지 않고 아래 명령으로만 생성한다.
+Harbor 로봇 계정을 사용한다. OpenBao `credentials-map`의 원본·소비처를 확인한 뒤 런타임 사본을 생성한다.
+아래는 데몬 측 예시이며 에이전트의 `buildkit-client-config`도 같은 원본으로 동기화해야 한다.
 Deployment는 이 시크릿(`.dockerconfigjson` 키)을 `config.json`으로 매핑해
 `/home/user/.docker/config.json`에 마운트하므로, 아래 형식이 곧 마운트와 짝이 된다.
 
@@ -187,7 +200,8 @@ kubectl -n devops-tools create secret docker-registry buildkit-registry-config \
   --docker-password='<harbor robot secret>'
 ```
 
-갱신 시에는 `--dry-run=client -o yaml | kubectl apply -f -`로 교체하고 buildkitd를 재시작한다.
+갱신 시에는 OpenBao 원본과 데몬·클라이언트 시크릿을 함께 교체하고 buildkitd를 재시작한다.
+데몬은 `.dockerconfigjson`을 `config.json`으로 매핑하고 클라이언트 Opaque 시크릿은 `config.json` 키를 직접 사용한다.
 
 ### (c) Jenkins 신규 pipeline job 수동 생성
 
@@ -223,11 +237,11 @@ kubectl -n devops-tools create secret docker-registry buildkit-registry-config \
    ✅ 전 앱(idp-api, idp-web, core-api, admin-web, proposal-web) 동시 전환 — 첫 빌드에서
    캐시 적중·push 성공·파드 프로비저닝을 관찰할 것.
 
-### (f) 롤백 방법
+### (f) 파일럿 당시 롤백 기록
 
 1. (역사 기록) 파일럿 잡 병합 시절의 롤백 절차였다 — 2026-10-04 B구조 통일로 본 잡 6종 전부 buildctl이며 podman 복귀 경로는 없음. 되돌리려면 git history의 구 Jenkinsfile 복원이 유일.
-2. buildkitd 배포를 중단한다: `argocd app delete buildkitd` 또는
-   `helm -n devops-tools uninstall buildkitd`.
+2. 현재 BuildKit은 전 앱 빌드의 공통 의존성이다. 과거 파일럿처럼 단독 삭제하지 않는다.
+   중단이 필요하면 모든 소비 잡의 빌더 복귀 계획과 GitOps Application 변경을 함께 검토한다.
 3. `buildkit-cache-pvc`는 유지한다(삭제하지 않는다). 재배포 시 캐시를 재사용할 수 있다.
 
 ---
@@ -249,4 +263,4 @@ kubectl -n devops-tools create secret docker-registry buildkit-registry-config \
   kubectl -n devops-tools exec deploy/buildkitd -- buildctl du
   ```
 
-  또한 `pnpm-store-pvc`(20Gi, openebs-hostpath) 사용량도 함께 관찰해 증설 시점을 판단한다.
+  `pnpm-store-pvc`는 현재 선언되지 않으므로 관찰 대상으로 가정하지 않는다.

@@ -1,92 +1,88 @@
-# STG 재활성화 런북 (2026-10-04)
+# STG 운영·재활성화 런북
 
-스테이징 환경(`plate-stg`)을 최소 리소스로 재활성화하는 절차. 기반 커밋은 이미 main에 반영되어
-있고, 이 문서는 **남은 활성화 단계**(첫 이미지 빌드 → 스위치 ON → 검증)를 다룬다.
+갱신: 2026-10-22 형상 소스 기준. 2026-10-04 재활성화 절차와 이후 추가된 Dolmen을 함께 정리합니다.
+현재 부모 형상에는 stg가 포함되어 있습니다. 이번 갱신에서 클러스터·Jenkins·DNS·시크릿 상태를 조회하지 않았습니다.
+전체 계약은 [배포 연결 지도](deployment-map.md)를 봅니다.
 
-## 스코프 (운영 원칙)
+## 현재 범위
 
-| 구성 | stg | 비고 |
+| 구성 | stg 연결 | 비고 |
 |---|---|---|
-| core-api, admin-web, idp-api, idp-web | ✅ | 서비스 앱. replica 1, requests 합계 약 705m/1.8Gi |
-| plate-db, ingress, openbao-secrets-manager | ✅ | stg 필수 인프라 (PVC 5Gi 포함) |
-| proposal-web, tool-storybook | ❌ 운영만 | 서비스가 아닌 정적 에셋 — stg 매니페스트 삭제됨 |
-| plate-llm | ❌ 운영만 | 무겁고(1Gi req) DNS 없음. 차트는 유지, Application만 삭제 |
-| harbor, 관측 스택, 공용 인프라 | ❌ 운영만 | 기존과 동일 |
+| core-api, admin-web, idp-api, idp-web | ✅ | 공통 서비스 4앱 |
+| dolmen-api, dolmen-web | ✅ | `/dolmen` 데모, prod Application·태그 파일 없음 |
+| plate-db, ingress, openbao-secrets-manager | ✅ | stg 기반 구성 |
+| proposal-web, design-web, live-web, tool-storybook | — | prod만 연결 |
+| plate-llm | — | 차트만 남음, 어느 환경에도 Application 없음 |
+| 관측·개발 도구·SRS | 공용/prod | 앱별 Application 대상 namespace 확인 |
 
-이미지 태그 전략은 prod와 동일한 **SHA-12 GitOps**: `prj-deploy stg/<앱>.yaml`의 태그를
-ArgoCD multi-source로 읽는다 (`tag: latest` + 수동 재시작 방식 폐기).
+부모 `frontend-web-apps`는 환경 exclude가 없고 stg Application **9개**(태그 소비 6앱+기반 3개)를
+포함합니다. prj-devops·prj-deploy 소스는 모두 main이며 태그는 `prj-deploy main`의
+`stg/<앱>.yaml`에서 읽습니다. stg 소스 브랜치와 태그 디렉터리를 구분합니다.
 
-## 아키텍처 변경 요약 (반영 완료)
+## 빌드와 배포
 
-- `environments/argocd/apps/*-stg.yaml`: 서비스 4앱 multi-source 전환, proposal-web/plate-llm 삭제
-- `helm/ingress/values-stg.yaml`: `/proposal`, `llm.onjitda.com` 라우트·TLS 제거
-- `scripts/jenkins/update-gitops-image-tag.sh`, `scripts/rollback.sh`: `--env stg` 지원.
-  stg 범프 커밋은 `ci(gitops): bump stg/<앱> image to <태그>` (prod 롤백 매칭과 분리)
-- prj-core `devops/Jenkinsfile.*`: 서비스 4앱은 stg 빌드도 범프 트리거(`DEPLOY_ENV=stg`),
-  proposal-web는 main 전용으로 제한
-- prj-deploy `stg/<앱>.yaml`: 초기 태그는 prod 복제(부트스트랩 당시 기록 — 이후 stg 빌드·배포 완료)
+1. Harbor stg push/pull 권한, OpenBao staging 시크릿·ESO 상태를 확인합니다.
+   시크릿·토큰 생성/교체는 OpenBao `secret/docs/credentials-map`의 소비처·동기화 짝을 따릅니다.
+2. 대상 앱 빌드 잡을 수동 실행합니다: `BRANCH_NAME=stg`, `TRUSTED_DEPLOYMENT=true`.
+   공통 4서비스와 Dolmen 두 앱 Jenkinsfile은 선택한 stg 브랜치를 명시적으로 체크아웃합니다.
+   잡 정의 SCM이 main이어도 이미지가 main 코드라는 뜻은 아니며 콘솔의 체크아웃 SHA를 확인합니다.
+3. 이미지 `harbor.onjitda.com/stg/<앱>:<SHA-12>` push 성공 후
+   `gitops-prod-image-bump`가 `DEPLOY_ENV=stg`로 `stg/<앱>.yaml`을 범프합니다.
+   커밋은 `ci(gitops): bump stg/<앱> image to <태그>`입니다.
+4. ArgoCD 자동 동기화 후 상태·실제 이미지/env·앱 동작·Buzz 도착을 확인합니다.
 
-## 이미 확인된 사전 조건 (2026-10-04)
+`push-router`는 main push만 받으므로 stg 머지만으로 빌드를 시작하지 않습니다.
+Dolmen이 main 라우터에도 포함되지만 prod 태그/Application이 없는 불일치는
+[연결 지도](deployment-map.md#앱환경-매트릭스)에 기록했습니다.
 
-- DNS/터널: `stg.onjitda.com`, `idp-stg.onjitda.com` 모두 Cloudflare 터널 → ingress-nginx 도달 확인 (404)
-- OpenBao KV: `secret/{core-api,idp-api,idp-web}/staging` 경로 존재
-- 클러스터 여유: node-02 (4CPU) 기준 stg 합계 requests 수용 가능
+## 인그레스·DB
 
-## Step 1 — 수동 사전 확인
+- `stg.onjitda.com/`, `/admin` → admin-web; `/api` → core-api 및 IDP 인증 경로.
+- `idp-stg.onjitda.com/` → idp-web; `/api`, `/oidc` → idp-api.
+- `stg.onjitda.com/dolmen` → dolmen-web.
+  `/dolmen/api/*`는 Next API Route Handler(`src/app/api/[...path]/route.ts`)가 요청마다
+  `DOLMEN_API_URL`을 읽어 dolmen-api에 전달합니다.
+- stg Ingress는 `ssl-redirect: false`, 기본 issuer는 `letsencrypt-prod`입니다.
+- core-api/idp-api의 PreSync 마이그레이션 Job 설정과 DB 연결·시드 요구사항은 해당 차트와
+  prj-core 런북에서 확인합니다. Dolmen을 같은 Prisma 마이그레이션 대상으로 가정하지 않습니다.
 
-```bash
-# (a) Harbor 'stg' 프로젝트 존재 + push robot 권한 — Jenkins 'harbor' credential이
-#     prod 프로젝트 외 stg 프로젝트에도 push 가능해야 한다. 없으면 프로젝트 생성 + robot 권한 부여.
-#     (프로젝트 없으면 Step 2 첫 빌드에서 push 실패로 즉시 노출됨)
-
-# (b) OpenBao secret/harbor/staging 값 — plate-stg imagePullSecret(harbor-docker-secret)의 원본.
-#     stg 프로젝트 pull 권한이 있는 robot 자격증명(username/password)이 들어있어야 한다.
-bao kv get secret/harbor/staging   # 값이 비어 있으면 robot 생성 후 KV 재기입
-
-# (c) IDP stg 엔드포인트 patch (idp-api/idp-web가 idp-stg.onjitda.com을 바라보게)
-./scripts/openbao/patch-idp-endpoints.sh staging dry-run
-./scripts/openbao/patch-idp-endpoints.sh staging apply
-```
-
-## Step 2 — 첫 stg 이미지 빌드 (활성화 전에 수행)
-
-Jenkins 앱 빌드 잡은 `*/main` 체크아웃 + `BRANCH_NAME` 파라미터로 환경을 결정한다.
-**stg 배포 = 해당 앱 빌드 잡을 `BRANCH_NAME=stg`로 수동 실행** (main에 머지된 코드 기준).
-
-대상 잡: `core-api-build`, `admin-web-build`, `idp-api-build`, `idp-web-build`
-
-각 빌드는: `harbor.onjitda.com/stg/<앱>:<SHA-12>` (+`:latest`) push →
-`gitops-prod-image-bump` 잡이 `prj-deploy stg/<앱>.yaml`을 자동 범프·푸시.
+## 상태 확인
 
 ```bash
-# 진행 확인
-git -C ../prj-deploy log --oneline -- stg/        # "ci(gitops): bump stg/<앱> ..." 4건 확인
+kubectl -n argocd get applications -l environment=staging \
+  -o custom-columns=NAME:.metadata.name,SYNC:.status.sync.status,HEALTH:.status.health.status
+kubectl -n plate-stg get pods,ingress,pvc
+kubectl -n plate-stg logs deploy/core-api-stg --tail=50
 ```
 
-## Step 3 — 활성화 (스위치 ON)
+`https://stg.onjitda.com`, `https://idp-stg.onjitda.com`에서 로그인 흐름을 확인하고
+`https://stg.onjitda.com/dolmen`의 화면·API 동작을 확인합니다. 태그 변경 이력은 prj-deploy에서 봅니다.
 
-`environments/argocd/app-of-apps.yaml`의 directory에서 exclude 한 줄 제거 후 커밋/푸시:
+## 재활성화·비활성화 시 주의
 
-```yaml
-    directory:
-      recurse: true
-      include: "*.yaml"
-      # exclude: "*-stg.yaml"   ← 이 줄 제거 (또는 주석 처리)
+현재는 스위치를 켤 필요가 없습니다. 과거 prod-only에서 복구할 때는 부모의
+`exclude: "*-stg.yaml"`을 제거하고 부트스트랩 부모를 별도로 apply했습니다.
+부모 스펙 변경은 Git push만으로 라이브 부모가 바뀌지 않습니다.
+
+반대로 exclude를 추가하면 prune·자식 finalizer로 Application과 리소스가 삭제될 수 있습니다.
+DB/PVC 보존·복구 영향을 검토한 운영 변경으로 다루며, 일반 이미지 롤백 용도로 사용하지 않습니다.
+
+## 롤백
+
+```bash
+# 기존 4서비스 지원: 먼저 dry-run
+./scripts/rollback.sh --app core-api --env stg --dry-run
+./scripts/rollback.sh --app core-api --env stg
 ```
 
-ArgoCD가 plate-stg 네임스페이스에 7개 stg 앱을 배포한다:
-`openbao-secrets-manager-stg`(wave -1) → `plate-db-stg` → `core-api/admin-web/idp-api/idp-web-stg` → `plate-ingress-stg`
+Dolmen 두 앱은 `rollback.sh` 미지원입니다. prj-deploy에서 해당 `stg/dolmen-*.yaml`만
+바꾼 범프를 확인하고 직접 revert합니다. [구체적 절차](jenkins-gitops-image-bump.md#미지원-앱-수동-revert)를 따릅니다.
 
-끄고 싶을 때는 exclude 줄 복원 — prune로 stg 앱 전체가 제거된다 (PVC는 `plate-db-stg` finalizer
-동작에 따르니 삭제 확인 필수).
+## 2026-10-04 활성화 중 해결한 사항 (역사 기록)
 
-## Step 4 — DB 마이그레이션 (자동)
+아래는 당시 조치입니다. 현재 시크릿 값을 덮어쓰거나 토큰을 재발급하는 지시가 아닙니다.
+재발 시 OpenBao 문서와 실제 소비처를 먼저 확인합니다.
 
-core-api/idp-api 차트의 **PreSync 마이그레이션 Job**(`migrationJob.enabled: true`)이
-`prisma migrate deploy` + 기준 데이터 시드(`data-migrate.ts`, `LOCAL_BOOTSTRAP_*` 필요)를
-배포 전 자동 실행한다. 수동 실행은 불필요.
-
-## 2026-10-04 활성화 중 해결한 사항 (재현 시 참고)
 
 1. **esc-policy 미적용**: OpenBao에 정책이 없어 토큰이 403 → `bao policy write esc-policy scripts/openbao/policies/esc-policy.hcl`
 2. **plate-stg `openbao-token` 시크릿**: `bao token create -policy=esc-policy -orphan -period=168h` 후 k8s Secret 생성 (ESO가 자동 갱신 — 24h는 만료 사고 재발 위험, 2026-10-05 인시던트 이후 168h 권장)
@@ -99,32 +95,3 @@ core-api/idp-api 차트의 **PreSync 마이그레이션 Job**(`migrationJob.enab
    `kubectl apply -f environments/argocd/app-of-apps.yaml`
 6. **범프 잡 파라미터 갱신**: Jenkinsfile.gitops-update의 DEPLOY_ENV choices 변경 반영을 위해
    prod 파라미터로 1회 warm-up 실행 (b12f864 노트와 동일 함정)
-
-## Step 5 — 검증 체크리스트
-
-```bash
-kubectl -n argocd get applications -l environment=stg \
-  -o custom-columns=NAME:.metadata.name,SYNC:.status.sync.status,HEALTH:.status.health.status
-kubectl -n plate-stg get pods,ingress,pvc
-kubectl -n plate-stg logs deploy/core-api-stg --tail=50   # DB 접속/마이그레이션 오류 확인
-```
-
-- https://stg.onjitda.com — admin-web 렌딩
-- https://stg.onjitda.com/api — core-api 헬스
-- https://idp-stg.onjitda.com — idp-web 로그인 페이지 → 로그인 플로우(oidc interaction) 통과
-
-## 롤백
-
-```bash
-# 이미지 되돌리기 (stg 범프 커밋 revert)
-./scripts/rollback.sh --app core-api --env stg --dry-run
-./scripts/rollback.sh --app core-api --env stg
-
-# stg 전체 비활성화: app-of-apps exclude 복원 (Step 3 역순)
-```
-
-## 운영 플로우 요약
-
-- **prod**: main 자동 빌드(push-router 경로 라우팅) → `prod/<앱>.yaml` 범프 → 자동 배포 (기존과 동일)
-- **stg**: 서비스 앱 빌드 잡 수동 실행(`BRANCH_NAME=stg`) → `stg/<앱>.yaml` 범프 → 자동 배포
-- stg 이미지 빌드는 main 코드를 그대로 빌드한다 — "prod 전 검증" 용도

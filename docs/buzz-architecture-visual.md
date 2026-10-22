@@ -1,7 +1,8 @@
 # Buzz CI/CD 알림 연동 — 비주얼 아키텍처 가이드
 
 > 운영 절차·시크릿 로테이션·트러블슈팅은 [`docs/buzz-ci-integration.md`](buzz-ci-integration.md) 참조.
-> 이 문서는 **무엇을 만들었고 어떻게 흐르는지**를 그림으로 보여준다. (구축: 2026-10-03)
+> 현재 연결 구조는 2026-10-22 형상 기준으로 갱신했습니다. 구축 타임라인과 실제 채널 스냅샷은
+> 2026-10-03 기록이며 현재 실행 검증은 아닙니다. 상세 지원 경계는 [배포 연결 지도](deployment-map.md)를 봅니다.
 
 ---
 
@@ -13,7 +14,7 @@ flowchart TB
 
     subgraph JENKINS["Jenkins — devops-tools ns"]
         direction TB
-        BJ["빌드 잡 6종<br/>idp-api · idp-web · core-api<br/>admin-web · proposal-web · tool-storybook<br/>(전 잡 buildkit — 파일럿 병합 완료 2026-10-04)"]
+        BJ["빌드 잡 10종<br/>main 라우터 9종 · Storybook 수동<br/>stg 빌드 수동"]
         GJ["gitops-prod-image-bump"]
         BN["buzzNotify() 헬퍼<br/>(post / finally 블록)"]
     end
@@ -22,9 +23,9 @@ flowchart TB
 
     subgraph GITOPS["GitOps 배포 경로"]
         direction TB
-        PD["prj-deploy (Git)<br/>prod/앱.yaml 태그 범프"]
-        ARGO["ArgoCD<br/>webhook ~2s + 폴링 60s"]
-        APPS["클러스터 앱 6종<br/>(plate-prod)"]
+        PD["prj-deploy (Git)<br/>prod 또는 stg/앱.yaml 태그 범프"]
+        ARGO["ArgoCD<br/>webhook + 폴링 설정 60s"]
+        APPS["태그 소비 앱<br/>prod 8종 · stg 6종"]
     end
 
     NC["🔔 argocd-notifications<br/>controller (argocd ns)"]
@@ -39,7 +40,7 @@ flowchart TB
     RELAY["Buzz Relay<br/>onjitda.communities.buzz.xyz"]
     CICD["💬 #cicd 채널<br/>(jenkins-bot · 비공개)"]
 
-    DEV -->|"① 트리거"| BJ
+    DEV -->|"① push-router 경로 매칭"| BJ
     BJ -->|"② 이미지 push (SHA-12 태그)"| HARBOR
     BJ -->|"③ 잡 트리거"| GJ
     GJ -->|"④ 범프 커밋/푸시"| PD
@@ -55,13 +56,17 @@ flowchart TB
     RELAY --> CICD
 ```
 
-**핵심 원칙 한 줄**: Jenkins와 ArgoCD는 **"사실"만 게이트웨이에 POST**하고,
+**알림 경로**: Jenkins와 ArgoCD는 **"사실"만 게이트웨이에 POST**하고,
 nostr 서명 키는 **buzz-gateway 파드 한 곳에만** 존재한다. 게이트웨이가 죽어도
 빌드/배포 자체에는 영향이 없다(알림만 유실, 모든 호출부는 `|| true` best-effort).
 
 ---
 
-## 2. 이벤트 흐름 — 정상 배포 체인 (시퀀스)
+이 그림의 빌드 잡 수와 배포 앱 수는 다릅니다. Dolmen은 main 라우터에도 등록됐지만 prod 태그와
+Application이 없어 prod 범프가 실패합니다. stg의 두 Dolmen 앱은 수동 빌드로 연결되어 있습니다.
+SRS는 별도 upstream 이미지 App이며 prj-deploy 태그 소비 앱 수에 포함하지 않습니다.
+
+## 2. 이벤트 흐름 — 정상 prod 배포 예시 (시퀀스)
 
 ```mermaid
 sequenceDiagram
@@ -84,7 +89,7 @@ sequenceDiagram
     G->>R: ci(gitops): bump 앱 image to 태그
     G->>W: POST /send "✅ GitOps 범프 성공"
     W->>C: 전송
-    R-->>A: GitHub webhook (~2초)
+    R-->>A: GitHub webhook 또는 폴링
     A->>A: sync → Synced + Healthy
     A->>W: on-buzz-deployed → POST /send "🚀 배포 완료 + 커밋"
     W->>C: 전송 — 여기서 체인 완결
@@ -177,7 +182,7 @@ flowchart LR
     end
 
     GWX["buzz-gateway"] --- S1
-    JX["Jenkins 잡 7종"] --- S2
+    JX["Jenkins 앱 빌드 10종 + 범프 잡"] --- S2
     NX["notifications controller"] --- S3
     GWX2["buzz-gateway 파드 pull"] --- S4
 
@@ -193,7 +198,7 @@ flowchart LR
 
 ---
 
-## 6. 구축 타임라인 — 무엇을 했나
+## 6. 구축 타임라인 — 2026-10-03 역사 기록
 
 ```mermaid
 flowchart LR
@@ -250,16 +255,16 @@ flowchart TB
         D1["docker/buzz-gateway/<br/>이미지 소스 (Dockerfile·TS 서버)"]
         D2["helm/development-tools/buzz-gateway/<br/>차트 (Deployment·Service)"]
         D3["environments/argocd/apps/buzz-gateway.yaml"]
-        D4["environments/argocd/apps/앱-prod.yaml ×6<br/>알림 구독 annotation"]
+        D4["environments/argocd/apps/앱-env.yaml<br/>prod 8앱 · stg 6앱 + SRS 구독"]
         D5["helm/…/argocd/values.yaml<br/>notifier·template·trigger"]
         D6["docs/buzz-ci-integration.md<br/>운영 runbook (이 문서의 형제)"]
     end
     subgraph PRJC["prj-core (앱 모노레포)"]
-        C1["devops/Jenkinsfile.* 7종<br/>buzzNotify() 헬퍼 + finally/post"]
+        C1["앱 빌드 10종 + 범프 Jenkinsfile<br/>buzzNotify() 헬퍼 + finally/post"]
         C2["devops/README.public-ci.md<br/>BUZZ_NOTIFY_URL 문서"]
     end
     subgraph LIVE["클러스터/외부 (Git 밖)"]
-        L1["deploy/buzz-gateway (실행 중)"]
+        L1["deploy/buzz-gateway (실행 상태 별도 확인)"]
         L2["Secret 3종 + Jenkins credential/잡 파라미터"]
         L3["Buzz #cicd + jenkins-bot 신원"]
     end
@@ -276,7 +281,7 @@ flowchart TB
 
 | 범위 | 방법 |
 |---|---|
-| 특정 앱 배포 알림만 끄기 | 해당 `앱-prod.yaml`의 subscribe annotation 2줄 제거 |
+| 특정 앱 배포 알림만 끄기 | 해당 `앱-<env>.yaml`의 subscribe annotation 2줄 제거 |
 | 배포 알림 전체 끄기 | argocd values의 `service.webhook.buzz-gateway` 제거 |
 | 빌드 알림만 끄기 | Jenkins 잡의 `BUZZ_NOTIFY_URL` 값을 비우기 |
 
