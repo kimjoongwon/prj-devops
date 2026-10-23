@@ -3,6 +3,12 @@
 작성: 2026-10-05 · 갱신: 2026-10-05 (Phase 0 완료, Phase 1 구축 완료·검증 대기)
 원본 논의: ZCode 세션 2026-10-04~05
 
+2026-10-23 형상 추가: Dolmen API/Web은 prod·stg Application과 이미지 태그 경로를 지원한다.
+차트·설정은 `prj-devops/main`, 태그는 `prj-deploy/main`의 `prod/`, `stg/`에서 읽는다.
+운영 최초 등록은 태그 파일·전용 OpenBao 공급을 먼저 준비하며
+[Dolmen prod 런북](dolmen-prod-runbook.md)의 순서를 따른다. 아래 Phase 이력과 실제 실행 상태는
+구분한다. 배포 완료는 ArgoCD·파드·외부 기능·Buzz 알림으로 검증한다.
+
 ## 목적
 
 - AI 에이전트(ZCode)가 작업·리뷰 루프·배포 추적까지 전 과정 수행

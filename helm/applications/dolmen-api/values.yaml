@@ -50,8 +50,8 @@ service:
   targetPort: 3012
 
 # 애플리케이션 환경변수 Secret 설정
-# OpenBao KV 경로: core-api/staging(stg) / core-api/production(prod) — 환경 공유 app-env-secrets
-# LLM_API_KEY / LLM_MODEL_ID / LLM_BASE_URL (credentials-map "Dolmen LLM 접속" 항목 참고)
+# stg는 기존 core-api/staging → 환경 공유 app-env-secrets 연결을 유지한다.
+# prod는 appSecrets를 비활성화하고 아래 전용 llm Secret만 개별 참조한다.
 appSecrets:
   enabled: true
   secretName: app-env-secrets
@@ -59,6 +59,18 @@ appSecrets:
 # 인프라 공통 시크릿은 이 앱이 사용하지 않는다
 infraSecrets:
   enabled: false
+
+# 전용 LLM 접속 설정. 활성화 시 세 문자열만 별도 Secret에 동기화한다.
+# 실제 접속 값은 OpenBao에만 두며 values에는 경로·이름만 지정한다.
+llm:
+  enabled: false
+  secretName: dolmen-llm
+  externalSecret:
+    refreshInterval: 30m
+    secretStoreRef:
+      name: ""
+      kind: SecretStore
+    remoteKey: ""
 
 # 비공개 이력서는 OpenBao 전용 KV에서 동기화한다. 원본·base64·개인정보를 values에 넣지 않는다.
 # 활성화 환경은 같은 namespace에 존재하는 SecretStore와 원격 KV 경로를 지정해야 한다.

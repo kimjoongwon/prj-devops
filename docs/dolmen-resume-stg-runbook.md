@@ -4,6 +4,7 @@ Dolmen API는 Git·이미지에 포함하지 않은 PDF를 읽어 정제·색인
 `plate-stg`의 전용 Secret 연결과 기능 확인을 소유한다. 비밀값과 원본 PDF는 이 문서나
 Helm values, PR, 빌드 로그에 기록하지 않는다. 시크릿 운영 원본은 OpenBao
 `secret/docs/credentials-map`의 Dolmen 항목이다.
+운영은 별도 KV·전용 LLM Secret을 쓰며 [Dolmen prod 런북](dolmen-prod-runbook.md)을 따른다.
 
 ## 공급 계약
 
@@ -44,7 +45,7 @@ GSSC 입력 구성과 평가 개발 관측을 검증한다. 기본 차트와 앱
 
 1. 운영 담당자가 원본 PDF와 이름·작성 기준일을 확인하고 OpenBao 전용 KV에 공급한다.
    기존 ESO 토큰의 해당 KV 읽기 권한과 `credentials-map`의 소비처 짝도 확인한다.
-2. 차트의 `resume.enabled` 기본값은 `false`이며, `values-stg.yaml`만 활성화한다.
+2. 차트의 `resume.enabled` 기본값은 `false`이며, stg는 `values-stg.yaml`에서 활성화한다.
    검토한 `prj-devops/main` 변경이 ArgoCD에 반영되면 ExternalSecret이 생성된다.
 3. ExternalSecret `Ready=True`와 생성 Secret의 세 key 존재를 값 출력 없이 확인한다.
    필요하면 아래 명령으로 동기화를 요청한다. 새 Secret이 준비되기 전 파드는 Ready가 되지 않는다.

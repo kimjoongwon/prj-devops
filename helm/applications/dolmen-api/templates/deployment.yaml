@@ -1,4 +1,4 @@
-# Core API Backend Deployment 템플릿
+# Dolmen API Backend Deployment 템플릿
 # 백엔드 애플리케이션(port 3012)을 Kubernetes 클러스터에 배포
 
 apiVersion: apps/v1
@@ -59,7 +59,7 @@ spec:
           livenessProbe:
             {{- toYaml . | nindent 12 }}
           {{- end }}
-          {{- if or .Values.extraEnv .Values.resume.enabled }}
+          {{- if or .Values.extraEnv .Values.resume.enabled .Values.llm.enabled }}
           env:
             {{- with .Values.extraEnv }}
             {{- toYaml . | nindent 12 }}
@@ -77,6 +77,15 @@ spec:
                 secretKeyRef:
                   name: {{ .Values.resume.secretName }}
                   key: resume_updated_at
+            {{- end }}
+            {{- if .Values.llm.enabled }}
+            {{- range $key := list "LLM_API_KEY" "LLM_BASE_URL" "LLM_MODEL_ID" }}
+            - name: {{ $key }}
+              valueFrom:
+                secretKeyRef:
+                  name: {{ $.Values.llm.secretName }}
+                  key: {{ $key }}
+            {{- end }}
             {{- end }}
           {{- end }}
           {{- $hasAppSecrets := .Values.appSecrets.enabled }}

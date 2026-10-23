@@ -37,7 +37,7 @@ Slack을 대체한다. Jenkins 쪽에는 플러그인을 추가하지 않는다(
 | 게이트웨이 Helm 차트 | `helm/development-tools/buzz-gateway/` (로컬 관리 차트 — buildkitd와 같은 범주) |
 | 게이트웨이 ArgoCD App | `environments/argocd/apps/buzz-gateway.yaml` (ns: devops-tools) |
 | ArgoCD notifier/템플릿/트리거 | `helm/development-tools/argocd/values.yaml` → `notifications.*` |
-| 앱 배포 알림 구독 | Application의 `notifications.argoproj.io/subscribe.*` annotation — prod 전 앱 + stg 4앱(2026-10-05 추가) |
+| 앱 배포 알림 구독 | Application의 `notifications.argoproj.io/subscribe.*` annotation — prod 전 앱(Dolmen 포함) + stg 6앱(기존 4서비스 + Dolmen API/Web) |
 | Jenkins 알림 호출 | prj-core `devops/Jenkinsfile.*`의 `buzzNotify()` (7종) |
 | 게이트웨이 API 문서 | `docker/buzz-gateway/README.md` |
 

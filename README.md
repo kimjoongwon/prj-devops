@@ -9,31 +9,43 @@ GitOps 기반의 Kubernetes 배포 인프라로, Helm과 ArgoCD를 활용한 선
 ### 주요 특징
 
 - **계층화된 아키텍처**: 클러스터 서비스, 개발 도구, 애플리케이션의 3계층 구조
-- **운영 정책 분리**: stg/prod 매니페스트는 유지하되, 기본 GitOps 경로는 prod-only로 운영
+- **환경 정책 분리**: 공통 차트와 환경별 값으로 prod + stg를 GitOps 관리
 - **GitOps 통합**: ArgoCD를 통한 자동화된 배포 파이프라인
 - **보안 강화**: OpenBao 시크릿 관리 및 Harbor 프라이빗 레지스트리
 - **표준화된 구조**: 통일된 Helm 차트 패턴 및 명명 규칙
 
-## 📌 현재 운영 모드 (2026-10-05 갱신)
+## 📌 배포 구성 (2026-10-23 형상 기준)
+
+아래는 저장소에 선언한 지원 범위다. 실행 중인 앱의 배포 완료는 ArgoCD `Synced + Healthy`,
+파드 이미지·환경변수, 외부 기능 및 Buzz `#cicd` 알림으로 별도 확인한다.
+
+| 환경 | 앱 이미지·Application 지원 |
+| --- | --- |
+| prod (10앱) | core-api, admin-web, idp-api, idp-web, proposal-web, design-web, live-web, tool-storybook, dolmen-api, dolmen-web |
+| stg (6앱) | core-api, admin-web, idp-api, idp-web, dolmen-api, dolmen-web |
+
+Dolmen의 운영 URL은 `https://onjitda.com/dolmen`이며 운영 전용 OpenBao 공급·태그 최초 등록·검증은
+[Dolmen prod 런북](docs/dolmen-prod-runbook.md)을 따른다. stg는
+[기존 이력서 런북](docs/dolmen-resume-stg-runbook.md)을 따른다.
 
 - **도메인: 2026-09-18부터 `onjitda.com` (Cloudflare Tunnel)로 전환** 완료. 구 도메인(cocdev.co.kr)은 만료 전이라도 미해석 상태이며 전환 기간 없음. 복구/운영 절차: `docs/onjitda-recovery-runbook.md`
 - Production Parent Application: `frontend-web-apps` (`argocd` namespace)
-- **Staging 재활성화 (2026-10-04)**: 서비스 4앱(core-api·admin-web·idp-api·idp-web) + plate-db·ingress·openbao-secrets-manager가 plate-stg에서 운영 중. 스코프 원칙: proposal-web·tool-storybook·plate-llm 등 서비스가 아닌 구성은 운영만 존재. 상세: `docs/stg-reactivation-runbook.md`
+- **Staging 구성**: 기존 서비스 4앱 + Dolmen API/Web, plate-db·ingress·openbao-secrets-manager를 `plate-stg`에 선언한다. proposal-web·design-web·live-web·tool-storybook·plate-llm은 운영 전용이다. 최초 재활성화 이력: `docs/stg-reactivation-runbook.md`
 - Git 경로: `environments/argocd/apps`
 - Production 모드: `prod + stg` (`environments/argocd/app-of-apps.yaml` — 부모 앱은 부트스트랩 객체이므로 스펙 변경 시 `kubectl apply` 재적용 필요)
-- **이미지 태그: prj-deploy 저장소로 분리 (2026-09-27)** — 각 앱 Application은 multi-source로 차트·values는 이 저장소에서, 이미지 태그는 prj-deploy `prod/<앱>.yaml`에서 읽습니다
+- **이미지 태그: prj-deploy 저장소로 분리 (2026-09-27)** — 각 앱 Application은 multi-source로 차트·values는 이 저장소 `main`에서, 이미지 태그는 prj-deploy `main`의 `prod|stg/<앱>.yaml`에서 읽습니다
 - 변경 감지: GitHub Webhook(웹훅 시크릿 서명 검증) + 폴링(`timeout.reconciliation: 60s`, 웹훅 끊김 시 감지 지연 상한). 훅 URL은 저장소별로 다르다 — prj-devops는 `https://argocd.onjitda.com/api/webhook`(직접, 현재 정상), prj-deploy는 우회 경로 `https://onjitda.com/api/webhook` (상세: `docs/argocd-prod-only-webhook-manual.md`)
 - **관측 스택 전면 GitOps 운영**: Grafana·Loki·Tempo·OTel Collector·Alloy + postgres/redis exporter (모두 `environments/argocd/apps/*-prod.yaml`)
 - 운영 가이드: `docs/argocd-prod-only-webhook-manual.md`
 - Jenkins 연계 가이드: `docs/jenkins-gitops-image-bump.md`
 - Jenkinsfile 예시: `scripts/jenkins/Jenkinsfile.gitops-prod-example.groovy`
-- **CI/CD 알림(Buzz)**: 빌드/범프/배포 완료 알림을 Buzz `#cicd` 채널로 (2026-10-05부터 stg 4앱도 배포완료/Degraded 구독 — prod와 동일한 상용레벨) — `docs/buzz-ci-integration.md` · [아키텍처 비주얼 가이드](docs/buzz-architecture-visual.md)
+- **CI/CD 알림(Buzz)**: 빌드/범프/배포 완료 알림을 Buzz `#cicd` 채널로 전달한다. prod 앱과 stg 6앱이 배포완료/Degraded를 구독한다 — `docs/buzz-ci-integration.md` · [아키텍처 비주얼 가이드](docs/buzz-architecture-visual.md)
 - **AI 자율 파이프라인 (Phase 0 완료·Phase 1 구축 완료, 2026-10-05)**: 브랜치 보호(stg/main PR 필수) + pr-agent 리뷰 게이트(클러스터 서비스, 웹훅 `/api/pr-agent/`, LLM=GLM-5.2) 구축 — z.ai 잔액 충전 후 재검증 대기. `docs/ai-autonomous-pipeline.md`
 - 도구 chart 소스 정책: `helm/development-tools/README.md`
 
 ## ⚠️ 현재 운영 제약 (2026-10-04 갱신)
 
-- 앱 정상화 선행 조건 — **prj-deploy `prod|stg/<앱>.yaml`의 태그**와 동일한 이미지가 Harbor에 존재해야 함 (태그는 빌드 커밋 SHA 앞 12자 컨벤션). 대상: `harbor.onjitda.com/prod/{core-api, admin-web, proposal-web, idp-api, idp-web, tool-storybook}`, `harbor.onjitda.com/stg/{core-api, admin-web, idp-api, idp-web}` (stg는 서비스 앱만 존재)
+- 앱 정상화 선행 조건 — **prj-deploy `prod|stg/<앱>.yaml`의 태그**와 동일한 이미지가 Harbor `prod|stg/<앱>`에 존재해야 한다(태그는 빌드 커밋 SHA 앞 12자). 지원 앱은 위 표를 따른다. 최초 등록은 태그 파일을 먼저 준비한 뒤 Application을 활성화한다.
 - 이미지 미존재 시 `ImagePullBackOff`가 발생하며 ArgoCD 앱은 `Synced`여도 `Healthy`가 되지 않습니다.
 - LB 노출 정리 완료 (2026-10-05): plate-db LB는 사무실 대역(`192.168.0.0/24`)으로 제한 — DataGrip 직접 접속 경로 유지, VPN 대역 추가 시 values-prod에 append. core-api(stg·prod 모두) LB 직접 노출 제거 — ingress 경유 ClusterIP로 통일
 
@@ -73,6 +85,8 @@ prj-devops/
 │   │   ├── idp-api/               # IDP API 백엔드
 │   │   ├── idp-web/               # IDP Web 프론트엔드
 │   │   ├── tool-storybook/        # Storybook 정적 서비스
+│   │   ├── dolmen-api/            # 비공개 이력서 RAG API (prod + stg)
+│   │   ├── dolmen-web/            # /dolmen 채팅 화면 (prod + stg)
 │   │   ├── plate-db/              # 클러스터 내 PostgreSQL
 │   │   ├── plate-llm/             # Plate LLM 서비스 (운영만 — stg Application 삭제됨, 차트는 유지)
 │   │   └── plate-cache/           # 컨테이너 빌드 캐시 PVC
@@ -87,13 +101,13 @@ prj-devops/
 │       ├── app-of-apps.yaml       # Production App of Apps (frontend-web-apps)
 │       └── apps/                  # 개별 ArgoCD Application 정의
 │               # prod 앱: admin-web, core-api, idp-api, idp-web,
-│               #   proposal-web, tool-storybook, plate-db
+│               #   proposal-web, design-web, live-web, tool-storybook, dolmen-api, dolmen-web, plate-db
 │               # prod 관측/인프라: grafana, loki, tempo, otel-collector,
 │               #   alloy, postgres-exporter, redis-exporter, cloudflared, buildkitd,
 │               #   buzz-gateway
 │               # 공용(환경 무관): plate-cache, pgadmin, pgadmin-ingress,
 │               #   ingress, openbao-cluster-secrets-manager
-│               # stg: admin-web, core-api, idp-api, idp-web,
+│               # stg: admin-web, core-api, idp-api, idp-web, dolmen-api, dolmen-web,
 │               #   plate-db, ingress, openbao-secrets-manager
 │               #   (proposal-web/tool-storybook/plate-llm은 운영만 — stg 매니페스트 없음)
 └── scripts/                       # 배포 자동화 스크립트
@@ -166,11 +180,11 @@ prj-core 워크스페이스 스코프 `@cocrepo/*`(구 조직명). 동작에는 
 
 **App of Apps 패턴**:
 
-- `environments/argocd/app-of-apps.yaml`: production child 전용 Parent Application
+- `environments/argocd/app-of-apps.yaml`: prod + stg child를 관리하는 Parent Application
 - `environments/argocd/apps/`: 각 서비스별 Application 정의
 - 현재 운영 정책:
-  - Production Parent: `exclude: "*-stg.yaml"`
-  - staging manifest는 정의만 유지하고 기본 GitOps 경로에 포함하지 않음
+  - Parent의 `include: "*.yaml"`이며 환경별 exclude 없이 prod + stg를 추적
+  - 두 환경 모두 차트·값은 `prj-devops/main`, 태그는 `prj-deploy/main`에서 공급
 - 자동 동기화: `prune: true`, `selfHeal: true`
 - Sync Wave: 의존성 순서 보장
 
@@ -247,7 +261,7 @@ kubectl exec -n openbao openbao-0 -- bao operator unseal <UNSEAL_KEY>
 
 ### 2. 애플리케이션 배포
 
-> 현재 기본 GitOps 경로는 production only 입니다. staging manifest는 repo에 유지하지만 자동 배포하지 않습니다.
+> 기본 GitOps 경로는 prod + stg다. 이미지 빌드는 Jenkins, 태그·차트 변경 적용은 ArgoCD가 소유한다.
 
 #### 프로덕션 환경
 
@@ -292,14 +306,14 @@ kubectl -n plate-stg get pods | rg 'idp-(api|web)-stg'
 - **Domain**: `stg.onjitda.com`, `idp-stg.onjitda.com`
 - **Namespace**: `plate-stg`
 - **Certificate**: Let's Encrypt `letsencrypt-prod` issuer 공유 (`helm/ingress/values-stg.yaml` — 필요 시 스테이징 issuer로 교체 가능)
-- **Replica**: 서비스 4앱 각 1 (고정 — 최소 리소스 운영)
-- **Resources**: requests 합계 약 705m/1.8Gi
+- **Replica**: 서비스 6앱 각 1 (기존 4앱 + Dolmen API/Web)
+- **Resources**: 앱별 `values.yaml`, `values-stg.yaml`의 requests/limits 참조
 - **배포 흐름**: Jenkins 앱 빌드 잡 `BRANCH_NAME=stg` 수동 실행 → harbor/stg push + prj-deploy `stg/<앱>.yaml` 자동 범프 → ArgoCD 자동 배포 (prod 전 검증 용도)
 
 ### Production
 
 - **Domain**: `onjitda.com`, `www.onjitda.com`
-- **Namespace**: 서비스별 분리
+- **Namespace**: 앱 서비스는 `plate-prod` (운영 도구·관측은 별도 namespace)
 - **Certificate**: Let's Encrypt Production
 - **Auto-scaling**: 활성화
 - **Security**: 강화된 보안 정책
@@ -324,6 +338,7 @@ OpenBao를 통한 중앙화된 시크릿 관리:
 
 OpenBao 경로 원칙:
 - 애플리케이션별: `secret/core-api/<env>`, `secret/idp-api/<env>`, `secret/idp-web/<env>`
+- Dolmen: `secret/dolmen/staging`(이력서), `secret/dolmen/production`(이력서 + 전용 LLM). 운영은 공유 app-env-secrets를 사용하지 않는다.
 - 데이터/도구: `secret/plate-db/<env>` (ExternalSecret이 plate-db-secrets 소유), `secret/harbor/<env>`, `secret/pgadmin/<env>`
 - 인프라 공통: `secret/devops/<env>` (예: `OBJECT_STORAGE_ACCESS_KEY`, `OBJECT_STORAGE_SECRET_KEY`, `OBJECT_STORAGE_BUCKET`)
 - OpenBao 감사 로그: `/openbao/data/audit.log` (선언적 audit stanza, 2026-10-04 활성)
@@ -564,9 +579,9 @@ spec:
 
 이 프로젝트는 ArgoCD의 App-of-Apps 패턴을 활용하여 모든 애플리케이션을 관리합니다:
 
-- **App of Apps**: `environments/argocd/app-of-apps.yaml`이 production child를 관리
+- **App of Apps**: `environments/argocd/app-of-apps.yaml`이 prod + stg child를 관리
 - **개별 Application**: `environments/argocd/apps/` 디렉토리에 각 서비스별 ArgoCD Application 정의
-- **환경 선택**: stg/prod Application 정의는 유지하지만, 현재 Parent App은 `directory.exclude`로 staging을 제외한 prod-only 운영
+- **환경 선택**: 현재 Parent App은 `include: "*.yaml"`이며 환경별 exclude 없이 prod + stg를 추적한다.
 - **Values 오버라이드**: 각 Application은 `helm.valueFiles`를 통해 환경별 설정 적용
 - **자동 동기화**: `syncPolicy.automated`로 Git 저장소 변경 시 자동 배포
 
