@@ -13,3 +13,16 @@ dolmen-api:
 appSecrets:
   enabled: true
   secretName: app-env-secrets
+
+resume:
+  enabled: true
+  externalSecret:
+    secretStoreRef:
+      name: openbao-env-staging
+    # SecretStore의 KV mount가 secret이므로 /secret 또는 /data 접두사를 붙이지 않는다.
+    remoteKey: dolmen/staging
+
+extraEnv:
+  # 비운영 stg에서 정제 근거·GSSC·평가 개발 관측을 검증한다. 기본/운영 설정은 false다.
+  - name: DOLMEN_DEBUG_ENABLED
+    value: "true"
