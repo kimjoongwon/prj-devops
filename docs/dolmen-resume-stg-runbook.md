@@ -74,6 +74,15 @@ Dolmen API Application은 무시한 `restartedAt` 제거 뒤 남는 빈 pod anno
 정규화한다. 실제 ArgoCD 정규화 diff에서 빈 객체와 필드 부재만 달랐던 반복 동기화를
 해소하며, 값이 있는 다른 annotation은 계속 비교한다.
 
+stg Ingress Controller는 `nginx/nginx-ingress`(NGINX Inc)다. `helm/ingress/values-stg.yaml`의
+`nginx.org/proxy-read-timeout`·`nginx.org/proxy-send-timeout`을 `120s`로 지정한다.
+기존 community 형식 `nginx.ingress.kubernetes.io/*`만으로는 이 컨트롤러의 기본 `60s`를
+바꾸지 못해 모델 대기 중 SSE 연결이 끊겼다. 적용 후 생성된 `/dolmen` location의 실제
+`proxy_read_timeout`·`proxy_send_timeout`과 브라우저의 최종 `done` 수신을 확인한다.
+이 제한은 전체 답변 시간 대신 연속 무수신 간격에 적용된다. API는 긴 모델 처리 중에도
+주기적인 SSE comment를 전송하며, `X-Accel-Buffering: no`로 응답 버퍼링을 해제한다.
+[NGINX Controller annotation 계약](https://docs.nginx.com/nginx-ingress-controller/configuration/ingress-resources/advanced-configuration-with-annotations/)을 따른다.
+
 원본·작성 기준일·추출·색인에 문제가 있으면 documents가 503을 반환하여 트래픽에서 제외한다.
 `/api/health`의 LLM 설정 존재 여부와 readiness는 제공자 접속·실제 답변 성공까지 증명하지 않는다.
 롤백은 해당 `prj-deploy` 범프 커밋을 확인하여 revert한다. Dolmen은 `scripts/rollback.sh`
