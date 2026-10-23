@@ -26,6 +26,9 @@ ingress:
     nginx.ingress.kubernetes.io/ssl-redirect: "false"    # Staging 은 HTTP 허용 (테스트 편의)
     nginx.ingress.kubernetes.io/proxy-read-timeout: "120"
     nginx.ingress.kubernetes.io/proxy-send-timeout: "120"
+    # 실제 stg 컨트롤러(NGINX Inc)는 nginx.org 키를 읽는다. 긴 모델 대기 중 SSE를 유지한다.
+    nginx.org/proxy-read-timeout: "120s"
+    nginx.org/proxy-send-timeout: "120s"
     nginx.ingress.kubernetes.io/proxy-body-size: "10m"
     acme.cert-manager.io/http01-edit-in-place: "true"
   hosts:
