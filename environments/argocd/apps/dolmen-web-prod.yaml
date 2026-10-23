@@ -1,0 +1,70 @@
+# Dolmen Web - Production 환경 ArgoCD Application
+# Next.js 채팅 화면 (prj-core apps/dolmen/web, basePath /dolmen)
+
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: dolmen-web-prod
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+  labels:
+    app.kubernetes.io/name: dolmen-web
+    app.kubernetes.io/instance: production
+    environment: production
+  annotations:
+    # Buzz #cicd 알림 구독
+    notifications.argoproj.io/subscribe.on-buzz-deployed.buzz-gateway: ""
+    notifications.argoproj.io/subscribe.on-buzz-degraded.buzz-gateway: ""
+spec:
+  project: default
+
+  sources:
+    - repoURL: https://github.com/kimjoongwon/prj-devops.git
+      path: helm/applications/dolmen-web
+      targetRevision: main
+      helm:
+        valueFiles:
+          - values-prod.yaml
+          # 태그는 prj-deploy의 배포 상태 파일이 덮어씀 (뒤에 오는 valueFiles가 이김)
+          - "$values/prod/dolmen-web.yaml"
+    - repoURL: https://github.com/kimjoongwon/prj-deploy.git
+      targetRevision: main
+      ref: values
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: plate-prod
+
+  # kubectl rollout restart 흔적(restartedAt)을 drift로 보지 않음 (core-api 앱 관례와 동일)
+  ignoreDifferences:
+    - group: apps
+      kind: Deployment
+      jqPathExpressions:
+        - '.spec.template.metadata.annotations["kubectl.kubernetes.io/restartedAt"]'
+        # 빈 객체만 정규화하며 값이 있는 다른 annotation은 계속 비교한다.
+        - '.spec.template.metadata.annotations | select(. == {})'
+
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ApplyOutOfSyncOnly=true
+    retry:
+      limit: 5
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m
+
+  revisionHistoryLimit: 10
+
+  info:
+    - name: "Environment"
+      value: "Production"
+    - name: "Domain"
+      value: "onjitda.com/dolmen"
+    - name: "Description"
+      value: "Dolmen Web - Production (Next.js 채팅 화면)"

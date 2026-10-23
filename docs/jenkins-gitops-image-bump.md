@@ -17,13 +17,18 @@
   - SHA 태그는 immutable하므로 Git 커밋 ↔ 이미지가 1:1 추적된다
   - `prj-deploy`의 `prod/<앱>.yaml`도 그 태그로만 갱신
 
-## 지원 대상 앱 (prod)
-- `idp-api`
-- `idp-web`
-- `core-api`
-- `admin-web`
-- `proposal-web`
-- `tool-storybook`
+## 앱별 지원 범위
+
+| 앱 | 이미지 범프·Application | `rollback.sh` |
+| --- | --- | --- |
+| `core-api`, `admin-web`, `idp-api`, `idp-web` | prod + stg | prod + stg |
+| `proposal-web`, `tool-storybook` | prod | prod |
+| `design-web`, `live-web` | prod | 미지원 — 해당 범프 커밋 확인 후 수동 revert PR |
+| `dolmen-api`, `dolmen-web` | prod + stg | 미지원 — 해당 범프 커밋 확인 후 수동 revert PR |
+
+최초 등록은 Harbor의 실제 SHA-12 이미지를 확인한 뒤 `prj-deploy` 태그 파일을 PR로 먼저
+생성해야 한다. 범프 스크립트는 기존 파일만 수정한다. Dolmen 운영의 Secret·Ingress와 최초
+배포 철회 순서는 [prod 런북](dolmen-prod-runbook.md)을 따른다.
 
 ## 스크립트
 - 경로: `scripts/jenkins/update-gitops-image-tag.sh`

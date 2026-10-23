@@ -1,4 +1,4 @@
-# Production environment values for Proposal Web
+# Production environment values for Dolmen Web
 # Override from values.yaml for production environment
 
 replicaCount: 1
@@ -21,6 +21,9 @@ appSecrets:
   enabled: false
   secretName: ""
 extraEnv:
+  # /dolmen/api/* 는 같은 운영 namespace의 Dolmen API로 프록시한다.
+  - name: DOLMEN_API_URL
+    value: "http://dolmen-api-prod.plate-prod.svc.cluster.local:3012"
   - name: OTEL_SERVICE_NAME
     value: dolmen-web-prod
   - name: NODE_OPTIONS

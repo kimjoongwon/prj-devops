@@ -1,0 +1,33 @@
+# Dolmen API 운영 환경 설정
+# 이미지 태그는 prj-deploy prod/dolmen-api.yaml에서 관리한다.
+
+replicaCount: 1
+
+dolmen-api:
+  image:
+    repository: harbor.onjitda.com/prod/dolmen-api
+    pullPolicy: IfNotPresent
+  port: 3012
+
+# 공유 app-env-secrets에는 의존하지 않는다. LLM 접속 설정과 이력서만 개별 공급한다.
+appSecrets:
+  enabled: false
+
+llm:
+  enabled: true
+  externalSecret:
+    secretStoreRef:
+      name: openbao-env-production
+    # SecretStore가 secret mount와 KV v2 경로를 적용한다.
+    remoteKey: dolmen/production
+
+resume:
+  enabled: true
+  externalSecret:
+    secretStoreRef:
+      name: openbao-env-production
+    remoteKey: dolmen/production
+
+extraEnv:
+  - name: DOLMEN_DEBUG_ENABLED
+    value: "false"

@@ -26,6 +26,9 @@ ingress:
     nginx.ingress.kubernetes.io/ssl-redirect: "true" # HTTP -> HTTPS 리다이렉트 (TLS 인그레스의 nginx 기본동작과 동일하게 명시)
     nginx.ingress.kubernetes.io/proxy-read-timeout: "120" # 업스트림 응답 대기 (기본 60s → 장기 요청/SSE 보호)
     nginx.ingress.kubernetes.io/proxy-send-timeout: "120" # 업스트림 전송 대기
+    # 실제 컨트롤러(NGINX Inc)는 nginx.org 키를 읽는다. 긴 모델 대기 중 SSE를 유지한다.
+    nginx.org/proxy-read-timeout: "120s"
+    nginx.org/proxy-send-timeout: "120s"
     nginx.ingress.kubernetes.io/proxy-body-size: "10m" # 요청 본문 상한 (기본 1m → 업로드 413 방지)
     acme.cert-manager.io/http01-edit-in-place: "true"
   hosts:
@@ -78,6 +81,14 @@ ingress:
           backend:
             service:
               name: live-web-prod
+              port:
+                number: 80
+        # /dolmen/api/* 는 Dolmen Web의 Next rewrite가 Dolmen API로 프록시한다.
+        - path: /dolmen
+          pathType: Prefix
+          backend:
+            service:
+              name: dolmen-web-prod
               port:
                 number: 80
         # 기본 진입 경로
