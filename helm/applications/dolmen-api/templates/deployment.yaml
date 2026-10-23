@@ -46,17 +46,38 @@ spec:
           startupProbe:
             {{- toYaml . | nindent 12 }}
           {{- end }}
+          {{- if .Values.resume.enabled }}
+          readinessProbe:
+            {{- toYaml .Values.resume.readinessProbe | nindent 12 }}
+          {{- else }}
           {{- with index .Values "dolmen-api" "probes" "readiness" }}
           readinessProbe:
             {{- toYaml . | nindent 12 }}
+          {{- end }}
           {{- end }}
           {{- with index .Values "dolmen-api" "probes" "liveness" }}
           livenessProbe:
             {{- toYaml . | nindent 12 }}
           {{- end }}
-          {{- with .Values.extraEnv }}
+          {{- if or .Values.extraEnv .Values.resume.enabled }}
           env:
+            {{- with .Values.extraEnv }}
             {{- toYaml . | nindent 12 }}
+            {{- end }}
+            {{- if .Values.resume.enabled }}
+            - name: DOLMEN_RESUME_PATH
+              value: {{ printf "%s/resume.pdf" .Values.resume.mountPath | quote }}
+            - name: DOLMEN_CANDIDATE_NAME
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.resume.secretName }}
+                  key: candidate_name
+            - name: DOLMEN_RESUME_UPDATED_AT
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.resume.secretName }}
+                  key: resume_updated_at
+            {{- end }}
           {{- end }}
           {{- $hasAppSecrets := .Values.appSecrets.enabled }}
           {{- $hasInfraSecrets := and .Values.infraSecrets .Values.infraSecrets.enabled }}
@@ -72,16 +93,36 @@ spec:
                 name: {{ .Values.infraSecrets.secretName }}
             {{- end }}
           {{- end }}
-          {{- if and .Values.otel .Values.otel.enabled }}
+          {{- if or .Values.resume.enabled (and .Values.otel .Values.otel.enabled) }}
           volumeMounts:
+            {{- if .Values.resume.enabled }}
+            # 디렉터리 마운트로 Secret PDF 갱신을 반영한다(subPath는 갱신되지 않는다).
+            - name: resume
+              mountPath: {{ .Values.resume.mountPath | quote }}
+              readOnly: true
+            {{- end }}
+            {{- if and .Values.otel .Values.otel.enabled }}
             - name: otel-ai
               mountPath: /otel-ai
+            {{- end }}
           {{- end }}
           resources:
             {{- toYaml (index .Values "dolmen-api" "resources") | nindent 12 }}
 
-      {{- if and .Values.otel .Values.otel.enabled }}
+      {{- if or .Values.resume.enabled (and .Values.otel .Values.otel.enabled) }}
       volumes:
+        {{- if .Values.resume.enabled }}
+        - name: resume
+          secret:
+            secretName: {{ .Values.resume.secretName }}
+            # uid 1001 비루트 프로세스가 읽을 수 있고 쓰기는 할 수 없다.
+            defaultMode: 0444
+            items:
+              - key: resume.pdf
+                path: resume.pdf
+        {{- end }}
+        {{- if and .Values.otel .Values.otel.enabled }}
         - name: otel-ai
           emptyDir: {}
+        {{- end }}
       {{- end }}

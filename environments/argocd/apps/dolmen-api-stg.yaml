@@ -43,6 +43,8 @@ spec:
       kind: Deployment
       jqPathExpressions:
         - '.spec.template.metadata.annotations["kubectl.kubernetes.io/restartedAt"]'
+        # 재시작 annotation 제거 후 남는 빈 객체만 정규화한다. 실제 annotation 값은 비교한다.
+        - '.spec.template.metadata.annotations | select(. == {})'
 
   syncPolicy:
     automated:

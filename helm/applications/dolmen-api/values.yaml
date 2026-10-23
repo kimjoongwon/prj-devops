@@ -60,5 +60,29 @@ appSecrets:
 infraSecrets:
   enabled: false
 
+# 비공개 이력서는 OpenBao 전용 KV에서 동기화한다. 원본·base64·개인정보를 values에 넣지 않는다.
+# 활성화 환경은 같은 namespace에 존재하는 SecretStore와 원격 KV 경로를 지정해야 한다.
+resume:
+  enabled: false
+  secretName: dolmen-resume
+  mountPath: /etc/dolmen
+  externalSecret:
+    refreshInterval: 30m
+    secretStoreRef:
+      name: ""
+      kind: SecretStore
+    remoteKey: ""
+  # PDF 추출·색인까지 성공해야 트래픽을 받는다. 비활성화 시 기존 TCP readiness를 사용한다.
+  readinessProbe:
+    httpGet:
+      path: /api/documents
+      port: http
+    initialDelaySeconds: 20
+    periodSeconds: 10
+    timeoutSeconds: 30
+    failureThreshold: 6
+
 # 애플리케이션 추가 환경변수
-extraEnv: []
+extraEnv:
+  - name: DOLMEN_DEBUG_ENABLED
+    value: "false"
