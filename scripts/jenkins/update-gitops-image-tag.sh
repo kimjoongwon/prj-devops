@@ -6,7 +6,7 @@ set -euo pipefail
 # NOTE: 이 스크립트는 prj-devops에 있지만 수정 대상은 prj-deploy다 —
 # --workdir에는 prj-deploy 체크아웃을 넘겨야 한다 (Jenkins 파이프라인 참조).
 # stg는 서비스 앱(idp-api|idp-web|core-api|admin-web)만 지원 —
-# proposal-web/design-web/tool-storybook은 운영(prod) 전용 (2026-10-04 stg 축소).
+# proposal-web/design-web/cover-letter-web/tool-storybook은 운영(prod) 전용.
 #
 # Requires mikefarah yq v4.18+ (python yq is NOT supported):
 #   https://github.com/mikefarah/yq
@@ -24,6 +24,8 @@ PUSH_RETRIES="${PUSH_RETRIES:-3}"
 WORKDIR="${WORKDIR:-}"
 DRY_RUN="${DRY_RUN:-false}"
 SKIP_PUSH="${SKIP_PUSH:-false}"
+# 최초 생성은 환경변수로 켜지지 않으며 명시적인 --initialize가 필요하다.
+INITIALIZE_APP="false"
 
 print_usage() {
   cat <<EOF
@@ -31,8 +33,8 @@ Usage:
   ${SCRIPT_NAME} --app <name> --tag <image_tag> [options]
 
 Required:
-  --app <name>                 App name (idp-api|idp-web|core-api|admin-web|proposal-web|design-web|live-web|tool-storybook|dolmen-api|dolmen-web)
-  --tag <image_tag>            New image tag to set
+  --app <name>                 App name (idp-api|idp-web|core-api|admin-web|proposal-web|cover-letter-web|design-web|live-web|tool-storybook|dolmen-api|dolmen-web)
+  --tag <image_tag>            빌드 커밋 SHA 앞 12자 (소문자 16진수)
 
 Options:
   --env <prod|stg>             Deploy environment (default: prod). stg는 서비스 앱만 지원
@@ -42,6 +44,7 @@ Options:
   --git-user-email <email>     Git commit author email (default: ${GIT_USER_EMAIL})
   --push-retries <n>           Number of push retries with pull --rebase (default: ${PUSH_RETRIES})
   --workdir <path>             Use existing checkout directory instead of cloning
+  --initialize                cover-letter-web/prod의 누락된 태그 파일만 최초 생성 허용
   --dry-run                    Show diff only; no commit/push
   --skip-push                  Commit only, do not push
   -h, --help                   Show this help
@@ -123,6 +126,10 @@ while [[ $# -gt 0 ]]; do
       WORKDIR="${2:-}"
       shift 2
       ;;
+    --initialize)
+      INITIALIZE_APP="true"
+      shift
+      ;;
     --dry-run)
       DRY_RUN="true"
       shift
@@ -143,6 +150,7 @@ done
 
 [[ -n "${APP_NAME}" ]] || fail "--app is required"
 [[ -n "${IMAGE_TAG}" ]] || fail "--tag is required"
+[[ "${IMAGE_TAG}" =~ ^[0-9a-f]{12}$ ]] || fail "--tag must be the first 12 lowercase hexadecimal characters of the build commit SHA"
 [[ "${PUSH_RETRIES}" =~ ^[0-9]+$ ]] || fail "--push-retries must be a non-negative integer"
 
 DRY_RUN="$(normalize_bool "${DRY_RUN}")"
@@ -162,21 +170,25 @@ case "$(printf '%s' "${DEPLOY_ENV}" | tr '[:upper:]' '[:lower:]')" in
 esac
 
 case "${APP_NAME}" in
-  idp-api|idp-web|core-api|admin-web|proposal-web|design-web|live-web|tool-storybook|dolmen-api|dolmen-web)
+  idp-api|idp-web|core-api|admin-web|proposal-web|cover-letter-web|design-web|live-web|tool-storybook|dolmen-api|dolmen-web)
     APP_YAML_KEY="${APP_NAME}"
     ;;
   *)
-    fail "Unsupported app '${APP_NAME}'. Allowed: idp-api, idp-web, core-api, admin-web, proposal-web, design-web, live-web, tool-storybook, dolmen-api, dolmen-web"
+    fail "Unsupported app '${APP_NAME}'. Allowed: idp-api, idp-web, core-api, admin-web, proposal-web, cover-letter-web, design-web, live-web, tool-storybook, dolmen-api, dolmen-web"
     ;;
 esac
 
-# stg는 서비스 앱만 존재 — proposal-web/design-web/tool-storybook은 운영 전용
+# 정적 앱 중 아래 앱은 운영 전용이다.
 if [[ "${DEPLOY_ENV}" == "stg" ]]; then
   case "${APP_NAME}" in
-    proposal-web|design-web|tool-storybook)
+    proposal-web|cover-letter-web|design-web|tool-storybook)
       fail "App '${APP_NAME}' is prod-only (no stg environment)."
       ;;
   esac
+fi
+
+if [[ "${INITIALIZE_APP}" == "true" && "${DEPLOY_ENV}/${APP_NAME}" != "prod/cover-letter-web" ]]; then
+  fail "--initialize is only allowed for cover-letter-web/prod"
 fi
 
 VALUES_REL_PATH="${DEPLOY_ENV}/${APP_NAME}.yaml"
@@ -200,7 +212,13 @@ else
 fi
 
 VALUES_FILE="${REPO_DIR}/${VALUES_REL_PATH}"
-[[ -f "${VALUES_FILE}" ]] || fail "Values file not found: ${VALUES_FILE}"
+IS_NEW_VALUES_FILE="false"
+if [[ ! -f "${VALUES_FILE}" ]]; then
+  [[ "${INITIALIZE_APP}" == "true" ]] || fail "Values file not found: ${VALUES_FILE}"
+  [[ ! -e "${VALUES_FILE}" && ! -L "${VALUES_FILE}" ]] || fail "Values path is not a regular file: ${VALUES_FILE}"
+  [[ -d "${REPO_DIR}/${DEPLOY_ENV}" ]] || fail "Deploy environment directory not found: ${DEPLOY_ENV}"
+  IS_NEW_VALUES_FILE="true"
+fi
 
 git -C "${REPO_DIR}" config user.name "${GIT_USER_NAME}"
 git -C "${REPO_DIR}" config user.email "${GIT_USER_EMAIL}"
@@ -228,21 +246,26 @@ update_tag() {
   # and all-digit tags are not re-serialized as bare (int-looking) scalars.
   path=".[\"${app_key}\"].image.tag"
   expr="(${path} = strenv(TAG)) | (${path} style=\"double\")"
-  TAG="$tag" yq eval -i "$expr" "$file"
+  if [[ "${IS_NEW_VALUES_FILE}" == "true" ]]; then
+    TAG="$tag" yq eval --null-input "$expr" > "$file"
+  else
+    TAG="$tag" yq eval -i "$expr" "$file"
+  fi
 }
 
-CURRENT_TAG="$(extract_current_tag "${VALUES_FILE}" "${APP_YAML_KEY}")"
-if [[ -z "${CURRENT_TAG}" ]]; then
-  fail "Could not find current image tag in ${VALUES_REL_PATH} (${APP_YAML_KEY}.image.tag)"
-fi
+if [[ "${IS_NEW_VALUES_FILE}" == "false" ]]; then
+  if ! CURRENT_TAG="$(extract_current_tag "${VALUES_FILE}" "${APP_YAML_KEY}")"; then
+    fail "Could not find current image tag in ${VALUES_REL_PATH} (${APP_YAML_KEY}.image.tag)"
+  fi
 
-if [[ "${CURRENT_TAG}" == "${IMAGE_TAG}" ]]; then
-  log "No change needed (${APP_NAME}: ${CURRENT_TAG})"
-  exit 0
+  if [[ "${CURRENT_TAG}" == "${IMAGE_TAG}" ]]; then
+    log "No change needed (${APP_NAME}: ${CURRENT_TAG})"
+    exit 0
+  fi
 fi
 
 BACKUP_FILE=""
-if [[ "${DRY_RUN}" == "true" ]]; then
+if [[ "${DRY_RUN}" == "true" && "${IS_NEW_VALUES_FILE}" == "false" ]]; then
   BACKUP_FILE="$(mktemp)"
   cp "${VALUES_FILE}" "${BACKUP_FILE}"
 fi
@@ -252,8 +275,14 @@ update_tag "${VALUES_FILE}" "${APP_YAML_KEY}" "${IMAGE_TAG}" || \
 
 if [[ "${DRY_RUN}" == "true" ]]; then
   log "Dry-run mode enabled. Showing diff only."
-  git -C "${REPO_DIR}" --no-pager diff -- "${VALUES_REL_PATH}"
-  mv "${BACKUP_FILE}" "${VALUES_FILE}"
+  if [[ "${IS_NEW_VALUES_FILE}" == "true" ]]; then
+    # 최초 파일은 untracked이므로 일반 git diff에는 나타나지 않는다.
+    git -C "${REPO_DIR}" --no-pager diff --no-index -- /dev/null "${VALUES_FILE}" || [[ "$?" == "1" ]]
+    rm "${VALUES_FILE}"
+  else
+    git -C "${REPO_DIR}" --no-pager diff -- "${VALUES_REL_PATH}"
+    mv "${BACKUP_FILE}" "${VALUES_FILE}"
+  fi
   exit 0
 fi
 

@@ -1,0 +1,54 @@
+{{- $app := index .Values "cover-letter-web" -}}
+{{- $imageTag := required "prj-deploy prod/cover-letter-web.yaml의 cover-letter-web.image.tag가 필요합니다." $app.image.tag -}}
+{{- if not (regexMatch "^[0-9a-f]{12}$" (toString $imageTag)) -}}
+{{- fail "cover-letter-web.image.tag는 빌드 커밋 SHA 앞 12자여야 합니다." -}}
+{{- end -}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "cover-letter-web.name" . }}
+  labels:
+    {{- include "cover-letter-web.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "cover-letter-web.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "cover-letter-web.labels" . | nindent 8 }}
+    spec:
+      automountServiceAccountToken: false
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: {{ include "cover-letter-web.name" . }}
+          image: "{{ $app.image.repository }}:{{ $imageTag }}"
+          imagePullPolicy: {{ $app.image.pullPolicy }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          ports:
+            - name: http
+              containerPort: {{ $app.port }}
+              protocol: TCP
+          startupProbe:
+            {{- toYaml .Values.startupProbe | nindent 12 }}
+          readinessProbe:
+            {{- toYaml .Values.readinessProbe | nindent 12 }}
+          livenessProbe:
+            {{- toYaml .Values.livenessProbe | nindent 12 }}
+          resources:
+            {{- toYaml $app.resources | nindent 12 }}
+          # 비루트 nginx의 PID·임시 파일만 쓰기 가능하게 둔다.
+          volumeMounts:
+            - name: nginx-tmp
+              mountPath: /tmp
+      volumes:
+        - name: nginx-tmp
+          emptyDir:
+            sizeLimit: 16Mi
