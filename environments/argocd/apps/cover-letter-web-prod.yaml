@@ -1,0 +1,58 @@
+# 최초 태그 파일을 Jenkins로 생성한 뒤 이 Application을 활성화한다.
+# 순서: docs/jenkins-gitops-image-bump.md의 cover-letter-web 최초 등록 절차.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: cover-letter-web-prod
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+  annotations:
+    notifications.argoproj.io/subscribe.on-buzz-deployed.buzz-gateway: ""
+    notifications.argoproj.io/subscribe.on-buzz-degraded.buzz-gateway: ""
+  labels:
+    app.kubernetes.io/name: cover-letter-web
+    app.kubernetes.io/instance: production
+    environment: production
+spec:
+  project: default
+  sources:
+    - repoURL: https://github.com/kimjoongwon/prj-devops.git
+      path: helm/applications/cover-letter-web
+      targetRevision: main
+      helm:
+        valueFiles:
+          - values-prod.yaml
+          - "$values/prod/cover-letter-web.yaml"
+    - repoURL: https://github.com/kimjoongwon/prj-deploy.git
+      targetRevision: main
+      ref: values
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: plate-prod
+  ignoreDifferences:
+    - group: apps
+      kind: Deployment
+      jqPathExpressions:
+        - '.spec.template.metadata.annotations["kubectl.kubernetes.io/restartedAt"]'
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ApplyOutOfSyncOnly=true
+    retry:
+      limit: 3
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m
+  revisionHistoryLimit: 10
+  info:
+    - name: "Environment"
+      value: "Production"
+    - name: "Domain"
+      value: "onjitda.com/cover-letter/"
+    - name: "Description"
+      value: "한글 자기소개서 작성·미리보기·DOCX 다운로드"

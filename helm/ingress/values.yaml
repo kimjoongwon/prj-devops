@@ -58,6 +58,14 @@ ingress:
               name: proposal-web-prod
               port:
                 number: 80
+        # 접두 경로를 보존해 비루트 nginx로 전달한다.
+        - path: /cover-letter
+          pathType: Prefix
+          backend:
+            service:
+              name: cover-letter-web-prod
+              port:
+                number: 80
         # /design prefix -> design link directory
         - path: /design
           pathType: Prefix
