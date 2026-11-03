@@ -1,0 +1,4 @@
+# 이미지 태그는 ArgoCD multi-source의 prj-deploy prod/cover-letter-web.yaml만 소유한다.
+cover-letter-web:
+  image:
+    repository: harbor.onjitda.com/prod/cover-letter-web

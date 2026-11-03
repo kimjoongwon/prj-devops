@@ -23,12 +23,47 @@
 | --- | --- | --- |
 | `core-api`, `admin-web`, `idp-api`, `idp-web` | prod + stg | prod + stg |
 | `proposal-web`, `tool-storybook` | prod | prod |
-| `design-web`, `live-web` | prod | 미지원 — 해당 범프 커밋 확인 후 수동 revert PR |
+| `design-web`, `live-web`, `cover-letter-web` | prod | 미지원 — 해당 범프 커밋 확인 후 수동 revert PR |
 | `dolmen-api`, `dolmen-web` | prod + stg | 미지원 — 해당 범프 커밋 확인 후 수동 revert PR |
 
-최초 등록은 Harbor의 실제 SHA-12 이미지를 확인한 뒤 `prj-deploy` 태그 파일을 PR로 먼저
-생성해야 한다. 범프 스크립트는 기존 파일만 수정한다. Dolmen 운영의 Secret·Ingress와 최초
-배포 철회 순서는 [prod 런북](dolmen-prod-runbook.md)을 따른다.
+일반 앱의 최초 등록은 Harbor의 실제 SHA-12 이미지를 확인한 뒤 `prj-deploy` 태그 파일을 PR로
+먼저 생성한다. `cover-letter-web/prod`는 아래 명시적 Jenkins 부트스트랩 경로만 예외다.
+옵션 없는 범프는 기존 파일만 수정한다. Dolmen 운영의 Secret·Ingress와 최초 배포 철회
+순서는 [prod 런북](dolmen-prod-runbook.md)을 따른다.
+
+## cover-letter-web 최초 등록
+
+운영 주소는 `https://onjitda.com/cover-letter/`다. 정적 nginx가 접두 경로와
+`/cover-letter` → `/cover-letter/` 308 응답을 직접 처리하며 ingress는 경로를 재작성하지 않는다.
+앱은 런타임 env·OpenBao 앱 시크릿·OTel 주입을 사용하지 않고 기존 `harbor-docker-secret`만 재사용한다.
+
+`INITIALIZE_APP`는 새 빌드 잡과 `gitops-prod-image-bump`의 boolean 파라미터이며 기본값은
+`false`다. 빌드 잡은 Harbor push 성공 후에만 이 값을 범프 잡으로 전달한다. 범프 잡은
+기존 PR·`TRUSTED_DEPLOYMENT=true` 게이트와 SHA-12 검증을 통과한 경우에만 `--initialize`를
+스크립트에 전달한다. 최초 생성 허용 조합은 `cover-letter-web/prod` 하나이며, 파일이 이미
+있으면 기존 태그 범프·동일 태그 no-op로 동작한다. 파일 내용을 수동 태그로 추측해 만들지 않는다.
+
+최초 반영은 다음 순서로 나눈다. `environments/argocd/apps/`는 부모 Application이 감시하므로
+아직 없는 태그 파일을 참조하는 Application을 먼저 main에 추가하면 렌더링이 실패한다.
+
+1. `prj-devops`의 범프 스크립트·차트·Jenkins Job DSL을 PR로 main에 먼저 반영한다.
+   이 PR에서는 `environments/argocd/apps/cover-letter-web-prod.yaml`과 공용 ingress의
+   `/cover-letter` 경로를 활성화하지 않는다. Jenkins Helm 값을 정해진 수동 절차로 적용해
+   `cover-letter-web-build` 잡을 만들고 push-router 설정을 갱신한다.
+2. `prj-core`의 앱·Dockerfile·Jenkinsfile을 보호 브랜치 승격 절차로 main에 반영한다.
+   최초 자동 빌드는 `INITIALIZE_APP=false`여서 파일이 없으면 범프만 실패할 수 있다.
+   `cover-letter-web-build`를 `BRANCH_NAME=main`, `INITIALIZE_APP=true`로 실행한다.
+   이미지 push와 `gitops-prod-image-bump` 성공을 각각 확인하고 실제 SHA-12 이미지와
+   `prj-deploy/main`의 `prod/cover-letter-web.yaml` 태그가 같은지 확인한다.
+3. 태그 파일이 생긴 뒤 별도 `prj-devops` PR에서 Application과 ingress 경로를 활성화한다.
+   Application은 `prj-devops/main` 차트·`values-prod.yaml`과
+   `prj-deploy/main`의 `$values/prod/cover-letter-web.yaml`을 읽는다. 누락 파일을 무시하거나
+   `latest`·Chart appVersion으로 대신 배포하지 않는다.
+4. ArgoCD `Synced` + `Healthy`, 파드 이미지, `/healthz` 프로브, 외부 접두 경로와 DOCX
+   다운로드, Buzz 배포 알림을 확인한다. 이후 빌드는 `INITIALIZE_APP=false`로 유지한다.
+
+최초 배포를 철회할 때는 Application·ingress를 먼저 제거하고 부모 앱과 워크로드 정리를
+확인한 뒤 최초 범프 커밋을 되돌린다. 활성 Application이 참조하는 태그 파일부터 삭제하지 않는다.
 
 ## 스크립트
 - 경로: `scripts/jenkins/update-gitops-image-tag.sh`
@@ -52,6 +87,7 @@
 - `--push-retries <n>` (기본: `3`)
 - `--dry-run` (diff만 출력)
 - `--skip-push` (commit만 생성)
+- `--initialize` (`cover-letter-web/prod`의 누락된 태그 파일만 생성 허용, 기본 비활성)
 
 ## Jenkins Pipeline 예시
 
@@ -76,11 +112,25 @@
 ```bash
 ./scripts/jenkins/update-gitops-image-tag.sh \
   --app idp-api \
-  --tag test-1234abcd \
+  --tag 0123456789ab \
   --env prod \
   --workdir /path/to/prj-deploy \
   --dry-run
 ```
+
+스크립트와 cover-letter-web 배포 계약의 로컬 회귀 검증:
+
+```bash
+python3 scripts/jenkins/test-update-gitops-image-tag.py
+python3 scripts/jenkins/test-cover-letter-web.py
+```
+
+두 번째 검증에 `--core-root /path/to/prj-core`를 추가하면 앱·공용 Jenkinsfile과
+nginx 설정의 저장소 간 계약도 확인한다. 최초 등록의 준비 PR에서는
+`--deployment-stage prepared`를 함께 지정해 Application·ingress 경로가 아직 없음을
+검증한다. 활성화 PR과 이후 검증은 기본값인 `active`를 사용한다. 테스트용 태그는
+임시 Git 저장소와 로컬 Helm 렌더링에만 사용하며 운영 태그 파일을 만들거나 원격
+저장소에 push하지 않는다.
 
 ## 실패/충돌 처리
 - 스크립트는 push 시 `pull --rebase` 후 재시도(`--push-retries`) 수행
